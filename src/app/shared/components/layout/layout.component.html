@@ -1,0 +1,49 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="light">
+    <ion-buttons slot="start" class="brand">
+      <a [routerLink]="['/dashboard']" class="brand-link">
+        <div class="brand-logo">
+          <ion-icon name="lock-closed-outline" color="secondary"></ion-icon>
+        </div>
+        <span class="brand-name">SecretLink</span>
+      </a>
+    </ion-buttons>
+
+    <!-- NAV (desktop-ish) -->
+    <div class="nav-desktop">
+      @for (item of navItems; track item) {
+        <a
+          [routerLink]="[item.path]"
+          routerLinkActive="active"
+          class="nav-btn"
+        >
+          <ion-icon [name]="item.icon" color="primary"></ion-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </div>
+
+    <!-- USER MENU -->
+    <ion-buttons slot="end">
+      <ion-button id="user-menu-trigger" fill="clear" class="user-btn">
+        <div class="avatar">
+          <ion-icon name="person-circle-outline"></ion-icon>
+        </div>
+        <span class="user-email">{{ user.email }}</span>
+      </ion-button>
+      <ion-popover trigger="user-menu-trigger" triggerAction="click" side="bottom" alignment="end">
+        <ng-template>
+          <ion-content class="ion-padding">
+            <ion-list lines="none">
+              <ion-list-header>My Account</ion-list-header>
+              <ion-item (click)="handleLogout()">
+                <ion-icon name="log-out-outline" slot="start"></ion-icon>
+                <ion-label>Sign out</ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-content>
+        </ng-template>
+      </ion-popover>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
