@@ -1,5 +1,5 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { TokensPage } from './tokens.page';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {TokensPage} from './tokens.page';
 
 describe('TokensPage', () => {
   let component: TokensPage;

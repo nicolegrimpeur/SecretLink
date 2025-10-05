@@ -1,15 +1,30 @@
-import {Component, inject} from '@angular/core';
+import {Component} from '@angular/core';
 import {
   IonButton,
   IonButtons,
   IonContent,
   IonHeader,
-  IonIcon, IonItem,
-  IonLabel, IonList, IonListHeader,
+  IonIcon,
+  IonItem,
+  IonList,
   IonPopover,
+  IonRouterOutlet,
+  IonTitle,
   IonToolbar
 } from "@ionic/angular/standalone";
-import {Router, RouterLink, RouterLinkActive} from "@angular/router";
+import {RouterLink} from "@angular/router";
+import {addIcons} from 'ionicons';
+import {
+  chevronDownOutline,
+  chevronUpOutline,
+  constructOutline,
+  gridOutline,
+  keyOutline,
+  linkOutline,
+  lockClosedOutline,
+  logOutOutline,
+  personCircleOutline,
+} from 'ionicons/icons';
 
 @Component({
   selector: 'app-layout',
@@ -23,32 +38,28 @@ import {Router, RouterLink, RouterLinkActive} from "@angular/router";
     IonButton,
     IonPopover,
     IonContent,
-    IonLabel,
     IonItem,
-    IonListHeader,
     IonList,
     RouterLink,
-    RouterLinkActive
+    IonTitle,
+    IonRouterOutlet
   ]
 })
 export class LayoutComponent {
-  private router = inject(Router);
+  public popoverOpen = false;
 
-  constructor() { }
-
-  user = {
-    name: 'John Doe',
-    email: 'johndoe@gmail.com',
-  };
-
-  navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: 'grid-outline' },
-    { path: '/links',     label: 'Links',     icon: 'list-outline' },
-    { path: '/tokens',    label: 'Tokens',    icon: 'key-outline'  },
-  ];
-
-  async handleLogout() {
-    await this.router.navigateByUrl('/auth/login');
+  constructor() {
+    addIcons({
+      lockClosedOutline,
+      linkOutline,
+      gridOutline,
+      personCircleOutline,
+      chevronDownOutline,
+      keyOutline,
+      constructOutline,
+      logOutOutline,
+      chevronUpOutline,
+    });
   }
 
 }

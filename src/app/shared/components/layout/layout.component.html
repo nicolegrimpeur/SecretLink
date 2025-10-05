@@ -1,49 +1,55 @@
-<ion-header class="ion-no-border">
+<ion-header>
   <ion-toolbar color="light">
-    <ion-buttons slot="start" class="brand">
-      <a [routerLink]="['/dashboard']" class="brand-link">
-        <div class="brand-logo">
-          <ion-icon name="lock-closed-outline" color="secondary"></ion-icon>
-        </div>
-        <span class="brand-name">SecretLink</span>
-      </a>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" routerLink="/dashboard">
+        <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+        <ion-title>SecretLink</ion-title>
+      </ion-button>
+      <ion-button fill="clear" routerLink="/dashboard">
+        <ion-icon slot="start" name="grid-outline"></ion-icon>
+        Dashboard
+      </ion-button>
+      <ion-button fill="clear" routerLink="/links">
+        <ion-icon slot="start" name="link-outline"></ion-icon>
+        Liens
+      </ion-button>
     </ion-buttons>
 
-    <!-- NAV (desktop-ish) -->
-    <div class="nav-desktop">
-      @for (item of navItems; track item) {
-        <a
-          [routerLink]="[item.path]"
-          routerLinkActive="active"
-          class="nav-btn"
-        >
-          <ion-icon [name]="item.icon" color="primary"></ion-icon>
-          <span>{{ item.label }}</span>
-        </a>
-      }
-    </div>
-
-    <!-- USER MENU -->
     <ion-buttons slot="end">
-      <ion-button id="user-menu-trigger" fill="clear" class="user-btn">
-        <div class="avatar">
-          <ion-icon name="person-circle-outline"></ion-icon>
-        </div>
-        <span class="user-email">{{ user.email }}</span>
+      <ion-button id="account-btn" fill="clear">
+        <ion-icon slot="start" name="person-circle-outline"></ion-icon>
+        <span class="email">{{ "nicolegrimpeur@gmail.com" }}</span>
+        <ion-icon slot="end"
+                  name="chevron-down-outline"
+                  [class.rotated]="popoverOpen"></ion-icon>
       </ion-button>
-      <ion-popover trigger="user-menu-trigger" triggerAction="click" side="bottom" alignment="end">
-        <ng-template>
-          <ion-content class="ion-padding">
-            <ion-list lines="none">
-              <ion-list-header>My Account</ion-list-header>
-              <ion-item (click)="handleLogout()">
-                <ion-icon name="log-out-outline" slot="start"></ion-icon>
-                <ion-label>Sign out</ion-label>
-              </ion-item>
-            </ion-list>
-          </ion-content>
-        </ng-template>
-      </ion-popover>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+<ion-content>
+  <ion-router-outlet></ion-router-outlet>
+</ion-content>
+
+<ion-popover trigger="account-btn"
+             [showBackdrop]="false"
+             side="bottom"
+             alignment="end"
+             (ionPopoverWillPresent)="popoverOpen = true"
+             (ionPopoverWillDismiss)="popoverOpen = false">
+  <ng-template>
+    <ion-list lines="none">
+      <ion-item [button]="true" routerLink="/account/password" [detail]="false">
+        <ion-icon slot="start" name="key-outline"></ion-icon>
+        Changer le mot de passe
+      </ion-item>
+      <ion-item [button]="true" routerLink="/account/tokens" [detail]="false">
+        <ion-icon slot="start" name="construct-outline"></ion-icon>
+        API tokens
+      </ion-item>
+      <ion-item [button]="true" [detail]="false">
+        <ion-icon slot="start" name="log-out-outline"></ion-icon>
+        Se déconnecter
+      </ion-item>
+    </ion-list>
+  </ng-template>
+</ion-popover>
