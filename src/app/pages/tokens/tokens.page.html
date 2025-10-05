@@ -1,13 +1,28 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>tokens</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">tokens</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <ion-button (click)="create()">Créer un token</ion-button>
+
+  @if (justCreatedToken) {
+    <ion-card>
+      <ion-card-header><ion-card-title>Nouveau token</ion-card-title></ion-card-header>
+      <ion-card-content>
+        <ion-text color="warning">Copiez-le maintenant, il ne sera plus affiché :</ion-text>
+        <pre>{{ justCreatedToken }}</pre>
+      </ion-card-content>
+    </ion-card>
+  }
+
+
+  <ion-list>
+    @for (t of list; track t) {
+      <ion-item>
+        <ion-label>
+          <h2>{{ t?.label || '—' }}</h2>
+          <p>Scopes: {{ t?.scopes?.join(', ') }}</p>
+          <p>Créé: {{ t?.created_at }} — Révoqué: {{ t?.revoked_at || 'non' }}</p>
+        </ion-label>
+        <ion-button color="danger" (click)="revoke(t?.id)" [disabled]="!!t?.revoked_at">Révoquer</ion-button>
+      </ion-item>
+    }
+
+  </ion-list>
 </ion-content>

@@ -1,13 +1,22 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>login</ion-title>
+    <ion-title>Connexion</ion-title>
   </ion-toolbar>
 </ion-header>
-
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">login</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <ion-item>
+      <ion-input label="Email" type="email" formControlName="email" [required]="true"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-input label="Mot de passe" type="password" formControlName="password" [required]="true"></ion-input>
+    </ion-item>
+    <ion-button expand="block" type="submit" [disabled]="loading">Se connecter</ion-button>
+    @if (error) {
+      <ion-text color="danger">{{ error }}</ion-text>
+    }
+  </form>
+  <ion-item lines="none">
+    <ion-label>Pas de compte ? <a routerLink="/auth/signup">Créer un compte</a></ion-label>
+  </ion-item>
 </ion-content>

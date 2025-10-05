@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {
   IonButton,
   IonButtons,
@@ -12,7 +12,7 @@ import {
   IonTitle,
   IonToolbar
 } from "@ionic/angular/standalone";
-import {RouterLink} from "@angular/router";
+import {Router, RouterLink} from "@angular/router";
 import {addIcons} from 'ionicons';
 import {
   chevronDownOutline,
@@ -25,6 +25,8 @@ import {
   logOutOutline,
   personCircleOutline,
 } from 'ionicons/icons';
+import {AuthService} from "../../services/auth";
+import {User} from "../../models/user";
 
 @Component({
   selector: 'app-layout',
@@ -45,8 +47,11 @@ import {
     IonRouterOutlet
   ]
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit {
   public popoverOpen = false;
+  private router = inject(Router);
+  private auth = inject(AuthService);
+  user: User = null;
 
   constructor() {
     addIcons({
@@ -62,4 +67,16 @@ export class LayoutComponent {
     });
   }
 
+  ngOnInit() {
+    this.auth.user$.subscribe(u => this.user = u);
+  }
+
+  async handleLogout() {
+    // dismiss the popover first
+    this.popoverOpen = false;
+
+
+    await this.auth.logout();
+    await this.router.navigateByUrl('/auth/login');
+  }
 }

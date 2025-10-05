@@ -1,13 +1,13 @@
-export interface Pat {
+export type PAT = {
   id: number;
-  label: string;
+  label: string | null;
   scopes: ('links:read' | 'links:write' | 'links:delete')[];
   created_at: string;
   revoked_at: string | null;
-}
+} | null;
 
-export interface NewPat {
+export type NewPAT = {
   token: string;
   token_preview: string;
-  pat: Pat;
-}
+  pat: PAT;
+} | null;

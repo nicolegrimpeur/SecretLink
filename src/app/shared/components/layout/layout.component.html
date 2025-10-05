@@ -36,7 +36,8 @@
              side="bottom"
              alignment="end"
              (ionPopoverWillPresent)="popoverOpen = true"
-             (ionPopoverWillDismiss)="popoverOpen = false">
+             (ionPopoverWillDismiss)="popoverOpen = false"
+             [dismissOnSelect]="true">
   <ng-template>
     <ion-list lines="none">
       <ion-item [button]="true" routerLink="/account/password" [detail]="false">
@@ -47,7 +48,7 @@
         <ion-icon slot="start" name="construct-outline"></ion-icon>
         API tokens
       </ion-item>
-      <ion-item [button]="true" [detail]="false">
+      <ion-item [button]="true" [detail]="false" (click)="handleLogout()">
         <ion-icon slot="start" name="log-out-outline"></ion-icon>
         Se déconnecter
       </ion-item>

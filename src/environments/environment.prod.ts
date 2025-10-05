@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  baseURI: 'https://nicob.ovh',
+  apiBaseUrl: 'https://nicob.ovh',
 };
