@@ -1,10 +1,150 @@
-<ion-content [fullscreen]="true">
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Useful Links</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      Liens
-    </ion-card-content>
-  </ion-card>
+<ion-content class="ion-padding">
+
+  <ion-segment [(ngModel)]="tab">
+    <ion-segment-button value="create">Créer</ion-segment-button>
+    <ion-segment-button value="status">Statut</ion-segment-button>
+  </ion-segment>
+
+  <!-- === CREATE === -->
+  @if (tab === 'create') {
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Créer un lien (unitaire)</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <form [formGroup]="form" (ngSubmit)="createSingle()">
+          <ion-item>
+            <ion-input label="Identifiant (item_id)" formControlName="item_id" [required]="true"/>
+          </ion-item>
+          <ion-item>
+            <ion-textarea label="Secret" formControlName="secret" [autoGrow]="true" [required]="true"></ion-textarea>
+          </ion-item>
+          <ion-item>
+            <ion-input type="number" label="TTL (jours)" formControlName="ttl_days"/>
+          </ion-item>
+
+          <ion-item>
+            <ion-input label="(Optionnel) PAT Bearer pour cet appel" placeholder="laisser vide pour session"
+                       [(ngModel)]="inlinePat" [ngModelOptions]="{standalone: true}"/>
+          </ion-item>
+
+          <ion-button type="submit" [disabled]="form.invalid || loading">Créer</ion-button>
+        </form>
+
+        @if (lastResults?.length) {
+          <ion-list>
+            <ion-list-header>Résultat</ion-list-header>
+            @for (r of lastResults; track r.item_id) {
+              <ion-item *ngFor="let r of lastResults">
+                <ion-label>
+                  <div><b>{{ r.item_id }}</b> — {{ r.status }}</div>
+
+                  <!--TODO: à voir si je garde la div ici-->
+                  @if (r.link_url) {
+                    <div>
+                      <a [href]="r.link_url" target="_blank">{{ r.link_url }}</a>
+                    </div>
+                  }
+
+                  @if (r.expires_at) {
+                    <div>Expire: {{ r.expires_at | date:'medium' }}</div>
+                  }
+                </ion-label>
+                @if (r.link_url) {
+                  <ion-button fill="clear" (click)="copy(r.link_url!)">Copier</ion-button>
+                }
+              </ion-item>
+            }
+          </ion-list>
+        }
+
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Créer en bulk (coller CSV)</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-note>Colonnes supportées: <code>item_id,secret,ttl_days</code> — entête optionnelle.</ion-note>
+        <ion-textarea [(ngModel)]="csvText" [ngModelOptions]="{standalone:true}" [autoGrow]="true" [rows]="6"
+                      placeholder="item_id,secret,ttl_days
+alice@example.com,vpn-ALICE,7
+bob@example.com,vpn-BOB,7"></ion-textarea>
+        <div class="row">
+          <ion-input label="(Optionnel) PAT Bearer" [(ngModel)]="inlinePatBulk" [ngModelOptions]="{standalone:true}"
+                     placeholder="laisser vide pour session"/>
+          <ion-input label="(Optionnel) Idempotency-Key" [(ngModel)]="idempotencyKey"
+                     [ngModelOptions]="{standalone:true}" placeholder="ex: bulk-{{todayKey}}"/>
+        </div>
+        <ion-button (click)="createBulk()" [disabled]="loading || !csvText.trim()">Créer les liens</ion-button>
+
+        @if (lastResults?.length) {
+          <ion-list>
+            @for (r of lastResults; track r.item_id) {
+              <ion-item>
+                <ion-label>
+                  <b>{{ r.item_id }}</b> — {{ r.status }}
+                  @if (r.link_url) {
+                    <div><a [href]="r.link_url" target="_blank">{{ r.link_url }}</a></div>
+                  }
+                </ion-label>
+
+                @if (r.link_url) {
+                  <ion-button fill="clear" (click)="copy(r.link_url!)">Copier</ion-button>
+                }
+              </ion-item>
+            }
+          </ion-list>
+        }
+      </ion-card-content>
+    </ion-card>
+  }
+
+
+  <!-- === STATUS === -->
+  @if (tab === 'status') {
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Statut des liens</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="row">
+          <ion-input label="Depuis (ISO)" [(ngModel)]="since" [ngModelOptions]="{standalone:true}"
+                     placeholder="2025-09-01T00:00:00Z"></ion-input>
+          <ion-input label="Jusqu'à (ISO)" [(ngModel)]="until" [ngModelOptions]="{standalone:true}"></ion-input>
+          <ion-input label="(Optionnel) PAT Bearer" [(ngModel)]="inlinePatStatus" [ngModelOptions]="{standalone:true}"
+                     placeholder="laisser vide pour session"></ion-input>
+        </div>
+        <ion-button (click)="reload()">Actualiser</ion-button>
+        <ion-button fill="outline" (click)="exportCsv()" [disabled]="!rows.length">Exporter CSV</ion-button>
+
+        <ion-list>
+          @for (row of rows; track row.item_id) {
+            <ion-item>
+              <ion-label>
+                <div><b>{{ row.item_id }}</b></div>
+                <div class="dim">Créé: {{ row.created_at | date:'short' }}</div>
+                <div class="dim">Expire: {{ row.expires_at ? (row.expires_at | date:'short') : '—' }}</div>
+                <div class="dim">Utilisé: {{ row.used_at ? (row.used_at | date:'short') : '—' }}</div>
+                <div class="dim">Supprimé: {{ row.deleted_at ? (row.deleted_at | date:'short') : '—' }}</div>
+              </ion-label>
+
+              <ion-buttons slot="end">
+<!--                @if (!row.used_at) {-->
+                  <ion-button fill="clear" (click)="copy(linkUrl(row.link_token))" [disabled]="!row.link_token">Copier
+                    lien
+                  </ion-button>
+<!--                }-->
+
+                  <ion-button color="danger" (click)="delete(row.link_token)"
+                            [disabled]="!!row.deleted_at || !!row.used_at">Supprimer
+                </ion-button>
+              </ion-buttons>
+            </ion-item>
+          }
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+  }
 </ion-content>

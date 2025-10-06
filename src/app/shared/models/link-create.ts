@@ -1,4 +1,6 @@
-export interface LinkCreate {
+export type LinkCreateItem = { item_id: string; secret: string; ttl_days?: number };
+
+export interface LinkCreateResult {
   item_id: string;
   status: 'created' | 'duplicate_item_id' | 'invalid_item_id';
   link_token: string | null;

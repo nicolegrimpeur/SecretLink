@@ -1,12 +1,13 @@
 import {Component, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FormsModule, FormBuilder, Validators, ReactiveFormsModule} from '@angular/forms';
+import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   IonButton,
   IonContent,
   IonHeader,
   IonInput,
-  IonItem, IonLabel,
+  IonItem,
+  IonLabel,
   IonText,
   IonTitle,
   IonToolbar

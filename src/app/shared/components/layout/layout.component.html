@@ -18,7 +18,7 @@
     <ion-buttons slot="end">
       <ion-button id="account-btn" fill="clear">
         <ion-icon slot="start" name="person-circle-outline"></ion-icon>
-        <span class="email ion-hide-md-down">{{ "example@gmail.com" }}</span>
+        <span class="email ion-hide-md-down">{{ user?.email || "Chargement en cours" }}</span>
         <ion-icon slot="end"
                   class="ion-hide-md-down"
                   name="chevron-down-outline"
