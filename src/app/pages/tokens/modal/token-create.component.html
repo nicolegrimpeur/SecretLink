@@ -1,0 +1,52 @@
+<ion-header><ion-toolbar>
+  <ion-title>Nouveau token</ion-title>
+  <ion-buttons slot="end"><ion-button (click)="close()">Fermer</ion-button></ion-buttons>
+</ion-toolbar></ion-header>
+
+<ion-content class="ion-padding">
+  @if (!createdToken) {
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <ion-item>
+        <ion-input label="Label" placeholder="ex: bulk-import" formControlName="label"></ion-input>
+      </ion-item>
+
+      <ion-list [inset]="true">
+        <ion-list-header>Scopes</ion-list-header>
+        @for (s of scopes; track s.key) {
+          <ion-item>
+            <ion-checkbox slot="start" [checked]="form.value.scopes?.includes(s.key)" (ionChange)="toggleScope(s.key, $event.detail.checked)"></ion-checkbox>
+            <ion-label>
+              <b>{{ s.key }}</b> — {{ s.label }}
+              <p class="dim">{{ s.help }}</p>
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+
+      <ion-button type="submit" expand="block" [disabled]="loading">Créer</ion-button>
+    </form>
+  }
+
+  @if (createdToken) {
+    <ion-card>
+      <ion-card-header><ion-card-title>Token créé</ion-card-title></ion-card-header>
+      <ion-card-content>
+        <ion-text color="warning">Copiez-le maintenant : il ne sera plus affiché.</ion-text>
+        <pre style="white-space: break-spaces">{{ createdToken }}</pre>
+        <ion-button (click)="copy()">Copier</ion-button>
+        <div class="dim">Aperçu : …{{ createdToken.slice(-6) }}</div>
+      </ion-card-content>
+    </ion-card>
+  }
+
+
+  @if (createdToken) {
+    <ion-footer>
+      <ion-toolbar>
+        <ion-buttons slot="end">
+          <ion-button (click)="done()">Terminer</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
+  }
+</ion-content>

@@ -1,28 +1,33 @@
-<ion-content [fullscreen]="true">
-  <ion-button (click)="create()">Créer un token</ion-button>
-
-  @if (justCreatedToken) {
-    <ion-card>
-      <ion-card-header><ion-card-title>Nouveau token</ion-card-title></ion-card-header>
-      <ion-card-content>
-        <ion-text color="warning">Copiez-le maintenant, il ne sera plus affiché :</ion-text>
-        <pre>{{ justCreatedToken }}</pre>
-      </ion-card-content>
-    </ion-card>
-  }
-
+<ion-content class="ion-padding">
+  <ion-item lines="none">
+    <ion-input placeholder="Filtrer par label / scope…" [(ngModel)]="q" [ngModelOptions]="{standalone:true}" (ionChange)="applyFilter()"></ion-input>
+    <ion-button fill="outline" (click)="exportCsv()" [disabled]="!filtered().length">Exporter CSV</ion-button>
+  </ion-item>
 
   <ion-list>
-    @for (t of list; track t) {
+    @for (t of filtered(); track t?.id) {
       <ion-item>
         <ion-label>
-          <h2>{{ t?.label || '—' }}</h2>
-          <p>Scopes: {{ t?.scopes?.join(', ') }}</p>
+          <h2>
+            {{ t?.label || '—' }}
+            @if (t?.revoked_at) {
+              <ion-badge color="medium">révoqué</ion-badge>
+            }
+          </h2>
+          <p>Scopes: {{ t?.scopes.join(', ') }}</p>
           <p>Créé: {{ t?.created_at }} — Révoqué: {{ t?.revoked_at || 'non' }}</p>
         </ion-label>
-        <ion-button color="danger" (click)="revoke(t?.id)" [disabled]="!!t?.revoked_at">Révoquer</ion-button>
+        <ion-buttons slot="end">
+          <ion-button color="danger" [disabled]="!!t?.revoked_at" (click)="confirmRevoke(t)">Révoquer</ion-button>
+        </ion-buttons>
       </ion-item>
     }
-
   </ion-list>
+
+  @if (!filtered().length) {
+    <ion-item lines="none">
+      <ion-label>Aucun token. Cliquez sur <b>Créer</b> pour démarrer.</ion-label>
+    </ion-item>
+  }
+
 </ion-content>
