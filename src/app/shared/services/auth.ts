@@ -20,10 +20,8 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
-    console.log(password);
     const url = `${environment.apiBaseUrl}/api/v1/auth/login`;
     const u = await firstValueFrom(this.http.post<User>(url, { email, password }, { withCredentials: true }));
-    console.log(u);
     this.userSubject.next(u);
     return u;
   }

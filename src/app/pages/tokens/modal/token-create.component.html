@@ -13,8 +13,8 @@
       <ion-list [inset]="true">
         <ion-list-header>Scopes</ion-list-header>
         @for (s of scopes; track s.key) {
-          <ion-item>
-            <ion-checkbox slot="start" [checked]="form.value.scopes?.includes(s.key)" (ionChange)="toggleScope(s.key, $event.detail.checked)"></ion-checkbox>
+          <ion-item (click)="toggleScope(s.key)">
+            <ion-checkbox slot="start" [checked]="(form.value.scopes || []).includes(s.key)"></ion-checkbox>
             <ion-label>
               <b>{{ s.key }}</b> — {{ s.label }}
               <p class="dim">{{ s.help }}</p>

@@ -1,7 +1,7 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import {IonicModule} from '@ionic/angular';
 
-import { TokenCreateComponent } from './token-create.component';
+import {TokenCreateComponent} from './token-create.component';
 
 describe('TokenCreateComponent', () => {
   let component: TokenCreateComponent;

@@ -1,17 +1,28 @@
-import { Component, inject } from '@angular/core';
-import { IonicModule, ModalController, ToastController } from '@ionic/angular';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { PatService} from "../../../shared/services/pat";
+import {Component, inject} from '@angular/core';
+import {ToastController} from '@ionic/angular';
 import {
   IonButton,
-  IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCheckbox,
-  IonContent, IonFooter,
+  IonButtons,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonCheckbox,
+  IonContent,
+  IonFooter,
   IonHeader,
   IonInput,
-  IonItem, IonLabel, IonList, IonListHeader, IonText,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonListHeader,
+  IonText,
   IonTitle,
-  IonToolbar
-} from "@ionic/angular/standalone";
+  IonToolbar,
+  ModalController
+} from '@ionic/angular/standalone';
+import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
+import {PatService} from "../../../shared/services/pat";
 
 type Scope = { key: string; label: string; help: string };
 
@@ -45,7 +56,7 @@ export class TokenCreateComponent {
 
   private fb = inject(FormBuilder);
   private api = inject(PatService);
-  private modal = inject(ModalController);
+  private modalController = inject(ModalController);
   private toast = inject(ToastController);
 
   loading = false;
@@ -63,9 +74,9 @@ export class TokenCreateComponent {
     scopes: [[this.scopes[0].key, this.scopes[1].key] as string[]], // défaut: read+write
   });
 
-  toggleScope(key: string, checked: boolean) {
+  toggleScope(key: string) {
     const current = new Set(this.form.value.scopes || []);
-    checked ? current.add(key) : current.delete(key);
+    !current.has(key) ? current.add(key) : current.delete(key);
     this.form.patchValue({ scopes: [...current] });
   }
 
@@ -87,12 +98,11 @@ export class TokenCreateComponent {
     this.toastMsg('Copié dans le presse-papier').then();
   }
 
-  close(){ this.modal.dismiss().then(); }
-  done(){ this.modal.dismiss(null, 'created').then(); }
+  close(){ this.modalController.dismiss().then(); }
+  done(){ this.modalController.dismiss(null, 'created').then(); }
 
   private async toastMsg(message: string) {
     const t = await this.toast.create({ message, duration: 1400, position: 'bottom' });
     t.present().then();
   }
-
 }

@@ -1,7 +1,11 @@
 <ion-content class="ion-padding">
   <ion-item lines="none">
-    <ion-input placeholder="Filtrer par label / scope…" [(ngModel)]="q" [ngModelOptions]="{standalone:true}" (ionChange)="applyFilter()"></ion-input>
-    <ion-button fill="outline" (click)="exportCsv()" [disabled]="!filtered().length">Exporter CSV</ion-button>
+    <ion-input
+      placeholder="Filtrer par label / scope…"
+      [ngModel]="q()"
+      [ngModelOptions]="{standalone:true}"
+      (ionInput)="q.set($event.detail.value || '')"></ion-input>
+    <ion-button fill="outline" (click)="openCreate()">Nouveau token</ion-button>
   </ion-item>
 
   <ion-list>
@@ -14,7 +18,7 @@
               <ion-badge color="medium">révoqué</ion-badge>
             }
           </h2>
-          <p>Scopes: {{ t?.scopes.join(', ') }}</p>
+          <p>Scopes: {{ (t?.scopes || []).join(', ') }}</p>
           <p>Créé: {{ t?.created_at }} — Révoqué: {{ t?.revoked_at || 'non' }}</p>
         </ion-label>
         <ion-buttons slot="end">
