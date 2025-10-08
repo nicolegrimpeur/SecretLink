@@ -72,11 +72,24 @@
 alice@example.com,vpn-ALICE,7
 bob@example.com,vpn-BOB,7"></ion-textarea>
         <div class="row">
-          <ion-input label="(Optionnel) PAT Bearer" [(ngModel)]="inlinePatBulk" [ngModelOptions]="{standalone:true}"
-                     placeholder="laisser vide pour session"/>
-          <ion-input label="(Optionnel) Idempotency-Key" [(ngModel)]="idempotencyKey"
-                     [ngModelOptions]="{standalone:true}" placeholder="ex: bulk-{{todayKey}}"/>
+          <ion-input
+            label="(Optionnel) PAT Bearer"
+            [(ngModel)]="inlinePatBulk"
+            [ngModelOptions]="{standalone:true}"
+            placeholder="laisser vide pour session" />
+
+          <ion-input
+            label="Idempotency-Key"
+            [(ngModel)]="idempotencyKey"
+            [ngModelOptions]="{standalone:true}"
+            [clearInput]="true"
+            placeholder="ex: bulk-20251008-153045-3fa7bd">
+            <ion-button fill="clear" slot="end" (click)="generateKey()">
+              <ion-icon name="sync-outline"/>
+            </ion-button>
+          </ion-input>
         </div>
+
         <ion-button (click)="createBulk()" [disabled]="loading || !csvText.trim()">Créer les liens</ion-button>
 
         @if (lastResults?.length) {

@@ -8,7 +8,7 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
-  IonContent,
+  IonContent, IonIcon,
   IonInput,
   IonItem,
   IonLabel,
@@ -23,13 +23,15 @@ import {LinksService} from "../../shared/services/links";
 import {ToastController} from "@ionic/angular";
 import {LinkCreateItem, LinkCreateResult} from "../../shared/models/link-create";
 import {LinkStatus} from "../../shared/models/link-status";
+import {syncOutline} from "ionicons/icons";
+import {addIcons} from "ionicons";
 
 @Component({
   selector: 'app-links',
   templateUrl: './links.page.html',
   styleUrls: ['./links.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, IonListHeader, ReactiveFormsModule, IonSegmentButton, IonSegment]
+  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, IonListHeader, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon]
 })
 export class LinksPage implements OnInit {
   private api = inject(LinksService);
@@ -59,7 +61,47 @@ export class LinksPage implements OnInit {
   inlinePatStatus = '';
   rows: LinkStatus[] = [];
 
-  ngOnInit(){ this.reload().then(); }
+  constructor() {
+    addIcons({syncOutline});
+  }
+
+  ngOnInit() {
+    const saved = localStorage.getItem('idempotencyKey');
+    if (saved) this.idempotencyKey = saved;
+    this.reload().then();
+  }
+
+  generateKey() {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const ts = [
+      now.getFullYear(),
+      pad(now.getMonth() + 1),
+      pad(now.getDate()),
+      '-',
+      pad(now.getHours()),
+      pad(now.getMinutes()),
+      pad(now.getSeconds())
+    ].join('');
+    this.idempotencyKey = `bulk-${ts}-${this.randSuffix(6)}`;
+    this.persistKey();
+  }
+
+  // Petit suffixe random base36
+  private randSuffix(len = 6) {
+    return [...crypto.getRandomValues(new Uint8Array(len))]
+      .map(b => (b % 36).toString(36))
+      .join('');
+  }
+
+  private persistKey() {
+    if (this.idempotencyKey) localStorage.setItem('idempotencyKey', this.idempotencyKey);
+  }
+
+  clearKey() {
+    this.idempotencyKey = '';
+    localStorage.removeItem('idempotencyKey');
+  }
 
   async createSingle() {
     if (this.form.invalid) return;
@@ -70,16 +112,21 @@ export class LinksPage implements OnInit {
         secret: this.form.value.secret!,
         ttl_days: Number(this.form.value.ttl_days || 7),
       }];
-      this.lastResults = await this.api.createBulk(payload, { pat: this.inlinePat || undefined });
+      this.lastResults = await this.api.createBulk(payload, {pat: this.inlinePat || undefined});
       if (this.lastResults?.length) await this.reload();
     } catch (e: any) {
       this.toastMsg(e?.error?.error?.message || 'Création échouée').then();
-    } finally { this.loading = false; }
+    } finally {
+      this.loading = false;
+    }
   }
 
   async createBulk() {
     const items = this.parseCsv(this.csvText);
-    if (!items.length) { this.toastMsg('CSV vide ou invalide'); return; }
+    if (!items.length) {
+      this.toastMsg('CSV vide ou invalide').then();
+      return;
+    }
     this.loading = true;
     try {
       this.lastResults = await this.api.createBulk(items, {
@@ -89,7 +136,9 @@ export class LinksPage implements OnInit {
       if (this.lastResults?.length) await this.reload();
     } catch (e: any) {
       this.toastMsg(e?.error?.error?.message || 'Bulk échoué').then();
-    } finally { this.loading = false; }
+    } finally {
+      this.loading = false;
+    }
   }
 
   parseCsv(text: string): LinkCreateItem[] {
@@ -110,7 +159,7 @@ export class LinksPage implements OnInit {
       const [item_id, secret, ttlStr] = parts;
       const ttl = ttlStr ? Number(ttlStr) : 7;
       if (!item_id || !secret) continue;
-      items.push({ item_id, secret, ttl_days: Number.isFinite(ttl) ? ttl : 7 });
+      items.push({item_id, secret, ttl_days: Number.isFinite(ttl) ? ttl : 7});
     }
     return items;
   }
@@ -118,8 +167,8 @@ export class LinksPage implements OnInit {
   async reload() {
     try {
       this.rows = await this.api.listStatus(
-        { since: this.since || undefined, until: this.until || undefined },
-        { pat: this.inlinePatStatus || undefined }
+        {since: this.since || undefined, until: this.until || undefined},
+        {pat: this.inlinePatStatus || undefined}
       );
     } catch (e: any) {
       // ignore 401 ici si pas connecté
@@ -132,7 +181,7 @@ export class LinksPage implements OnInit {
 
   async delete(token: string) {
     try {
-      await this.api.deleteLink(token, { pat: this.inlinePatStatus || undefined });
+      await this.api.deleteLink(token, {pat: this.inlinePatStatus || undefined});
       await this.reload();
     } catch (e: any) {
       this.toastMsg(e?.error?.error?.message || 'Suppression échouée').then();
@@ -148,15 +197,18 @@ export class LinksPage implements OnInit {
     const header = 'item_id,link_token,created_at,expires_at,used_at,deleted_at';
     const lines = this.rows.map(r => [
       r.item_id, r.link_token, r.created_at, r.expires_at ?? '', r.used_at ?? '', r.deleted_at ?? ''
-    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
-    const blob = new Blob([header + '\n' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+    const blob = new Blob([header + '\n' + lines.join('\n')], {type: 'text/csv;charset=utf-8;'});
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'links_status.csv'; a.click();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'links_status.csv';
+    a.click();
     URL.revokeObjectURL(url);
   }
 
   async toastMsg(message: string) {
-    const t = await this.toast.create({ message, duration: 1400, position: 'bottom' });
+    const t = await this.toast.create({message, duration: 1400, position: 'bottom'});
     await t.present();
   }
 }
