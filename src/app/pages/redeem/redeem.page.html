@@ -1,0 +1,69 @@
+<ion-header>
+  <ion-toolbar color="light">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" routerLink="/dashboard">
+        <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+        <ion-title>SecretLink</ion-title>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+
+<ion-content class="ion-padding">
+  <div class="wrap">
+    @if (state==='ready') {
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Ce lien est à usage unique</ion-card-title>
+        <ion-card-subtitle>Le secret sera affiché une seule fois</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item lines="none">
+          <ion-checkbox [(ngModel)]="ack" [ngModelOptions]="{standalone:true}" justify="start">
+            J’ai compris qu’il ne sera plus accessible après affichage
+          </ion-checkbox>
+        </ion-item>
+        <ion-button expand="block" [disabled]="!ack || loading" (click)="reveal()">Afficher le secret</ion-button>
+        <p class="hint">Conseil : ne stockez pas ce secret dans un email. Copiez-le puis conservez-le en lieu sûr (gestionnaire de mots de passe, etc.).</p>
+      </ion-card-content>
+    </ion-card>
+    }
+
+    @if (state==='loading') {
+      <ion-card>
+        <ion-card-header><ion-card-title>Chargement…</ion-card-title></ion-card-header>
+        <ion-card-content><ion-skeleton-text [animated]="true" style="height: 80px"></ion-skeleton-text></ion-card-content>
+      </ion-card>
+    }
+
+    @if (state==='success') {
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Secret révélé</ion-card-title>
+          @if (itemId) {
+            <ion-card-subtitle>Identifiant : {{ itemId }}</ion-card-subtitle>
+          }
+        </ion-card-header>
+        <ion-card-content>
+          <div class="card-secret">{{ secret }}</div>
+          <ion-button class="ion-margin-top" (click)="copy()">Copier</ion-button>
+          <p class="hint ion-margin-top">
+            Ce secret ne sera plus disponible en rechargeant cette page ou en rouvrant le lien.
+          </p>
+        </ion-card-content>
+      </ion-card>
+    }
+
+    @if (state==='error') {
+      <ion-card color="light">
+        <ion-card-header>
+          <ion-card-title>Lien invalide ou expiré</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <p class="hint">{{ errorMessage }}</p>
+        </ion-card-content>
+      </ion-card>
+    }
+  </div>
+</ion-content>

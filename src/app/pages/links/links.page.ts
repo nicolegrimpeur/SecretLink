@@ -25,6 +25,7 @@ import {LinkCreateItem, LinkCreateResult} from "../../shared/models/link-create"
 import {LinkStatus} from "../../shared/models/link-status";
 import {syncOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
+import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-links',
@@ -53,7 +54,6 @@ export class LinksPage implements OnInit {
   csvText = '';
   inlinePatBulk = '';
   idempotencyKey = '';
-  todayKey = Date.now();
 
   // status
   since = '';
@@ -176,7 +176,7 @@ export class LinksPage implements OnInit {
   }
 
   linkUrl(token: string) {
-    return `${location.origin}/api/vaultlink/links/${encodeURIComponent(token)}/redeem`;
+    return `${environment.frontBaseUrl}/redeem/${encodeURIComponent(token)}`;
   }
 
   async delete(token: string) {

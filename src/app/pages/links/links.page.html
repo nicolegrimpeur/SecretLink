@@ -31,18 +31,18 @@
           <ion-button type="submit" [disabled]="form.invalid || loading">Créer</ion-button>
         </form>
 
-        @if (lastResults?.length) {
+        @if (lastResults?.length && form.get('item_id')) {
           <ion-list>
             <ion-list-header>Résultat</ion-list-header>
             @for (r of lastResults; track r.item_id) {
-              <ion-item *ngFor="let r of lastResults">
+              <ion-item>
                 <ion-label>
                   <div><b>{{ r.item_id }}</b> — {{ r.status }}</div>
 
                   <!--TODO: à voir si je garde la div ici-->
-                  @if (r.link_url) {
+                  @if (r.link_token) {
                     <div>
-                      <a [href]="r.link_url" target="_blank">{{ r.link_url }}</a>
+                      <a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a>
                     </div>
                   }
 
@@ -50,8 +50,8 @@
                     <div>Expire: {{ r.expires_at | date:'medium' }}</div>
                   }
                 </ion-label>
-                @if (r.link_url) {
-                  <ion-button fill="clear" (click)="copy(r.link_url!)">Copier</ion-button>
+                @if (r.link_token) {
+                  <ion-button fill="clear" (click)="copy(linkUrl(r.link_token))">Copier</ion-button>
                 }
               </ion-item>
             }
@@ -92,19 +92,19 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
 
         <ion-button (click)="createBulk()" [disabled]="loading || !csvText.trim()">Créer les liens</ion-button>
 
-        @if (lastResults?.length) {
+        @if (lastResults?.length && !form.get('item_id')) {
           <ion-list>
             @for (r of lastResults; track r.item_id) {
               <ion-item>
                 <ion-label>
                   <b>{{ r.item_id }}</b> — {{ r.status }}
-                  @if (r.link_url) {
-                    <div><a [href]="r.link_url" target="_blank">{{ r.link_url }}</a></div>
+                  @if (r.link_token) {
+                    <div><a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a></div>
                   }
                 </ion-label>
 
-                @if (r.link_url) {
-                  <ion-button fill="clear" (click)="copy(r.link_url!)">Copier</ion-button>
+                @if (r.link_token) {
+                  <ion-button fill="clear" (click)="copy(linkUrl(r.link_token))">Copier</ion-button>
                 }
               </ion-item>
             }

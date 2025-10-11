@@ -11,6 +11,10 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'redeem/:token',
+    loadComponent: () => import('./pages/redeem/redeem.page').then( m => m.RedeemPage)
+  },
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () => import('./shared/components/layout/layout.component').then(m => m.LayoutComponent),
@@ -30,14 +34,5 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ]
   },
-
-  // {
-  //   path: 'login',
-  //   loadComponent: () => import('./pages/auth/login/login.page').then(m => m.LoginPage)
-  // },
-  // {
-  //   path: 'signup',
-  //   loadComponent: () => import('./pages/auth/signup/signup.page').then(m => m.SignupPage)
-  // },
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: '' },
 ];
