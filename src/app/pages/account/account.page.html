@@ -1,0 +1,80 @@
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        Changer le mot de passe
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <ion-item>
+          <ion-input label="Mot de passe actuel" type="password" formControlName="current_password" [required]="true">
+            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+          </ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-input label="Nouveau mot de passe" type="password" formControlName="new_password" [required]="true">
+            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+          </ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-input label="Confirmer le nouveau" type="password" formControlName="confirm" [required]="true">
+            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+          </ion-input>
+        </ion-item>
+
+        @if (error) {
+          <ion-text color="danger" style="display:block;margin-top:8px">{{ error }}</ion-text>
+        }
+
+        <ion-button expand="block" type="submit" [disabled]="loading || form.invalid">Mettre à jour</ion-button>
+      </form>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        Tokens API
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-input
+          placeholder="Filtrer par label / scope…"
+          [ngModel]="q()"
+          [ngModelOptions]="{standalone:true}"
+          (ionInput)="q.set($event.detail.value || '')"></ion-input>
+        <ion-button fill="outline" (click)="openCreate()">Nouveau token</ion-button>
+      </ion-item>
+
+      <ion-list>
+        @for (t of filtered(); track t?.id) {
+          <ion-item>
+            <ion-label>
+              <h2>
+                {{ t?.label || '—' }}
+                @if (t?.revoked_at) {
+                  <ion-badge color="medium">révoqué</ion-badge>
+                }
+              </h2>
+              <p>Scopes: {{ (t?.scopes || []).join(', ') }}</p>
+              <p>Créé: {{ t?.created_at }} — Révoqué: {{ t?.revoked_at || 'non' }}</p>
+            </ion-label>
+            <ion-buttons slot="end">
+              <ion-button color="danger" [disabled]="!!t?.revoked_at" (click)="confirmRevoke(t)">Révoquer</ion-button>
+            </ion-buttons>
+          </ion-item>
+        }
+      </ion-list>
+
+      @if (!filtered().length) {
+        <ion-item lines="none">
+          <ion-label>Aucun token. Cliquez sur <b>Créer</b> pour démarrer.</ion-label>
+        </ion-item>
+      }
+    </ion-card-content>
+  </ion-card>
+</ion-content>

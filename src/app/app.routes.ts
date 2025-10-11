@@ -24,8 +24,8 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/links/links.page').then( m => m.LinksPage)
       },
       {
-        path: 'tokens',
-        loadComponent: () => import('./pages/tokens/tokens.page').then( m => m.TokensPage)
+        path: 'account',
+        loadComponent: () => import('./pages/account/account.page').then(m => m.AccountPage)
       },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ]
