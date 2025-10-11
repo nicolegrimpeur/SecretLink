@@ -4,11 +4,7 @@ import {authGuard} from "./shared/auth-guard";
 export const routes: Routes = [
   {
     path: 'auth',
-    children: [
-      { path: 'login',  loadComponent: () => import('./pages/auth/login/login.page').then(m => m.LoginPage) },
-      { path: 'signup', loadComponent: () => import('./pages/auth/signup/signup.page').then(m => m.SignupPage) },
-      { path: '', pathMatch: 'full', redirectTo: 'login' }
-    ]
+    loadComponent: () => import('./pages/auth/auth.page').then(m => m.AuthPage)
   },
   {
     path: 'redeem/:token',
@@ -35,4 +31,8 @@ export const routes: Routes = [
     ]
   },
   { path: '**', redirectTo: '' },
+  {
+    path: 'auth',
+    loadComponent: () => import('./pages/auth/auth.page').then( m => m.AuthPage)
+  },
 ];

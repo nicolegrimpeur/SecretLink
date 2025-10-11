@@ -1,0 +1,77 @@
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+}
+
+ion-card.auth-card {
+  width: 100%;
+  max-width: 650px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.form {
+  margin-top: 12px;
+
+  ion-item {
+    margin-top: 8px;
+  }
+  ion-button {
+    margin-top: 12px;
+  }
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: var(--ion-color-primary);
+}
+
+.alt-link {
+  text-align: center;
+
+  span {
+    color: var(--ion-color-primary);
+    font-weight: 500;
+    text-decoration: none;
+  }
+  span:hover {
+    text-decoration: underline;
+  }
+}
+
+
+/* Wrapper "accordéon" qui anime la hauteur sans sauts */
+.confirm-accordion {
+  display: grid;
+  grid-template-rows: 0fr;          /* fermé */
+  transition: grid-template-rows 180ms ease;
+
+  /* masque le contenu quand fermé */
+  .confirm-inner {
+    overflow: hidden;               /* important pour cacher l'intérieur à 0fr */
+  }
+}
+
+/* ouvert : la piste prend sa hauteur naturelle */
+.confirm-accordion.open {
+  grid-template-rows: 1fr;
+}
+
+/* petit plus: fade/slide discret du contenu, sans impacter la hauteur */
+.confirm-inner > ion-item {
+  transition: opacity 160ms ease, transform 160ms ease, margin 160ms ease;
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.confirm-accordion.open .confirm-inner > ion-item {
+  opacity: 1;
+  transform: translateY(0);
+}

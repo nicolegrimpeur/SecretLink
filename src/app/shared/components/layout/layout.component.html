@@ -1,22 +1,22 @@
 <ion-header>
-  <ion-toolbar color="light">
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button fill="clear" routerLink="/dashboard">
+      <ion-button fill="clear" routerLink="/dashboard" color="primary">
         <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
         <ion-title>SecretLink</ion-title>
       </ion-button>
-      <ion-button class="ion-hide-md-down" fill="clear" routerLink="/dashboard">
+      <ion-button class="ion-hide-md-down" fill="clear" routerLink="/dashboard" color="primary">
         <ion-icon slot="start" name="grid-outline"></ion-icon>
         Dashboard
       </ion-button>
-      <ion-button class="ion-hide-md-down" fill="clear" routerLink="/links">
+      <ion-button class="ion-hide-md-down" fill="clear" routerLink="/links" color="primary">
         <ion-icon slot="start" name="link-outline"></ion-icon>
         Liens
       </ion-button>
     </ion-buttons>
 
     <ion-buttons slot="end">
-      <ion-button id="account-btn" fill="clear">
+      <ion-button id="account-btn" fill="clear" color="primary">
         <ion-icon slot="start" name="person-circle-outline"></ion-icon>
         <span class="email ion-hide-md-down">{{ user?.email || "Chargement en cours" }}</span>
         <ion-icon slot="end"
