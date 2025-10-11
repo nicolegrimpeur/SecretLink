@@ -133,7 +133,7 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
         <ion-button fill="outline" (click)="exportCsv()" [disabled]="!rows.length">Exporter CSV</ion-button>
 
         <ion-list>
-          @for (row of rows; track row.item_id) {
+          @for (row of rows; track row.link_token) {
             <ion-item>
               <ion-label>
                 <div><b>{{ row.item_id }}</b></div>
@@ -145,8 +145,8 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
 
               <ion-buttons slot="end">
 <!--                @if (!row.used_at) {-->
-                  <ion-button fill="clear" (click)="copy(linkUrl(row.link_token))" [disabled]="!row.link_token">Copier
-                    lien
+                  <ion-button fill="clear" (click)="copy(linkUrl(row.link_token))" [disabled]="!row.link_token">
+                    Copier lien
                   </ion-button>
 <!--                }-->
 
