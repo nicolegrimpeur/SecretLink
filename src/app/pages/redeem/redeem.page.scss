@@ -1,0 +1,26 @@
+.redeem-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 20vh;
+  min-height: 100%;
+}
+
+.redeem-card {
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.large-card {
+  max-width: 650px;
+}
+
+.small-card {
+  max-width: 400px;
+}
+
+.invalid-code {
+  text-align: center;
+}

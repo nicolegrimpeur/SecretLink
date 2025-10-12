@@ -1,13 +1,13 @@
 import {Component, inject, OnInit} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 import {
   IonButton, IonButtons,
   IonCard, IonCardContent,
   IonCardHeader, IonCardSubtitle,
   IonCardTitle, IonCheckbox,
   IonContent,
-  IonHeader, IonIcon, IonItem, IonSkeletonText,
+  IonHeader, IonIcon, IonInput, IonItem, IonSkeletonText,
   IonTitle,
   IonToolbar
 } from '@ionic/angular/standalone';
@@ -16,7 +16,7 @@ import {ToastController} from "@ionic/angular";
 import {ActivatedRoute, RouterLink} from "@angular/router";
 import {environment} from "../../../environments/environment";
 import {addIcons} from "ionicons";
-import {lockClosedOutline} from "ionicons/icons";
+import {lockClosedOutline, copyOutline} from "ionicons/icons";
 
 type RedeemResponse =
   | { secret: string; item_id?: string; expires_at?: string } // succès
@@ -27,7 +27,7 @@ type RedeemResponse =
   templateUrl: './redeem.page.html',
   styleUrls: ['./redeem.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardSubtitle, IonCardContent, IonItem, IonCheckbox, IonButton, IonSkeletonText, IonButtons, IonIcon, RouterLink]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardSubtitle, IonCardContent, IonItem, IonCheckbox, IonButton, IonSkeletonText, IonButtons, IonIcon, RouterLink, IonInput]
 })
 export class RedeemPage implements OnInit {
   private route = inject(ActivatedRoute);
@@ -44,7 +44,7 @@ export class RedeemPage implements OnInit {
   errorMessage = 'Ce lien a peut-être déjà été utilisé, supprimé ou a expiré.';
 
   constructor() {
-    addIcons({lockClosedOutline});
+    addIcons({lockClosedOutline, copyOutline});
   }
 
   ngOnInit() {
@@ -52,12 +52,16 @@ export class RedeemPage implements OnInit {
   }
 
   async reveal() {
-    if (!this.token) { this.state = 'error'; return; }
-    this.loading = true; this.state = 'loading';
+    if (!this.token) {
+      this.state = 'error';
+      return;
+    }
+    this.loading = true;
+    this.state = 'loading';
     try {
       // Public endpoint: pas de cookies -> withCredentials: false
       const url = `${environment.apiBaseUrl}/api/vaultlink/links/${encodeURIComponent(this.token)}/redeem`;
-      const res = await this.http.get<RedeemResponse>(url, { withCredentials: false }).toPromise();
+      const res = await this.http.get<RedeemResponse>(url, {withCredentials: false}).toPromise();
 
       // Si ton backend renvoie { secret, item_id? }
       const anyRes = res as any;
@@ -87,7 +91,11 @@ export class RedeemPage implements OnInit {
   async copy() {
     if (!this.secret) return;
     await navigator.clipboard.writeText(this.secret);
-    await (await this.toast.create({message: 'Copié', duration: 1200, position: 'bottom'})).present();
+    await (await this.toast.create({
+      message: 'Copié dans le presse papier',
+      duration: 1200,
+      position: 'bottom'
+    })).present();
   }
 
   private fail(msg?: string) {

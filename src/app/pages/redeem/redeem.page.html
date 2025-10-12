@@ -1,7 +1,7 @@
 <ion-header>
-  <ion-toolbar color="light">
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button fill="clear" routerLink="/dashboard">
+      <ion-button fill="clear" routerLink="/dashboard" color="primary">
         <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
         <ion-title>SecretLink</ion-title>
       </ion-button>
@@ -10,10 +10,10 @@
 </ion-header>
 
 
-<ion-content class="ion-padding">
-  <div class="wrap">
+<ion-content>
+  <div class="redeem-container">
     @if (state==='ready') {
-    <ion-card>
+    <ion-card class="redeem-card large-card">
       <ion-card-header>
         <ion-card-title>Ce lien est à usage unique</ion-card-title>
         <ion-card-subtitle>Le secret sera affiché une seule fois</ion-card-subtitle>
@@ -31,32 +31,35 @@
     }
 
     @if (state==='loading') {
-      <ion-card>
+      <ion-card class="redeem-card small-card">
         <ion-card-header><ion-card-title>Chargement…</ion-card-title></ion-card-header>
         <ion-card-content><ion-skeleton-text [animated]="true" style="height: 80px"></ion-skeleton-text></ion-card-content>
       </ion-card>
     }
 
     @if (state==='success') {
-      <ion-card>
+      <ion-card class="redeem-card small-card">
         <ion-card-header>
           <ion-card-title>Secret révélé</ion-card-title>
-          @if (itemId) {
-            <ion-card-subtitle>Identifiant : {{ itemId }}</ion-card-subtitle>
-          }
+          <ion-card-subtitle>Identifiant : {{ itemId }}</ion-card-subtitle>
         </ion-card-header>
         <ion-card-content>
-          <div class="card-secret">{{ secret }}</div>
-          <ion-button class="ion-margin-top" (click)="copy()">Copier</ion-button>
-          <p class="hint ion-margin-top">
-            Ce secret ne sera plus disponible en rechargeant cette page ou en rouvrant le lien.
-          </p>
+          <ion-item lines="none" class="ion-no-padding">
+            <ion-input label="Secret :" type="text" [value]="secret" [readonly]="true">
+              <ion-button (click)="copy()" slot="end">
+                <ion-icon name="copy-outline"></ion-icon>
+              </ion-button>
+            </ion-input>
+          </ion-item>
+        </ion-card-content>
+        <ion-card-content>
+          Ce secret ne sera plus disponible en rechargeant cette page ou en rouvrant le lien.
         </ion-card-content>
       </ion-card>
     }
 
     @if (state==='error') {
-      <ion-card color="light">
+      <ion-card class="redeem-card invalid-code small-card">
         <ion-card-header>
           <ion-card-title>Lien invalide ou expiré</ion-card-title>
         </ion-card-header>

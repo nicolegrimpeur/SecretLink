@@ -40,12 +40,12 @@
              [dismissOnSelect]="true">
   <ng-template>
     <ion-list lines="none">
-      <ion-item [button]="true" routerLink="/account" [detail]="false">
-        <ion-icon slot="start" name="key-outline"></ion-icon>
+      <ion-item [button]="true" routerLink="/account">
+        <ion-icon slot="start" name="key-outline" color="primary"></ion-icon>
         Gestion du compte
       </ion-item>
-      <ion-item [button]="true" [detail]="false" (click)="handleLogout()">
-        <ion-icon slot="start" name="log-out-outline"></ion-icon>
+      <ion-item [button]="true" (click)="handleLogout()">
+        <ion-icon slot="start" name="log-out-outline" color="primary"></ion-icon>
         Se déconnecter
       </ion-item>
     </ion-list>
