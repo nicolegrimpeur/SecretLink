@@ -1,4 +1,4 @@
-<ion-content class="ion-padding primary-background">
+<ion-content>
   <div class="auth-container">
     <ion-card class="auth-card">
       <ion-card-header>
@@ -10,8 +10,12 @@
 
       <ion-card-content>
         <ion-segment [value]="mode()" (ionChange)="switchMode($event.detail.value ?? mode())">
-          <ion-segment-button value="login"><ion-label>Connexion</ion-label></ion-segment-button>
-          <ion-segment-button value="signup"><ion-label>Inscription</ion-label></ion-segment-button>
+          <ion-segment-button value="login">
+            <ion-label>Connexion</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="signup">
+            <ion-label>Inscription</ion-label>
+          </ion-segment-button>
         </ion-segment>
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="form">
@@ -36,38 +40,6 @@
               <ion-input-password-toggle slot="end"></ion-input-password-toggle>
             </ion-input>
           </ion-item>
-
-          <!-- Champ visible uniquement en mode signup -->
-<!--          @if (mode() === 'signup') {-->
-<!--            <ion-item>-->
-<!--              <ion-input-->
-<!--                label="Confirmer le mot de passe"-->
-<!--                type="password"-->
-<!--                formControlName="passwordConfirm"-->
-<!--                [required]="true"-->
-<!--                autocomplete="new-password"-->
-<!--              >-->
-<!--                <ion-input-password-toggle slot="end"></ion-input-password-toggle>-->
-<!--              </ion-input>-->
-<!--            </ion-item>-->
-<!--          }-->
-
-          <!-- Champ visible uniquement en mode signup -->
-<!--          @if (mode() === 'signup') {-->
-<!--            <div animate.enter="confirm-enter" animate.leave="confirm-leave">-->
-<!--              <ion-item>-->
-<!--                <ion-input-->
-<!--                  label="Confirmer le mot de passe"-->
-<!--                  type="password"-->
-<!--                  formControlName="passwordConfirm"-->
-<!--                  [required]="true"-->
-<!--                  autocomplete="new-password"-->
-<!--                >-->
-<!--                  <ion-input-password-toggle slot="end"></ion-input-password-toggle>-->
-<!--                </ion-input>-->
-<!--              </ion-item>-->
-<!--            </div>-->
-<!--          }-->
 
           <div class="confirm-accordion" [class.open]="mode() === 'signup'">
             <div class="confirm-inner">
