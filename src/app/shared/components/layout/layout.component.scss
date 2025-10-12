@@ -8,8 +8,3 @@ ion-icon[name="chevron-down-outline"] {
 ion-item {
   color: var(--ion-color-primary);
 }
-
-ion-popover::part(content) {
-  border-radius: 16px;
-  --box-shadow: 0 6px 10px var(--ion-color-primary-rgba);
-}

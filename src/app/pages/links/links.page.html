@@ -14,18 +14,24 @@
       <ion-card-content>
         <form [formGroup]="form" (ngSubmit)="createSingle()">
           <ion-item>
-            <ion-input label="Identifiant (item_id)" formControlName="item_id" [required]="true"/>
+            <ion-input label="Identifiant" formControlName="item_id" [required]="true"/>
           </ion-item>
           <ion-item>
             <ion-textarea label="Secret" formControlName="secret" [autoGrow]="true" [required]="true"></ion-textarea>
           </ion-item>
           <ion-item>
-            <ion-input type="number" label="TTL (jours)" formControlName="ttl_days"/>
-          </ion-item>
-
-          <ion-item>
-            <ion-input label="(Optionnel) PAT Bearer pour cet appel" placeholder="laisser vide pour session"
-                       [(ngModel)]="inlinePat" [ngModelOptions]="{standalone: true}"/>
+            <ion-input type="number" label="Durée de vie du lien" formControlName="ttl_days">
+              <ion-button fill="clear" slot="end" id="infoTTL">
+                <ion-icon name="information-circle-outline"></ion-icon>
+              </ion-button>
+              <ion-popover trigger="infoTTL" triggerAction="click" [showBackdrop]="false">
+                <ng-template>
+                  <ion-content class="ion-padding">
+                    Durée de validité du lien en jours. Par défaut 7 jours. Mettre 0 pour un lien sans expiration.
+                  </ion-content>
+                </ng-template>
+              </ion-popover>
+            </ion-input>
           </ion-item>
 
           <ion-button type="submit" [disabled]="form.invalid || loading">Créer</ion-button>
@@ -37,17 +43,14 @@
             @for (r of lastResults; track r.item_id) {
               <ion-item>
                 <ion-label>
-                  <div><b>{{ r.item_id }}</b> — {{ r.status }}</div>
+                  <b>{{ r.item_id }}</b> — {{ statusHelp[r.status] }}
 
-                  <!--TODO: à voir si je garde la div ici-->
                   @if (r.link_token) {
-                    <div>
-                      <a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a>
-                    </div>
+                    <a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a>
                   }
 
                   @if (r.expires_at) {
-                    <div>Expire: {{ r.expires_at | date:'medium' }}</div>
+                    <div>Expire : {{ r.expires_at | date:'medium' }}</div>
                   }
                 </ion-label>
                 @if (r.link_token) {
@@ -76,13 +79,14 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
             label="(Optionnel) PAT Bearer"
             [(ngModel)]="inlinePatBulk"
             [ngModelOptions]="{standalone:true}"
-            placeholder="laisser vide pour session" />
+            placeholder="laisser vide pour session"/>
 
           <ion-input
-            label="Idempotency-Key"
+            label="(Optionnel) Idempotency-Key"
             [(ngModel)]="idempotencyKey"
             [ngModelOptions]="{standalone:true}"
             [clearInput]="true"
+            (ionInput)="idempotencyKey === '' ? clearKey() : null"
             placeholder="ex: bulk-20251008-153045-3fa7bd">
             <ion-button fill="clear" slot="end" (click)="generateKey()">
               <ion-icon name="sync-outline"/>
@@ -126,8 +130,6 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
           <ion-input label="Depuis (ISO)" [(ngModel)]="since" [ngModelOptions]="{standalone:true}"
                      placeholder="2025-09-01T00:00:00Z"></ion-input>
           <ion-input label="Jusqu'à (ISO)" [(ngModel)]="until" [ngModelOptions]="{standalone:true}"></ion-input>
-          <ion-input label="(Optionnel) PAT Bearer" [(ngModel)]="inlinePatStatus" [ngModelOptions]="{standalone:true}"
-                     placeholder="laisser vide pour session"></ion-input>
         </div>
         <ion-button (click)="reload()">Actualiser</ion-button>
         <ion-button fill="outline" (click)="exportCsv()" [disabled]="!rows.length">Exporter CSV</ion-button>
@@ -137,20 +139,18 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
             <ion-item>
               <ion-label>
                 <div><b>{{ row.item_id }}</b></div>
-                <div class="dim">Créé: {{ row.created_at | date:'short' }}</div>
+                <div class="dim">Créé: {{ row.created_at | date: 'short' }}</div>
                 <div class="dim">Expire: {{ row.expires_at ? (row.expires_at | date:'short') : '—' }}</div>
                 <div class="dim">Utilisé: {{ row.used_at ? (row.used_at | date:'short') : '—' }}</div>
                 <div class="dim">Supprimé: {{ row.deleted_at ? (row.deleted_at | date:'short') : '—' }}</div>
               </ion-label>
 
               <ion-buttons slot="end">
-<!--                @if (!row.used_at) {-->
-                  <ion-button fill="clear" (click)="copy(linkUrl(row.link_token))" [disabled]="!row.link_token">
-                    Copier lien
-                  </ion-button>
-<!--                }-->
+                <ion-button fill="clear" (click)="copy(linkUrl(row.link_token))" [disabled]="!row.link_token">
+                  Copier lien
+                </ion-button>
 
-                  <ion-button color="danger" (click)="delete(row.link_token)"
+                <ion-button color="danger" (click)="delete(row.link_token)"
                             [disabled]="!!row.deleted_at || !!row.used_at">Supprimer
                 </ion-button>
               </ion-buttons>

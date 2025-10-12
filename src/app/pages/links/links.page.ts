@@ -14,7 +14,7 @@ import {
   IonLabel,
   IonList,
   IonListHeader,
-  IonNote,
+  IonNote, IonPopover,
   IonSegment,
   IonSegmentButton,
   IonTextarea
@@ -23,7 +23,7 @@ import {LinksService} from "../../shared/services/links";
 import {ToastController} from "@ionic/angular";
 import {LinkCreateItem, LinkCreateResult} from "../../shared/models/link-create";
 import {LinkStatus} from "../../shared/models/link-status";
-import {syncOutline} from "ionicons/icons";
+import {syncOutline, informationCircleOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
 import {environment} from "../../../environments/environment";
 
@@ -32,7 +32,7 @@ import {environment} from "../../../environments/environment";
   templateUrl: './links.page.html',
   styleUrls: ['./links.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, IonListHeader, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon]
+  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, IonListHeader, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonPopover]
 })
 export class LinksPage implements OnInit {
   private api = inject(LinksService);
@@ -47,7 +47,6 @@ export class LinksPage implements OnInit {
     secret: ['', [Validators.required]],
     ttl_days: [7, []],
   });
-  inlinePat: string = '';
   lastResults: LinkCreateResult[] | null = null;
 
   // bulk
@@ -58,11 +57,18 @@ export class LinksPage implements OnInit {
   // status
   since = '';
   until = '';
-  inlinePatStatus = '';
   rows: LinkStatus[] = [];
 
+  // affichage aide en fonction du status, sous la forme d'une map status => string avec plus d'explications
+  statusHelp: {[key: string]: string} = {
+    'created': 'Lien créé avec succès.',
+    'duplicate_item_id': 'Un lien avec le même identifiant existe déjà. Aucun nouveau lien n\'a été créé.',
+    'invalid_item_id': 'Les informations fournies sont invalides. Veuillez les vérifier et réessayer.',
+  }
+
+
   constructor() {
-    addIcons({syncOutline});
+    addIcons({syncOutline, informationCircleOutline});
   }
 
   ngOnInit() {
@@ -99,8 +105,8 @@ export class LinksPage implements OnInit {
   }
 
   clearKey() {
-    this.idempotencyKey = '';
-    localStorage.removeItem('idempotencyKey');
+    console.log('clearKey');
+    if (this.idempotencyKey === '') localStorage.removeItem('idempotencyKey');
   }
 
   async createSingle() {
@@ -110,9 +116,9 @@ export class LinksPage implements OnInit {
       const payload: LinkCreateItem[] = [{
         item_id: this.form.value.item_id!,
         secret: this.form.value.secret!,
-        ttl_days: Number(this.form.value.ttl_days || 7),
+        ttl_days: Number(this.form.value.ttl_days || 0),
       }];
-      this.lastResults = await this.api.createBulk(payload, {pat: this.inlinePat || undefined});
+      this.lastResults = await this.api.createBulk(payload);
       if (this.lastResults?.length) await this.reload();
     } catch (e: any) {
       this.toastMsg(e?.error?.error?.message || 'Création échouée').then();
@@ -167,8 +173,7 @@ export class LinksPage implements OnInit {
   async reload() {
     try {
       this.rows = await this.api.listStatus(
-        {since: this.since || undefined, until: this.until || undefined},
-        {pat: this.inlinePatStatus || undefined}
+        {since: this.since || undefined, until: this.until || undefined}
       );
     } catch (e: any) {
       // ignore 401 ici si pas connecté
@@ -181,7 +186,7 @@ export class LinksPage implements OnInit {
 
   async delete(token: string) {
     try {
-      await this.api.deleteLink(token, {pat: this.inlinePatStatus || undefined});
+      await this.api.deleteLink(token);
       await this.reload();
     } catch (e: any) {
       this.toastMsg(e?.error?.error?.message || 'Suppression échouée').then();

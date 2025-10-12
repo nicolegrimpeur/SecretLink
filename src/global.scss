@@ -45,3 +45,8 @@ ion-card > .header-md {
 ion-card {
   box-shadow: rgb(210 106 101 / 20%) 0 3px 1px -2px, rgb(210 106 101 / 14%) 0 2px 2px 0px, rgb(210 106 101 / 12%) 0 1px 5px 0px !important;
 }
+
+ion-popover::part(content) {
+  border-radius: 16px;
+  --box-shadow: 0 6px 10px var(--ion-color-primary-rgba);
+}
