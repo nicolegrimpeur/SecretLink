@@ -9,7 +9,7 @@ import {
   IonInput, IonInputPasswordToggle,
   IonItem,
   IonLabel,
-  IonList, IonText,
+  IonList, IonText, IonToggle,
   ModalController
 } from '@ionic/angular/standalone';
 import {PAT} from "../../shared/models/pat";
@@ -17,13 +17,14 @@ import {PatService} from "../../shared/services/pat";
 import {AlertController, ToastController} from "@ionic/angular";
 import {TokenCreateComponent} from "./modal/token-create.component";
 import {AuthService} from "../../shared/services/auth";
+import {Storage} from "../../core/storage";
 
 @Component({
   selector: 'app-tokens',
   templateUrl: './account.page.html',
   styleUrls: ['./account.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonButton, IonList, IonLabel, IonItem, IonInput, IonBadge, IonButtons, IonText, ReactiveFormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonInputPasswordToggle]
+  imports: [IonContent, CommonModule, FormsModule, IonButton, IonList, IonLabel, IonItem, IonInput, IonBadge, IonButtons, IonText, ReactiveFormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonInputPasswordToggle, IonToggle]
 })
 export class AccountPage {
   private api = inject(PatService);
@@ -32,6 +33,7 @@ export class AccountPage {
   private modal = inject(ModalController);
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
+  private storage = inject(Storage);
 
 
   /////////// Gestion du mot de passe ///////////
@@ -65,23 +67,32 @@ export class AccountPage {
 
 
   /////////// Gestion des tokens ///////////
+  displayActiveOnly = signal<boolean>(true);
   list = signal<PAT[]>([]);
   q = signal('');
   filtered = computed(() => {
     const s = (this.q() || '').toLowerCase();
-    if (!s) return this.list();
+    if (!s) return this.list().filter(t =>
+      this.displayActiveOnly() ? !t?.revoked_at : true
+    );
     return this.list().filter(t =>
-      (t?.label || '').toLowerCase().includes(s) ||
-      t?.scopes.some(x => x.toLowerCase().includes(s))
+      ((t?.label || '').toLowerCase().includes(s) || t?.scopes.some(x => x.toLowerCase().includes(s))) &&
+      (this.displayActiveOnly() ? !t?.revoked_at : true)
     );
   });
 
   async ionViewWillEnter() {
+    this.displayActiveOnly.set(await this.storage.get<boolean>('acc_showRevoked') ?? true);
     await this.reload();
   }
 
   async reload() {
     this.list.set(await this.api.list());
+  }
+
+  toggleShowRevoked(v: boolean) {
+    this.displayActiveOnly.set(v);
+    this.storage.set('acc_showRevoked', v).then();
   }
 
   async openCreate() {

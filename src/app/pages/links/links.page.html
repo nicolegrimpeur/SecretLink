@@ -123,22 +123,74 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
   @if (tab === 'status') {
     <ion-card>
       <ion-card-header>
-        <ion-card-title>Statut des liens</ion-card-title>
+        <ion-item lines="none">
+          <ion-card-title>
+            Statut des liens
+          </ion-card-title>
+          <ion-button fill="outline" (click)="exportCsv()" [disabled]="!filteredRows().length" slot="end">
+            Exporter CSV
+          </ion-button>
+        </ion-item>
       </ion-card-header>
       <ion-card-content>
-        <div class="row">
-          <ion-input label="Depuis (ISO)" [(ngModel)]="since" [ngModelOptions]="{standalone:true}"
-                     placeholder="2025-09-01T00:00:00Z"></ion-input>
-          <ion-input label="Jusqu'à (ISO)" [(ngModel)]="until" [ngModelOptions]="{standalone:true}"></ion-input>
-        </div>
-        <ion-button (click)="reload()">Actualiser</ion-button>
-        <ion-button fill="outline" (click)="exportCsv()" [disabled]="!rows.length">Exporter CSV</ion-button>
+        <ion-item lines="none">
+          <ion-segment [value]="statusFilter().toString()" (ionChange)="setStatusFilter($event.detail.value ?? 'all')">
+            <ion-segment-button value="active">
+              <div class="badge-align">
+                Actifs <ion-badge>{{ countActive() }}</ion-badge>
+              </div>
+            </ion-segment-button>
+
+            <ion-segment-button value="used">
+              <div class="badge-align">
+                Utilisés <ion-badge>{{ countUsed() }}</ion-badge>
+              </div>
+            </ion-segment-button>
+
+            <ion-segment-button value="deleted">
+              <div class="badge-align">
+                Supprimés <ion-badge>{{ countDeleted() }}</ion-badge>
+              </div>
+            </ion-segment-button>
+
+            <ion-segment-button value="expired">
+              <div class="badge-align">
+                Expirés <ion-badge>{{ countExpired() }}</ion-badge>
+              </div>
+            </ion-segment-button>
+
+            <ion-segment-button value="all">
+              Tous
+            </ion-segment-button>
+          </ion-segment>
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-input placeholder="Rechercher (item_id ou token)…"
+                     (ionInput)="setQuery($event.target['value']?.toString() || '')">
+          </ion-input>
+        </ion-item>
+
 
         <ion-list>
-          @for (row of rows; track row.link_token) {
+          @for (row of filteredRows(); track row.link_token) {
             <ion-item>
               <ion-label>
-                <div><b>{{ row.item_id }}</b></div>
+                <div class="badge-align">
+                  <b>{{ row.item_id }}</b>
+                  @if (statusOf(row) === 'active') {
+                    <ion-badge color="success">Actif</ion-badge>
+                  }
+                  @if (statusOf(row) === 'used') {
+                    <ion-badge color="medium">Utilisé</ion-badge>
+                  }
+                  @if (statusOf(row) === 'deleted') {
+                    <ion-badge color="warning">Supprimé</ion-badge>
+                  }
+                  @if (statusOf(row) === 'expired') {
+                    <ion-badge color="tertiary">Expiré</ion-badge>
+                  }
+                </div>
                 <div class="dim">Créé: {{ row.created_at | date: 'short' }}</div>
                 <div class="dim">Expire: {{ row.expires_at ? (row.expires_at | date:'short') : '—' }}</div>
                 <div class="dim">Utilisé: {{ row.used_at ? (row.used_at | date:'short') : '—' }}</div>
@@ -157,6 +209,12 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
             </ion-item>
           }
         </ion-list>
+
+        @if (!filteredRows().length) {
+          <ion-item lines="none">
+            <ion-label>Aucun lien pour ce filtre/recherche.</ion-label>
+          </ion-item>
+        }
       </ion-card-content>
     </ion-card>
   }

@@ -47,6 +47,13 @@
           [ngModel]="q()"
           [ngModelOptions]="{standalone:true}"
           (ionInput)="q.set($event.detail.value || '')"></ion-input>
+        <ion-toggle
+          class="ion-padding-end"
+          justify="space-between"
+          [checked]="!displayActiveOnly()"
+          (ionChange)="toggleShowRevoked(!$event.detail.checked)">
+          Afficher révoqués
+        </ion-toggle>
         <ion-button fill="outline" (click)="openCreate()">Nouveau token</ion-button>
       </ion-item>
 

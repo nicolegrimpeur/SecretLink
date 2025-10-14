@@ -1,7 +1,8 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, computed, inject, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
+  IonBadge,
   IonButton,
   IonButtons,
   IonCard,
@@ -20,23 +21,26 @@ import {
   IonTextarea
 } from '@ionic/angular/standalone';
 import {LinksService} from "../../shared/services/links";
-import {ToastController} from "@ionic/angular";
+import {SegmentValue, ToastController} from "@ionic/angular";
 import {LinkCreateItem, LinkCreateResult} from "../../shared/models/link-create";
 import {LinkStatus} from "../../shared/models/link-status";
 import {syncOutline, informationCircleOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
 import {environment} from "../../../environments/environment";
+import {Storage} from "../../core/storage";
 
+type StatusFilter = 'active' | 'used' | 'deleted' | 'expired';
 @Component({
   selector: 'app-links',
   templateUrl: './links.page.html',
   styleUrls: ['./links.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, IonListHeader, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonPopover]
+  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, IonListHeader, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonPopover, IonBadge]
 })
-export class LinksPage implements OnInit {
+export class LinksPage {
   private api = inject(LinksService);
   private toast = inject(ToastController);
+  private storage = inject(Storage);
 
   tab: 'create' | 'status' = 'create';
   loading = false;
@@ -58,22 +62,29 @@ export class LinksPage implements OnInit {
   since = '';
   until = '';
   rows: LinkStatus[] = [];
-
-  // affichage aide en fonction du status, sous la forme d'une map status => string avec plus d'explications
   statusHelp: {[key: string]: string} = {
     'created': 'Lien créé avec succès.',
     'duplicate_item_id': 'Un lien avec le même identifiant existe déjà. Aucun nouveau lien n\'a été créé.',
     'invalid_item_id': 'Les informations fournies sont invalides. Veuillez les vérifier et réessayer.',
   }
 
+  // filtres
+  statusFilter = signal<StatusFilter | 'all'>('active');
+  qLinks = signal<string>('');
+
+  // compteurs
+  countActive  = computed(() => this.rows.filter(r => this.statusOf(r) === 'active').length);
+  countUsed    = computed(() => this.rows.filter(r => this.statusOf(r) === 'used').length);
+  countDeleted = computed(() => this.rows.filter(r => this.statusOf(r) === 'deleted').length);
+  countExpired = computed(() => this.rows.filter(r => this.statusOf(r) === 'expired').length);
 
   constructor() {
     addIcons({syncOutline, informationCircleOutline});
   }
 
-  ngOnInit() {
-    const saved = localStorage.getItem('idempotencyKey');
-    if (saved) this.idempotencyKey = saved;
+  async ionViewWillEnter() {
+    this.idempotencyKey = await this.storage.get('links_idempotencyKey') || '';
+    this.statusFilter.set(await this.storage.get('links_statusFilter') || 'active');
     this.reload().then();
   }
 
@@ -101,12 +112,11 @@ export class LinksPage implements OnInit {
   }
 
   private persistKey() {
-    if (this.idempotencyKey) localStorage.setItem('idempotencyKey', this.idempotencyKey);
+    if (this.idempotencyKey) this.storage.set('links_idempotencyKey', this.idempotencyKey).then();
   }
 
   clearKey() {
-    console.log('clearKey');
-    if (this.idempotencyKey === '') localStorage.removeItem('idempotencyKey');
+    if (this.idempotencyKey === '') this.storage.delete('links_idempotencyKey').then();
   }
 
   async createSingle() {
@@ -175,6 +185,7 @@ export class LinksPage implements OnInit {
       this.rows = await this.api.listStatus(
         {since: this.since || undefined, until: this.until || undefined}
       );
+      // console.log(this.rows);
     } catch (e: any) {
       // ignore 401 ici si pas connecté
     }
@@ -216,4 +227,43 @@ export class LinksPage implements OnInit {
     const t = await this.toast.create({message, duration: 1400, position: 'bottom'});
     await t.present();
   }
+
+
+  /////////// Status ///////////
+  statusOf(row: LinkStatus): StatusFilter {
+    const now = Date.now();
+    if (row.deleted_at) return 'deleted';
+    if (row.used_at) return 'used';
+    if (row.expires_at && new Date(row.expires_at).getTime() < now) return 'expired';
+    return 'active';
+  }
+
+  setStatusFilter(v: SegmentValue) {
+    const sf = v as StatusFilter | 'all';
+
+    this.statusFilter.set(sf);
+    this.storage.set('links_statusFilter', sf).then();
+  }
+
+  setQuery(v: string) {
+    this.qLinks.set(v || '');
+  }
+
+  filteredRows = computed(() => {
+    const q = this.qLinks().toLowerCase();
+    const f = this.statusFilter();
+
+    return this.rows.filter(r => {
+      // filtre statut
+      const st = this.statusOf(r);
+      if (f !== 'all' && st !== f) return false;
+
+      // filtre texte
+      if (q) {
+        const hay = `${r.item_id} ${r.link_token}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  });
 }
