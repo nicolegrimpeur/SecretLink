@@ -193,7 +193,7 @@ export class LinksPage {
   }
 
   linkUrl(token: string) {
-    return `${environment.frontBaseUrl}/redeem/${encodeURIComponent(token)}`;
+    return `${environment.frontBaseUrl}/redeem?token=${encodeURIComponent(token)}`;
   }
 
   async delete(token: string) {

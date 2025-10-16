@@ -7,7 +7,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/auth/auth.page').then(m => m.AuthPage)
   },
   {
-    path: 'redeem/:token',
+    path: 'redeem',
     loadComponent: () => import('./pages/redeem/redeem.page').then( m => m.RedeemPage)
   },
   {
