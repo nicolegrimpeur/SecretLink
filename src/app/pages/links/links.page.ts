@@ -9,22 +9,24 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
-  IonContent, IonIcon,
+  IonContent,
+  IonIcon,
   IonInput,
   IonItem,
   IonLabel,
   IonList,
   IonListHeader,
-  IonNote, IonPopover,
+  IonNote,
+  IonPopover,
   IonSegment,
   IonSegmentButton,
   IonTextarea
 } from '@ionic/angular/standalone';
-import {LinksService} from "../../shared/services/links";
+import {LinksService} from "../../core/links";
 import {SegmentValue, ToastController} from "@ionic/angular";
 import {LinkCreateItem, LinkCreateResult} from "../../shared/models/link-create";
 import {LinkStatus} from "../../shared/models/link-status";
-import {syncOutline, informationCircleOutline} from "ionicons/icons";
+import {informationCircleOutline, syncOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
 import {environment} from "../../../environments/environment";
 import {Storage} from "../../core/storage";
@@ -163,7 +165,7 @@ export class LinksPage {
     let start = 0;
     const items: LinkCreateItem[] = [];
 
-    // détecte header
+    // detect header
     const first = lines[0].toLowerCase();
     const hasHeader = ['item_id,secret', 'item_id;secret'].some(h => first.startsWith(h));
     if (hasHeader) start = 1;
@@ -185,7 +187,6 @@ export class LinksPage {
       this.rows = await this.api.listStatus(
         {since: this.since || undefined, until: this.until || undefined}
       );
-      // console.log(this.rows);
     } catch (e: any) {
       // ignore 401 ici si pas connecté
     }

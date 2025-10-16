@@ -1,5 +1,5 @@
 import {bootstrapApplication} from '@angular/platform-browser';
-import {RouteReuseStrategy, provideRouter, withPreloading, PreloadAllModules} from '@angular/router';
+import {PreloadAllModules, provideRouter, RouteReuseStrategy, withPreloading} from '@angular/router';
 import {IonicRouteStrategy, provideIonicAngular} from '@ionic/angular/standalone';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {inject, LOCALE_ID, provideAppInitializer} from "@angular/core";
@@ -8,7 +8,7 @@ import localFr from '@angular/common/locales/fr';
 
 import {routes} from './app/app.routes';
 import {AppComponent} from './app/app.component';
-import {AuthService} from "./app/shared/services/auth";
+import {AuthService} from "./app/core/auth";
 import {authInterceptor} from "./app/shared/auth.interceptor";
 
 registerLocaleData(localFr, 'fr');

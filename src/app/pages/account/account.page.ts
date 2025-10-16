@@ -4,19 +4,26 @@ import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angula
 import {
   IonBadge,
   IonButton,
-  IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle,
+  IonButtons,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
   IonContent,
-  IonInput, IonInputPasswordToggle,
+  IonInput,
+  IonInputPasswordToggle,
   IonItem,
   IonLabel,
-  IonList, IonText, IonToggle,
+  IonList,
+  IonText,
+  IonToggle,
   ModalController
 } from '@ionic/angular/standalone';
 import {PAT} from "../../shared/models/pat";
-import {PatService} from "../../shared/services/pat";
+import {PatService} from "../../core/pat";
 import {AlertController, ToastController} from "@ionic/angular";
 import {TokenCreateComponent} from "./modal/token-create.component";
-import {AuthService} from "../../shared/services/auth";
+import {AuthService} from "../../core/auth";
 import {Storage} from "../../core/storage";
 
 @Component({

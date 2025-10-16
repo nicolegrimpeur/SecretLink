@@ -1,9 +1,9 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
-import {LinkCreateItem, LinkCreateResult} from "../models/link-create";
+import {LinkCreateItem, LinkCreateResult} from "../shared/models/link-create";
 import {firstValueFrom} from "rxjs";
-import {environment} from "../../../environments/environment";
-import {LinkStatus} from "../models/link-status";
+import {environment} from "../../environments/environment";
+import {LinkStatus} from "../shared/models/link-status";
 
 @Injectable({
   providedIn: 'root'

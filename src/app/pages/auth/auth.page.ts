@@ -1,22 +1,27 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {Component, computed, effect, inject, signal} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormBuilder, FormsModule, ReactiveFormsModule, ValidatorFn, Validators} from '@angular/forms';
 import {
-  FormBuilder,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-  ValidatorFn
-} from '@angular/forms';
-import {
-  IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonContent, IonIcon, IonInput, IonInputPasswordToggle,
-  IonItem, IonLabel, IonText, IonSegment, IonSegmentButton
+  IonButton,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonContent,
+  IonIcon,
+  IonInput,
+  IonInputPasswordToggle,
+  IonItem,
+  IonLabel,
+  IonSegment,
+  IonSegmentButton,
+  IonText
 } from '@ionic/angular/standalone';
-import { AuthService} from "../../shared/services/auth";
-import { Router } from '@angular/router';
-import { addIcons } from 'ionicons';
-import { lockClosedOutline, personAddOutline } from 'ionicons/icons';
-import { SegmentValue} from "@ionic/angular";
+import {AuthService} from "../../core/auth";
+import {Router} from '@angular/router';
+import {addIcons} from 'ionicons';
+import {lockClosedOutline, personAddOutline} from 'ionicons/icons';
+import {SegmentValue} from "@ionic/angular";
 
 type Mode = 'login' | 'signup';
 

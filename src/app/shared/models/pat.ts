@@ -5,9 +5,3 @@ export type PAT = {
   created_at: string;
   revoked_at: string | null;
 } | null;
-
-export type NewPAT = {
-  token: string;
-  token_preview: string;
-  pat: PAT;
-} | null;

@@ -1,6 +1,6 @@
-import { TestBed } from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 
-import { Pat } from './pat';
+import {Pat} from './pat';
 
 describe('Pat', () => {
   let service: Pat;

@@ -22,7 +22,7 @@ import {
   ModalController
 } from '@ionic/angular/standalone';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
-import {PatService} from "../../../shared/services/pat";
+import {PatService} from "../../../core/pat";
 
 type Scope = { key: string; label: string; help: string };
 
@@ -85,7 +85,7 @@ export class TokenCreateComponent {
     try {
       const { label, scopes } = this.form.value as any;
       const res = await this.api.create(label || null, scopes && scopes.length ? scopes : ['links:read','links:write']);
-      this.createdToken = res.token; // one-time
+      this.createdToken = res.token;
       await this.toastMsg('Token généré');
     } catch (e: any) {
       await this.toastMsg(e?.error?.error?.message || 'Création échouée');

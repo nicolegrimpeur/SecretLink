@@ -1,7 +1,7 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import {IonicModule} from '@ionic/angular';
 
-import { LayoutComponent } from './layout.component';
+import {LayoutComponent} from './layout.component';
 
 describe('LayoutComponent', () => {
   let component: LayoutComponent;

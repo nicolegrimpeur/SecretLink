@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
-import { environment } from 'src/environments/environment';
-import { User } from '../models/user';
+import {inject, Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {BehaviorSubject, firstValueFrom} from 'rxjs';
+import {environment} from 'src/environments/environment';
+import {User} from '../shared/models/user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
