@@ -166,7 +166,7 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
         </ion-item>
 
         <ion-item lines="none">
-          <ion-input placeholder="Rechercher (item_id ou token)…"
+          <ion-input placeholder="Rechercher par identifiant"
                      (ionInput)="setQuery($event.target['value']?.toString() || '')">
           </ion-input>
         </ion-item>
@@ -185,10 +185,10 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
                     <ion-badge color="medium">Utilisé</ion-badge>
                   }
                   @if (statusOf(row) === 'deleted') {
-                    <ion-badge color="warning">Supprimé</ion-badge>
+                    <ion-badge color="danger">Supprimé</ion-badge>
                   }
                   @if (statusOf(row) === 'expired') {
-                    <ion-badge color="tertiary">Expiré</ion-badge>
+                    <ion-badge color="warning">Expiré</ion-badge>
                   }
                 </div>
                 <div class="dim">Créé: {{ row.created_at | date: 'short' }}</div>
@@ -198,12 +198,12 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
               </ion-label>
 
               <ion-buttons slot="end">
-                <ion-button fill="clear" (click)="copy(linkUrl(row.link_token))" [disabled]="!row.link_token">
+                <ion-button fill="clear" (click)="copy(linkUrl(row.link_token))" [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">
                   Copier lien
                 </ion-button>
 
                 <ion-button color="danger" (click)="delete(row.link_token)"
-                            [disabled]="!!row.deleted_at || !!row.used_at">Supprimer
+                            [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">Supprimer
                 </ion-button>
               </ion-buttons>
             </ion-item>

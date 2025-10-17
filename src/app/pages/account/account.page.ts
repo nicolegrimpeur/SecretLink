@@ -17,14 +17,15 @@ import {
   IonList,
   IonText,
   IonToggle,
-  ModalController
+  ModalController,
+  AlertController
 } from '@ionic/angular/standalone';
 import {PAT} from "../../shared/models/pat";
 import {PatService} from "../../core/pat";
-import {AlertController, ToastController} from "@ionic/angular";
 import {TokenCreateComponent} from "./modal/token-create.component";
 import {AuthService} from "../../core/auth";
 import {Storage} from "../../core/storage";
+import {ToastService} from "../../shared/toast-service";
 
 @Component({
   selector: 'app-tokens',
@@ -35,7 +36,7 @@ import {Storage} from "../../core/storage";
 })
 export class AccountPage {
   private api = inject(PatService);
-  private toast = inject(ToastController);
+  private toast = inject(ToastService);
   private alert = inject(AlertController);
   private modal = inject(ModalController);
   private fb = inject(FormBuilder);
@@ -64,7 +65,7 @@ export class AccountPage {
     this.error = null;
     try {
       await this.auth.changePassword(current_password, new_password);
-      await (await this.toast.create({message: 'Mot de passe mis à jour', duration: 1400})).present();
+      await this.toast.toastMsg( 'Mot de passe mis à jour', 1400);
     } catch (e: any) {
       this.error = e?.error?.error?.message || 'Échec de la mise à jour';
     } finally {
@@ -108,7 +109,7 @@ export class AccountPage {
     const {data, role} = await m.onWillDismiss();
     if (role === 'created') {
       await this.reload();
-      await this.toastMsg('Token créé. Copiez-le et stockez-le en lieu sûr.');
+      await this.toast.toastMsg('Token créé. Copiez-le et stockez-le en lieu sûr.');
     }
   }
 
@@ -128,12 +129,7 @@ export class AccountPage {
     if (t) {
       await this.api.revoke(t.id);
       await this.reload();
-      this.toastMsg('Token révoqué').then();
+      this.toast.toastMsg('Token révoqué').then();
     }
-  }
-
-  private async toastMsg(message: string) {
-    const t = await this.toast.create({message, duration: 1400, position: 'bottom'});
-    t.present().then();
   }
 }

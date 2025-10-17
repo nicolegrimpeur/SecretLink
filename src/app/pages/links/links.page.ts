@@ -23,15 +23,17 @@ import {
   IonTextarea
 } from '@ionic/angular/standalone';
 import {LinksService} from "../../core/links";
-import {SegmentValue, ToastController} from "@ionic/angular";
+import {SegmentValue} from "@ionic/angular";
 import {LinkCreateItem, LinkCreateResult} from "../../shared/models/link-create";
 import {LinkStatus} from "../../shared/models/link-status";
 import {informationCircleOutline, syncOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
 import {environment} from "../../../environments/environment";
 import {Storage} from "../../core/storage";
+import {ToastService} from "../../shared/toast-service";
 
 type StatusFilter = 'active' | 'used' | 'deleted' | 'expired';
+
 @Component({
   selector: 'app-links',
   templateUrl: './links.page.html',
@@ -41,8 +43,8 @@ type StatusFilter = 'active' | 'used' | 'deleted' | 'expired';
 })
 export class LinksPage {
   private api = inject(LinksService);
-  private toast = inject(ToastController);
   private storage = inject(Storage);
+  private toast = inject(ToastService);
 
   tab: 'create' | 'status' = 'create';
   loading = false;
@@ -64,7 +66,7 @@ export class LinksPage {
   since = '';
   until = '';
   rows: LinkStatus[] = [];
-  statusHelp: {[key: string]: string} = {
+  statusHelp: { [key: string]: string } = {
     'created': 'Lien créé avec succès.',
     'duplicate_item_id': 'Un lien avec le même identifiant existe déjà. Aucun nouveau lien n\'a été créé.',
     'invalid_item_id': 'Les informations fournies sont invalides. Veuillez les vérifier et réessayer.',
@@ -73,10 +75,12 @@ export class LinksPage {
   // filtres
   statusFilter = signal<StatusFilter | 'all'>('active');
   qLinks = signal<string>('');
+  // Signal pour forcer l'actualisation des liens filtrés
+  private refreshTrigger = signal(0);
 
   // compteurs
-  countActive  = computed(() => this.rows.filter(r => this.statusOf(r) === 'active').length);
-  countUsed    = computed(() => this.rows.filter(r => this.statusOf(r) === 'used').length);
+  countActive = computed(() => this.rows.filter(r => this.statusOf(r) === 'active').length);
+  countUsed = computed(() => this.rows.filter(r => this.statusOf(r) === 'used').length);
   countDeleted = computed(() => this.rows.filter(r => this.statusOf(r) === 'deleted').length);
   countExpired = computed(() => this.rows.filter(r => this.statusOf(r) === 'expired').length);
 
@@ -133,7 +137,7 @@ export class LinksPage {
       this.lastResults = await this.api.createBulk(payload);
       if (this.lastResults?.length) await this.reload();
     } catch (e: any) {
-      this.toastMsg(e?.error?.error?.message || 'Création échouée').then();
+      this.toast.toastMsg(e?.error?.error?.message || 'Création échouée').then();
     } finally {
       this.loading = false;
     }
@@ -142,7 +146,7 @@ export class LinksPage {
   async createBulk() {
     const items = this.parseCsv(this.csvText);
     if (!items.length) {
-      this.toastMsg('CSV vide ou invalide').then();
+      this.toast.toastMsg('CSV vide ou invalide').then();
       return;
     }
     this.loading = true;
@@ -153,7 +157,7 @@ export class LinksPage {
       });
       if (this.lastResults?.length) await this.reload();
     } catch (e: any) {
-      this.toastMsg(e?.error?.error?.message || 'Bulk échoué').then();
+      this.toast.toastMsg(e?.error?.error?.message || 'Bulk échoué').then();
     } finally {
       this.loading = false;
     }
@@ -187,6 +191,7 @@ export class LinksPage {
       this.rows = await this.api.listStatus(
         {since: this.since || undefined, until: this.until || undefined}
       );
+      this.forceRefresh();
     } catch (e: any) {
       // ignore 401 ici si pas connecté
     }
@@ -201,13 +206,14 @@ export class LinksPage {
       await this.api.deleteLink(token);
       await this.reload();
     } catch (e: any) {
-      this.toastMsg(e?.error?.error?.message || 'Suppression échouée').then();
+      this.toast.toastMsg(e?.error?.error?.message || 'Suppression échouée').then();
     }
   }
 
   copy(text: string) {
-    navigator.clipboard.writeText(text).then();
-    this.toastMsg('Copié dans le presse-papier').then();
+    navigator.clipboard.writeText(text)
+      .then(() => this.toast.toastMsg('Copié dans le presse-papier').then())
+      .catch(() => this.toast.toastMsg('Échec de la copie dans le presse-papier').then());
   }
 
   exportCsv() {
@@ -222,11 +228,6 @@ export class LinksPage {
     a.download = 'links_status.csv';
     a.click();
     URL.revokeObjectURL(url);
-  }
-
-  async toastMsg(message: string) {
-    const t = await this.toast.create({message, duration: 1400, position: 'bottom'});
-    await t.present();
   }
 
 
@@ -250,7 +251,23 @@ export class LinksPage {
     this.qLinks.set(v || '');
   }
 
+  isLinkExpired(row: LinkStatus): boolean {
+    if (row.expires_at) {
+      const expTime = new Date(row.expires_at).getTime();
+      return expTime < Date.now();
+    } else {
+      return false;
+    }
+  }
+
+  private forceRefresh() {
+    this.refreshTrigger.set(this.refreshTrigger() + 1);
+  }
+
   filteredRows = computed(() => {
+    // Dépendance au trigger pour forcer le recalcul
+    this.refreshTrigger();
+
     const q = this.qLinks().toLowerCase();
     const f = this.statusFilter();
 
@@ -261,7 +278,7 @@ export class LinksPage {
 
       // filtre texte
       if (q) {
-        const hay = `${r.item_id} ${r.link_token}`.toLowerCase();
+        const hay = `${r.item_id}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;

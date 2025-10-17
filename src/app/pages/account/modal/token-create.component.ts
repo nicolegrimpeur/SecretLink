@@ -1,5 +1,4 @@
 import {Component, inject} from '@angular/core';
-import {ToastController} from '@ionic/angular';
 import {
   IonButton,
   IonButtons,
@@ -23,6 +22,7 @@ import {
 } from '@ionic/angular/standalone';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 import {PatService} from "../../../core/pat";
+import {ToastService} from "../../../shared/toast-service";
 
 type Scope = { key: string; label: string; help: string };
 
@@ -57,7 +57,7 @@ export class TokenCreateComponent {
   private fb = inject(FormBuilder);
   private api = inject(PatService);
   private modalController = inject(ModalController);
-  private toast = inject(ToastController);
+  private toast = inject(ToastService);
 
   loading = false;
   createdToken: string | null = null;
@@ -86,23 +86,18 @@ export class TokenCreateComponent {
       const { label, scopes } = this.form.value as any;
       const res = await this.api.create(label || null, scopes && scopes.length ? scopes : ['links:read','links:write']);
       this.createdToken = res.token;
-      await this.toastMsg('Token généré');
+      await this.toast.toastMsg('Token généré');
     } catch (e: any) {
-      await this.toastMsg(e?.error?.error?.message || 'Création échouée');
+      await this.toast.toastMsg(e?.error?.error?.message || 'Création échouée');
     } finally { this.loading = false; }
   }
 
   async copy() {
     if (!this.createdToken) return;
     await navigator.clipboard.writeText(this.createdToken);
-    this.toastMsg('Copié dans le presse-papier').then();
+    this.toast.toastMsg('Copié dans le presse-papier').then();
   }
 
   close(){ this.modalController.dismiss().then(); }
   done(){ this.modalController.dismiss(null, 'created').then(); }
-
-  private async toastMsg(message: string) {
-    const t = await this.toast.create({ message, duration: 1400, position: 'bottom' });
-    t.present().then();
-  }
 }

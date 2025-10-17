@@ -8,9 +8,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const cloned = req.clone({ withCredentials: true });
   return next(cloned).pipe(
     catchError((err: HttpErrorResponse) => {
-      if (err?.status === 401) {
+      if (err?.status === 401 && !req.url.endsWith('/users/password'))
         void router.navigateByUrl('/auth');
-      }
       return throwError(() => err);
     })
   );
