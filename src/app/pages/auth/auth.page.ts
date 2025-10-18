@@ -111,7 +111,6 @@ export class AuthPage {
       }
       await this.router.navigateByUrl('/dashboard');
     } catch (e: any) {
-      console.error(e);
       this.error.set(e?.error?.error?.message || 'Action failed');
     } finally {
       this.loading.set(false);

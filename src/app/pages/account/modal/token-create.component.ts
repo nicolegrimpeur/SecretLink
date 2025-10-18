@@ -30,6 +30,7 @@ type Scope = { key: string; label: string; help: string };
   selector: 'app-token-create',
   templateUrl: './token-create.component.html',
   styleUrls: ['./token-create.component.scss'],
+  standalone: true,
   imports: [
     IonToolbar,
     IonHeader,
@@ -48,8 +49,7 @@ type Scope = { key: string; label: string; help: string };
     IonCardHeader,
     IonCardContent,
     IonText,
-    IonCardTitle,
-    IonFooter
+    IonCardTitle
   ]
 })
 export class TokenCreateComponent {

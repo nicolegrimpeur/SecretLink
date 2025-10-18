@@ -18,7 +18,7 @@ import {
   IonText,
   IonToggle,
   ModalController,
-  AlertController
+  AlertController, IonIcon
 } from '@ionic/angular/standalone';
 import {PAT} from "../../shared/models/pat";
 import {PatService} from "../../core/pat";
@@ -26,13 +26,15 @@ import {TokenCreateComponent} from "./modal/token-create.component";
 import {AuthService} from "../../core/auth";
 import {Storage} from "../../core/storage";
 import {ToastService} from "../../shared/toast-service";
+import {addIcons} from "ionicons";
+import {constructOutline, trashOutline} from "ionicons/icons";
 
 @Component({
   selector: 'app-tokens',
   templateUrl: './account.page.html',
   styleUrls: ['./account.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonButton, IonList, IonLabel, IonItem, IonInput, IonBadge, IonButtons, IonText, ReactiveFormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonInputPasswordToggle, IonToggle]
+  imports: [IonContent, CommonModule, FormsModule, IonButton, IonList, IonLabel, IonItem, IonInput, IonBadge, IonButtons, IonText, ReactiveFormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonInputPasswordToggle, IonToggle, IonIcon]
 })
 export class AccountPage {
   private api = inject(PatService);
@@ -54,6 +56,10 @@ export class AccountPage {
     confirm: ['', [Validators.required]],
   });
 
+  constructor() {
+    addIcons({trashOutline});
+  }
+
   async submit() {
     if (this.form.invalid) return;
     const {current_password, new_password, confirm} = this.form.value as any;
@@ -65,7 +71,7 @@ export class AccountPage {
     this.error = null;
     try {
       await this.auth.changePassword(current_password, new_password);
-      await this.toast.toastMsg( 'Mot de passe mis à jour', 1400);
+      await this.toast.toastMsg('Mot de passe mis à jour', 1400);
     } catch (e: any) {
       this.error = e?.error?.error?.message || 'Échec de la mise à jour';
     } finally {
@@ -131,5 +137,28 @@ export class AccountPage {
       await this.reload();
       this.toast.toastMsg('Token révoqué').then();
     }
+  }
+
+  /////////// Suppression du compte ///////////
+  async deleteAccount() {
+    const a = await this.alert.create({
+      header: 'Supprimer le compte ?',
+      message: `Cette action est irréversible. Tous vos tokens seront révoqués et vos données supprimées.`,
+      buttons: [
+        {text: 'Annuler', role: 'cancel'},
+        {
+          text: 'Supprimer', role: 'destructive', handler: () => {
+            this.auth.deleteMe().then(() => {
+              this.toast.toastMsg('Compte supprimé');
+              this.auth.logout();
+            })
+              .catch(() => {
+                this.toast.toastMsg('Échec de la suppression du compte');
+              });
+          }
+        },
+      ]
+    });
+    await a.present();
   }
 }

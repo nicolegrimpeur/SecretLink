@@ -246,7 +246,7 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
                   <ion-button
                     color="danger"
                     shape="round"
-                    (click)="delete(row.link_token)"
+                    (click)="askBeforeDelete(row.link_token)"
                     [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">
                     <ion-icon name="trash-outline"></ion-icon>
                   </ion-button>

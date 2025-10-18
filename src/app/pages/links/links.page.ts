@@ -20,7 +20,7 @@ import {
   IonPopover, IonRow,
   IonSegment,
   IonSegmentButton,
-  IonTextarea
+  IonTextarea, AlertController
 } from '@ionic/angular/standalone';
 import {LinksService} from "../../core/links";
 import {SegmentValue} from "@ionic/angular";
@@ -46,6 +46,7 @@ export class LinksPage {
   private api = inject(LinksService);
   private storage = inject(Storage);
   private toast = inject(ToastService);
+  private alert = inject(AlertController);
 
   tab: 'create' | 'status' = 'create';
   loading = false;
@@ -66,7 +67,7 @@ export class LinksPage {
   // status
   since = '';
   until = '';
-  rows: LinkStatus[] = [];
+  rows = signal<LinkStatus[]>([]);
   statusHelp: { [key: string]: string } = {
     'created': 'Lien créé avec succès.',
     'duplicate_item_id': 'Un lien avec le même identifiant existe déjà. Aucun nouveau lien n\'a été créé.',
@@ -75,15 +76,15 @@ export class LinksPage {
 
   // filtres
   statusFilter = signal<StatusFilter | 'all'>('active');
-  statusSearch = '';
+  statusSearch: string = '';
   // Signal pour forcer l'actualisation des liens filtrés
   private refreshTrigger = signal(0);
 
   // compteurs
-  countActive = computed(() => this.rows.filter(r => this.statusOf(r) === 'active').length);
-  countUsed = computed(() => this.rows.filter(r => this.statusOf(r) === 'used').length);
-  countDeleted = computed(() => this.rows.filter(r => this.statusOf(r) === 'deleted').length);
-  countExpired = computed(() => this.rows.filter(r => this.statusOf(r) === 'expired').length);
+  countActive = computed(() => this.rows().filter(r => this.statusOf(r) === 'active').length);
+  countUsed = computed(() => this.rows().filter(r => this.statusOf(r) === 'used').length);
+  countDeleted = computed(() => this.rows().filter(r => this.statusOf(r) === 'deleted').length);
+  countExpired = computed(() => this.rows().filter(r => this.statusOf(r) === 'expired').length);
 
   constructor() {
     addIcons({syncOutline, informationCircleOutline, copyOutline, trashOutline});
@@ -189,9 +190,9 @@ export class LinksPage {
 
   async reload() {
     try {
-      this.rows = await this.api.listStatus(
+      this.rows.set(await this.api.listStatus(
         {since: this.since || undefined, until: this.until || undefined}
-      );
+      ));
       this.forceRefresh();
     } catch (e: any) {
       // ignore 401 ici si pas connecté
@@ -202,7 +203,18 @@ export class LinksPage {
     return `${environment.frontBaseUrl}/redeem?token=${encodeURIComponent(token)}`;
   }
 
-  async delete(token: string) {
+  askBeforeDelete(token: string) {
+    this.alert.create({
+      header: 'Supprimer ce lien ?',
+      message: `Cette action est irréversible.`,
+      buttons: [
+        {text: 'Annuler', role: 'cancel'},
+        {text: 'Supprimer', role: 'destructive', handler: () => this.delete(token)}
+      ]
+    }).then(a => a.present());
+  }
+
+  private async delete(token: string) {
     try {
       await this.api.deleteLink(token);
       await this.reload();
@@ -219,7 +231,7 @@ export class LinksPage {
 
   exportCsv() {
     const header = 'item_id;link_token;created_at;expires_at;used_at;deleted_at';
-    const lines = this.rows.map(r => [
+    const lines = this.rows().map(r => [
       r.item_id, r.link_token, r.created_at, r.expires_at ?? '', r.used_at ?? '', r.deleted_at ?? ''
     ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(';'));
     const blob = new Blob([header + '\n' + lines.join('\n')], {type: 'text/csv;charset=utf-8;'});
@@ -268,7 +280,7 @@ export class LinksPage {
     const q = this.statusSearch.toLowerCase();
     const f = this.statusFilter();
 
-    return this.rows.filter(r => {
+    return this.rows().filter(r => {
       // filtre statut
       const st = this.statusOf(r);
       if (f !== 'all' && st !== f) return false;
