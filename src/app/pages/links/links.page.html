@@ -123,92 +123,146 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
   @if (tab === 'status') {
     <ion-card>
       <ion-card-header>
+        <ion-grid>
+          <ion-row>
+            <ion-col size="12" size-md="2" class="ion-display-flex ion-align-items-center">
+              <ion-card-title>
+                Statut des liens
+              </ion-card-title>
+            </ion-col>
+            <ion-col size="2" class="ion-hide-md-down"></ion-col>
+            <ion-col size="8" class="ion-hide-md-down">
+              <ion-segment [value]="statusFilter().toString()"
+                           (ionChange)="setStatusFilter($event.detail.value ?? 'all')">
+                <ion-segment-button value="active">
+                  <div class="badge-align">
+                    Actifs
+                    <ion-badge>{{ countActive() }}</ion-badge>
+                  </div>
+                </ion-segment-button>
+
+                <ion-segment-button value="used">
+                  <div class="badge-align">
+                    Utilisés
+                    <ion-badge>{{ countUsed() }}</ion-badge>
+                  </div>
+                </ion-segment-button>
+
+                <ion-segment-button value="deleted">
+                  <div class="badge-align">
+                    Supprimés
+                    <ion-badge>{{ countDeleted() }}</ion-badge>
+                  </div>
+                </ion-segment-button>
+
+                <ion-segment-button value="expired">
+                  <div class="badge-align">
+                    Expirés
+                    <ion-badge>{{ countExpired() }}</ion-badge>
+                  </div>
+                </ion-segment-button>
+
+                <ion-segment-button value="all">
+                  Tous
+                </ion-segment-button>
+              </ion-segment>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-header>
+      <ion-card-content>
         <ion-item lines="none">
-          <ion-card-title>
-            Statut des liens
-          </ion-card-title>
+          <ion-input placeholder="Rechercher par identifiant"
+                     color="primary"
+                     [(ngModel)]="statusSearch"
+                     [ngModelOptions]="{standalone:true}"
+                     [clearInput]="true"
+                     (ionInput)="forceRefresh()"
+          />
           <ion-button fill="outline" (click)="exportCsv()" [disabled]="!filteredRows().length" slot="end">
             Exporter CSV
           </ion-button>
         </ion-item>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-item lines="none">
-          <ion-segment [value]="statusFilter().toString()" (ionChange)="setStatusFilter($event.detail.value ?? 'all')">
-            <ion-segment-button value="active">
-              <div class="badge-align">
-                Actifs <ion-badge>{{ countActive() }}</ion-badge>
-              </div>
-            </ion-segment-button>
 
-            <ion-segment-button value="used">
-              <div class="badge-align">
-                Utilisés <ion-badge>{{ countUsed() }}</ion-badge>
-              </div>
-            </ion-segment-button>
+        <div class="grid-header">
+          <ion-grid class="ion-no-padding">
+            <ion-row class="ion-text-center grid-head-row">
+              <ion-col size="8" size-md="3"><b>Identifiant / Statut</b></ion-col>
+              <ion-col size="2" class="ion-hide-md-down"><b>Créé le</b></ion-col>
+              <ion-col size="2" class="ion-hide-md-down"><b>Expire le</b></ion-col>
+              <ion-col size="2" class="ion-hide-md-down"><b>Utilisé le</b></ion-col>
+              <ion-col size="2" class="ion-hide-md-down"><b>Supprimé le</b></ion-col>
+              <ion-col size="4" size-md="1"><b>Actions</b></ion-col>
+            </ion-row>
+          </ion-grid>
+        </div>
 
-            <ion-segment-button value="deleted">
-              <div class="badge-align">
-                Supprimés <ion-badge>{{ countDeleted() }}</ion-badge>
-              </div>
-            </ion-segment-button>
+        <div class="grid-body">
+          <ion-grid class="ion-no-padding">
+            @for (row of filteredRows(); track row.link_token) {
+              <ion-row class="grid-row">
 
-            <ion-segment-button value="expired">
-              <div class="badge-align">
-                Expirés <ion-badge>{{ countExpired() }}</ion-badge>
-              </div>
-            </ion-segment-button>
+                <!-- Identifiant + Badges -->
+                <ion-col size="8" size-md="3" class="grid-col">
+                  <div class="badge-align">
+                    <b>{{ row.item_id.length > 20 ? row.item_id.slice(0, 20) + '...' : row.item_id }}</b>
+                    @if (statusOf(row) === 'active') {
+                      <ion-badge color="success" class="tight">Actif</ion-badge>
+                    }
+                    @if (statusOf(row) === 'used') {
+                      <ion-badge color="medium" class="tight">Utilisé</ion-badge>
+                    }
+                    @if (statusOf(row) === 'deleted') {
+                      <ion-badge color="danger" class="tight">Supprimé</ion-badge>
+                    }
+                    @if (statusOf(row) === 'expired') {
+                      <ion-badge color="warning" class="tight">Expiré</ion-badge>
+                    }
+                  </div>
+                </ion-col>
 
-            <ion-segment-button value="all">
-              Tous
-            </ion-segment-button>
-          </ion-segment>
-        </ion-item>
+                <!-- Dates -->
+                <ion-col size="2" class="ion-hide-md-down grid-col">
+                  {{ row.created_at | date:'short' }}
+                </ion-col>
 
-        <ion-item lines="none">
-          <ion-input placeholder="Rechercher par identifiant"
-                     (ionInput)="setQuery($event.target['value']?.toString() || '')">
-          </ion-input>
-        </ion-item>
+                <ion-col size="2" class="ion-hide-md-down grid-col">
+                  {{ row.expires_at ? (row.expires_at | date:'short') : '—' }}
+                </ion-col>
 
+                <ion-col size="2" class="ion-hide-md-down grid-col">
+                  {{ row.used_at ? (row.used_at | date:'short') : '—' }}
+                </ion-col>
 
-        <ion-list>
-          @for (row of filteredRows(); track row.link_token) {
-            <ion-item>
-              <ion-label>
-                <div class="badge-align">
-                  <b>{{ row.item_id }}</b>
-                  @if (statusOf(row) === 'active') {
-                    <ion-badge color="success">Actif</ion-badge>
-                  }
-                  @if (statusOf(row) === 'used') {
-                    <ion-badge color="medium">Utilisé</ion-badge>
-                  }
-                  @if (statusOf(row) === 'deleted') {
-                    <ion-badge color="danger">Supprimé</ion-badge>
-                  }
-                  @if (statusOf(row) === 'expired') {
-                    <ion-badge color="warning">Expiré</ion-badge>
-                  }
-                </div>
-                <div class="dim">Créé: {{ row.created_at | date: 'short' }}</div>
-                <div class="dim">Expire: {{ row.expires_at ? (row.expires_at | date:'short') : '—' }}</div>
-                <div class="dim">Utilisé: {{ row.used_at ? (row.used_at | date:'short') : '—' }}</div>
-                <div class="dim">Supprimé: {{ row.deleted_at ? (row.deleted_at | date:'short') : '—' }}</div>
-              </ion-label>
+                <ion-col size="2" class="ion-hide-md-down grid-col">
+                  {{ row.deleted_at ? (row.deleted_at | date:'short') : '—' }}
+                </ion-col>
 
-              <ion-buttons slot="end">
-                <ion-button fill="clear" (click)="copy(linkUrl(row.link_token))" [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">
-                  Copier lien
-                </ion-button>
+                <!-- Actions -->
+                <ion-col size="4" size-md="1" class="grid-col">
+                  <ion-buttons class="separate-buttons">
+                    <ion-button
+                      fill="clear"
+                      shape="round"
+                      (click)="copy(linkUrl(row.link_token))"
+                      [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">
+                      <ion-icon name="copy-outline"></ion-icon>
+                    </ion-button>
 
-                <ion-button color="danger" (click)="delete(row.link_token)"
-                            [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">Supprimer
-                </ion-button>
-              </ion-buttons>
-            </ion-item>
-          }
-        </ion-list>
+                    <ion-button
+                      color="danger"
+                      shape="round"
+                      (click)="delete(row.link_token)"
+                      [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </ion-button>
+                  </ion-buttons>
+                </ion-col>
+
+              </ion-row>
+            }
+          </ion-grid>
+        </div>
 
         @if (!filteredRows().length) {
           <ion-item lines="none">

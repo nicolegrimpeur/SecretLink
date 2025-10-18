@@ -1,4 +1,4 @@
-import {Component, computed, inject, signal} from '@angular/core';
+import {Component, computed, ElementRef, inject, signal, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
@@ -8,8 +8,8 @@ import {
   IonCard,
   IonCardContent,
   IonCardHeader,
-  IonCardTitle,
-  IonContent,
+  IonCardTitle, IonCol,
+  IonContent, IonGrid,
   IonIcon,
   IonInput,
   IonItem,
@@ -17,7 +17,7 @@ import {
   IonList,
   IonListHeader,
   IonNote,
-  IonPopover,
+  IonPopover, IonRow,
   IonSegment,
   IonSegmentButton,
   IonTextarea
@@ -26,7 +26,7 @@ import {LinksService} from "../../core/links";
 import {SegmentValue} from "@ionic/angular";
 import {LinkCreateItem, LinkCreateResult} from "../../shared/models/link-create";
 import {LinkStatus} from "../../shared/models/link-status";
-import {informationCircleOutline, syncOutline} from "ionicons/icons";
+import {closeCircleOutline, copyOutline, informationCircleOutline, syncOutline, trashOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
 import {environment} from "../../../environments/environment";
 import {Storage} from "../../core/storage";
@@ -39,9 +39,10 @@ type StatusFilter = 'active' | 'used' | 'deleted' | 'expired';
   templateUrl: './links.page.html',
   styleUrls: ['./links.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, IonListHeader, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonPopover, IonBadge]
+  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, IonListHeader, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonPopover, IonBadge, IonCol, IonGrid, IonRow]
 })
 export class LinksPage {
+  @ViewChild(IonContent, { read: ElementRef }) contentEl!: ElementRef;
   private api = inject(LinksService);
   private storage = inject(Storage);
   private toast = inject(ToastService);
@@ -74,7 +75,7 @@ export class LinksPage {
 
   // filtres
   statusFilter = signal<StatusFilter | 'all'>('active');
-  qLinks = signal<string>('');
+  statusSearch = '';
   // Signal pour forcer l'actualisation des liens filtrés
   private refreshTrigger = signal(0);
 
@@ -85,7 +86,7 @@ export class LinksPage {
   countExpired = computed(() => this.rows.filter(r => this.statusOf(r) === 'expired').length);
 
   constructor() {
-    addIcons({syncOutline, informationCircleOutline});
+    addIcons({syncOutline, informationCircleOutline, copyOutline, trashOutline});
   }
 
   async ionViewWillEnter() {
@@ -217,10 +218,10 @@ export class LinksPage {
   }
 
   exportCsv() {
-    const header = 'item_id,link_token,created_at,expires_at,used_at,deleted_at';
+    const header = 'item_id;link_token;created_at;expires_at;used_at;deleted_at';
     const lines = this.rows.map(r => [
       r.item_id, r.link_token, r.created_at, r.expires_at ?? '', r.used_at ?? '', r.deleted_at ?? ''
-    ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+    ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(';'));
     const blob = new Blob([header + '\n' + lines.join('\n')], {type: 'text/csv;charset=utf-8;'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -247,10 +248,6 @@ export class LinksPage {
     this.storage.set('links_statusFilter', sf).then();
   }
 
-  setQuery(v: string) {
-    this.qLinks.set(v || '');
-  }
-
   isLinkExpired(row: LinkStatus): boolean {
     if (row.expires_at) {
       const expTime = new Date(row.expires_at).getTime();
@@ -260,7 +257,7 @@ export class LinksPage {
     }
   }
 
-  private forceRefresh() {
+  forceRefresh() {
     this.refreshTrigger.set(this.refreshTrigger() + 1);
   }
 
@@ -268,7 +265,7 @@ export class LinksPage {
     // Dépendance au trigger pour forcer le recalcul
     this.refreshTrigger();
 
-    const q = this.qLinks().toLowerCase();
+    const q = this.statusSearch.toLowerCase();
     const f = this.statusFilter();
 
     return this.rows.filter(r => {
