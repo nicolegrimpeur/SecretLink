@@ -171,104 +171,96 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
         </ion-grid>
       </ion-card-header>
       <ion-card-content>
-        <ion-item lines="none">
-          <ion-input placeholder="Rechercher par identifiant"
-                     color="primary"
-                     [(ngModel)]="statusSearch"
-                     [ngModelOptions]="{standalone:true}"
-                     [clearInput]="true"
-                     (ionInput)="forceRefresh()"
-          />
-          <ion-button fill="outline" (click)="exportCsv()" [disabled]="!filteredRows().length" slot="end">
-            Exporter CSV
-          </ion-button>
-        </ion-item>
-
-        <div class="grid-header">
-          <ion-grid class="ion-no-padding">
-            <ion-row class="ion-text-center grid-head-row">
-              <ion-col size="8" size-md="3"><b>Identifiant / Statut</b></ion-col>
-              <ion-col size="2" class="ion-hide-md-down"><b>Créé le</b></ion-col>
-              <ion-col size="2" class="ion-hide-md-down"><b>Expire le</b></ion-col>
-              <ion-col size="2" class="ion-hide-md-down"><b>Utilisé le</b></ion-col>
-              <ion-col size="2" class="ion-hide-md-down"><b>Supprimé le</b></ion-col>
-              <ion-col size="4" size-md="1"><b>Actions</b></ion-col>
-            </ion-row>
-          </ion-grid>
-        </div>
-
-        <div class="grid-body">
-          <ion-grid class="ion-no-padding">
-            @for (row of filteredRows(); track row.link_token) {
-              <ion-row class="grid-row">
-
-                <!-- Identifiant + Badges -->
-                <ion-col size="8" size-md="3" class="grid-col">
-                  <div class="badge-align">
-                    <b>{{ row.item_id.length > 20 ? row.item_id.slice(0, 20) + '...' : row.item_id }}</b>
-                    @if (statusOf(row) === 'active') {
-                      <ion-badge color="success" class="tight">Actif</ion-badge>
-                    }
-                    @if (statusOf(row) === 'used') {
-                      <ion-badge color="medium" class="tight">Utilisé</ion-badge>
-                    }
-                    @if (statusOf(row) === 'deleted') {
-                      <ion-badge color="danger" class="tight">Supprimé</ion-badge>
-                    }
-                    @if (statusOf(row) === 'expired') {
-                      <ion-badge color="warning" class="tight">Expiré</ion-badge>
-                    }
-                  </div>
-                </ion-col>
-
-                <!-- Dates -->
-                <ion-col size="2" class="ion-hide-md-down grid-col">
-                  {{ row.created_at | date:'short' }}
-                </ion-col>
-
-                <ion-col size="2" class="ion-hide-md-down grid-col">
-                  {{ row.expires_at ? (row.expires_at | date:'short') : '—' }}
-                </ion-col>
-
-                <ion-col size="2" class="ion-hide-md-down grid-col">
-                  {{ row.used_at ? (row.used_at | date:'short') : '—' }}
-                </ion-col>
-
-                <ion-col size="2" class="ion-hide-md-down grid-col">
-                  {{ row.deleted_at ? (row.deleted_at | date:'short') : '—' }}
-                </ion-col>
-
-                <!-- Actions -->
-                <ion-col size="4" size-md="1" class="grid-col">
-                  <ion-buttons class="separate-buttons">
-                    <ion-button
-                      fill="clear"
-                      shape="round"
-                      (click)="copy(linkUrl(row.link_token))"
-                      [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">
-                      <ion-icon name="copy-outline"></ion-icon>
-                    </ion-button>
-
-                    <ion-button
-                      color="danger"
-                      shape="round"
-                      (click)="delete(row.link_token)"
-                      [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">
-                      <ion-icon name="trash-outline"></ion-icon>
-                    </ion-button>
-                  </ion-buttons>
-                </ion-col>
-
-              </ion-row>
-            }
-          </ion-grid>
-        </div>
-
-        @if (!filteredRows().length) {
+        <ion-list class="ion-no-padding">
           <ion-item lines="none">
-            <ion-label>Aucun lien pour ce filtre/recherche.</ion-label>
+            <ion-input placeholder="Rechercher par identifiant"
+                       color="primary"
+                       [(ngModel)]="statusSearch"
+                       [ngModelOptions]="{standalone:true}"
+                       [clearInput]="true"
+                       (ionInput)="forceRefresh()"
+            />
+            <ion-button fill="outline" (click)="exportCsv()" [disabled]="!filteredRows().length" slot="end">
+              Exporter CSV
+            </ion-button>
           </ion-item>
-        }
+
+          <ion-item class="grid-header ion-no-padding ion-text-center">
+            <ion-col size="8" size-md="3"><b>Identifiant / Statut</b></ion-col>
+            <ion-col size="2" class="ion-hide-md-down"><b>Créé le</b></ion-col>
+            <ion-col size="2" class="ion-hide-md-down"><b>Expire le</b></ion-col>
+            <ion-col size="2" class="ion-hide-md-down"><b>Utilisé le</b></ion-col>
+            <ion-col size="2" class="ion-hide-md-down"><b>Supprimé le</b></ion-col>
+            <ion-col size="4" size-md="1"><b>Actions</b></ion-col>
+          </ion-item>
+
+          @for (row of filteredRows(); track row.link_token) {
+            <ion-item class="grid-item ion-no-padding" lines="none">
+              <!-- Identifiant + Badges -->
+              <ion-col size="8" size-md="3" class="grid-col ion-text-center">
+                <div class="badge-align">
+                  <b>{{ row.item_id.length > 20 ? row.item_id.slice(0, 20) + '...' : row.item_id }}</b>
+                  @if (statusOf(row) === 'active') {
+                    <ion-badge color="success" class="tight">Actif</ion-badge>
+                  }
+                  @if (statusOf(row) === 'used') {
+                    <ion-badge color="medium" class="tight">Utilisé</ion-badge>
+                  }
+                  @if (statusOf(row) === 'deleted') {
+                    <ion-badge color="danger" class="tight">Supprimé</ion-badge>
+                  }
+                  @if (statusOf(row) === 'expired') {
+                    <ion-badge color="warning" class="tight">Expiré</ion-badge>
+                  }
+                </div>
+              </ion-col>
+
+              <!-- Dates -->
+              <ion-col size="2" class="ion-hide-md-down grid-col ion-text-center">
+                {{ row.created_at | date:'short' }}
+              </ion-col>
+
+              <ion-col size="2" class="ion-hide-md-down grid-col ion-text-center">
+                {{ row.expires_at ? (row.expires_at | date:'short') : '—' }}
+              </ion-col>
+
+              <ion-col size="2" class="ion-hide-md-down grid-col ion-text-center">
+                {{ row.used_at ? (row.used_at | date:'short') : '—' }}
+              </ion-col>
+
+              <ion-col size="2" class="ion-hide-md-down grid-col ion-text-center">
+                {{ row.deleted_at ? (row.deleted_at | date:'short') : '—' }}
+              </ion-col>
+
+              <!-- Actions -->
+              <ion-col size="4" size-md="1" class="ion-display-flex ion-justify-content-center">
+                <ion-buttons class="separate-buttons">
+                  <ion-button
+                    fill="clear"
+                    shape="round"
+                    (click)="copy(linkUrl(row.link_token))"
+                    [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">
+                    <ion-icon name="copy-outline"></ion-icon>
+                  </ion-button>
+
+                  <ion-button
+                    color="danger"
+                    shape="round"
+                    (click)="delete(row.link_token)"
+                    [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
+              </ion-col>
+            </ion-item>
+          }
+
+          @if (!filteredRows().length) {
+            <ion-item lines="none">
+              <ion-label>Aucun lien pour ce filtre/recherche.</ion-label>
+            </ion-item>
+          }
+        </ion-list>
       </ion-card-content>
     </ion-card>
   }

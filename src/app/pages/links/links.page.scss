@@ -9,41 +9,18 @@ ion-badge {
   font-size: 0.75em;
 }
 
-.grid-header {
-  height: 52px;
-  display: flex;
-  align-items: center;
-
+.grid-header::part(native) {
   background: var(--ion-color-step-50, #f7f7f7);
-  border-bottom: 1px solid var(--ion-border-color, rgba(0,0,0,.08));
 }
 
-.grid-head-row {
-  color: var(--ion-text-color-step-600, #444);
-}
-
-// si un jour je veux remettre le scroll
-//.grid-body {
-//  max-height: 70vh;
-//  overflow-y: auto;
-//}
-
-.grid-row {
-  border-bottom: 1px solid var(--ion-border-color, rgba(0,0,0,.06));
-  padding: 6px 0;
-  align-items: center;
-
-  &:nth-child(odd) {
-    background: var(--ion-color-primary-rgba-low);
-  }
-
-  .grid-col {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+.grid-item:nth-child(even)::part(native) {
+  background: var(--ion-color-primary-rgba-low);
 }
 
 .separate-buttons {
   gap: 10px;
+}
+
+.ion-no-padding {
+  padding: 0 !important;
 }
