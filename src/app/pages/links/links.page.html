@@ -37,7 +37,7 @@
           <ion-button type="submit" [disabled]="form.invalid || loading">Créer</ion-button>
         </form>
 
-        @if (lastResults?.length && form.get('item_id')) {
+        @if (lastResults?.length && Number(lastResults?.length) === 1) {
           <ion-list>
             <ion-list-header>Résultat</ion-list-header>
             @for (r of lastResults; track r.item_id) {
@@ -74,34 +74,15 @@
                       placeholder="item_id,secret,ttl_days
 alice@example.com,vpn-ALICE,7
 bob@example.com,vpn-BOB,7"></ion-textarea>
-        <div class="row">
-          <ion-input
-            label="(Optionnel) PAT Bearer"
-            [(ngModel)]="inlinePatBulk"
-            [ngModelOptions]="{standalone:true}"
-            placeholder="laisser vide pour session"/>
-
-          <ion-input
-            label="(Optionnel) Idempotency-Key"
-            [(ngModel)]="idempotencyKey"
-            [ngModelOptions]="{standalone:true}"
-            [clearInput]="true"
-            (ionInput)="idempotencyKey === '' ? clearKey() : null"
-            placeholder="ex: bulk-20251008-153045-3fa7bd">
-            <ion-button fill="clear" slot="end" (click)="generateKey()">
-              <ion-icon name="sync-outline"/>
-            </ion-button>
-          </ion-input>
-        </div>
 
         <ion-button (click)="createBulk()" [disabled]="loading || !csvText.trim()">Créer les liens</ion-button>
 
-        @if (lastResults?.length && !form.get('item_id')) {
+        @if (lastResults?.length && Number(lastResults?.length) > 1) {
           <ion-list>
             @for (r of lastResults; track r.item_id) {
               <ion-item>
                 <ion-label>
-                  <b>{{ r.item_id }}</b> — {{ r.status }}
+                  <b>{{ r.item_id }}</b> — {{ statusHelp[r.status] }}
                   @if (r.link_token) {
                     <div><a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a></div>
                   }

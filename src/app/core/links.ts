@@ -11,9 +11,8 @@ import {LinkStatus} from "../shared/models/link-status";
 export class LinksService {
   private http = inject(HttpClient);
 
-  async createBulk(items: LinkCreateItem[], opts?: { pat?: string; idempotencyKey?: string }) {
+  async createBulk(items: LinkCreateItem[], opts?: { idempotencyKey?: string }) {
     let headers = new HttpHeaders();
-    if (opts?.pat) headers = headers.set('Authorization', `Bearer ${opts.pat}`);
     if (opts?.idempotencyKey) headers = headers.set('Idempotency-Key', opts.idempotencyKey);
 
     const url = `${environment.apiBaseUrl}/api/vaultlink/links`;

@@ -61,7 +61,6 @@ export class LinksPage {
 
   // bulk
   csvText = '';
-  inlinePatBulk = '';
   idempotencyKey = '';
 
   // status
@@ -145,6 +144,23 @@ export class LinksPage {
     }
   }
 
+  private async generateIdempotencyKey(items: LinkCreateItem[]): Promise<string> {
+    console.log(items);
+    const itemsString = JSON.stringify(items.map(item => ({
+      item_id: item.item_id,
+      secret: item.secret,
+      ttl_days: item.ttl_days
+    })).sort((a, b) => a.item_id.localeCompare(b.item_id)));
+
+    const encoder = new TextEncoder();
+    const data = encoder.encode(itemsString);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    return `bulk-${hashHex.substring(0, 12)}`;
+  }
+
   async createBulk() {
     const items = this.parseCsv(this.csvText);
     if (!items.length) {
@@ -154,8 +170,7 @@ export class LinksPage {
     this.loading = true;
     try {
       this.lastResults = await this.api.createBulk(items, {
-        pat: this.inlinePatBulk || undefined,
-        idempotencyKey: this.idempotencyKey || undefined
+        idempotencyKey: await this.generateIdempotencyKey(items)
       });
       if (this.lastResults?.length) await this.reload();
     } catch (e: any) {
@@ -181,7 +196,7 @@ export class LinksPage {
       const parts = lines[i].split(sep).map(s => s.trim());
       if (parts.length < 2) continue;
       const [item_id, secret, ttlStr] = parts;
-      const ttl = ttlStr ? Number(ttlStr) : 7;
+      const ttl = ttlStr ? Number(ttlStr) : 0;
       if (!item_id || !secret) continue;
       items.push({item_id, secret, ttl_days: Number.isFinite(ttl) ? ttl : 7});
     }
@@ -293,4 +308,5 @@ export class LinksPage {
       return true;
     });
   });
+  protected readonly Number = Number;
 }
