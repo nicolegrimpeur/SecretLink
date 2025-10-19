@@ -3,7 +3,6 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {
   IonButton,
-  IonButtons,
   IonCard,
   IonCardContent,
   IonCardHeader,
@@ -11,17 +10,14 @@ import {
   IonCardTitle,
   IonCheckbox,
   IonContent,
-  IonHeader,
   IonIcon,
   IonInput,
   IonItem,
-  IonSkeletonText,
-  IonTitle,
-  IonToolbar
+  IonSkeletonText
 } from '@ionic/angular/standalone';
 import {HttpClient} from "@angular/common/http";
 import {ToastController} from "@ionic/angular";
-import {ActivatedRoute, RouterLink} from "@angular/router";
+import {ActivatedRoute} from "@angular/router";
 import {environment} from "../../../environments/environment";
 import {addIcons} from "ionicons";
 import {copyOutline, lockClosedOutline} from "ionicons/icons";
@@ -32,7 +28,7 @@ import {RedeemResponse} from "../../shared/models/redeem-response";
   templateUrl: './redeem.page.html',
   styleUrls: ['./redeem.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardSubtitle, IonCardContent, IonItem, IonCheckbox, IonButton, IonSkeletonText, IonButtons, IonIcon, RouterLink, IonInput]
+  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardSubtitle, IonCardContent, IonItem, IonCheckbox, IonButton, IonSkeletonText, IonIcon, IonInput]
 })
 export class RedeemPage implements OnInit {
   private route = inject(ActivatedRoute);

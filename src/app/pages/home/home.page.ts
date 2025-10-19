@@ -1,29 +1,20 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import {
-  IonContent,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonButton,
-  IonGrid,
-  IonRow,
-  IonCol,
   IonCard,
+  IonCardContent,
   IonCardHeader,
   IonCardTitle,
-  IonCardContent,
-  IonIcon, IonButtons
+  IonCol,
+  IonContent,
+  IonGrid,
+  IonIcon,
+  IonRow
 } from '@ionic/angular/standalone';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { addIcons } from 'ionicons';
-import {
-  lockClosedOutline,
-  linkOutline,
-  shareSocialOutline,
-  checkmarkCircleOutline,
-  cloudOutline
-} from 'ionicons/icons';
+import {CommonModule} from '@angular/common';
+import {RouterLink} from '@angular/router';
+import {addIcons} from 'ionicons';
+import {checkmarkCircleOutline, cloudOutline, linkOutline, lockClosedOutline, shareSocialOutline} from 'ionicons/icons';
 
 @Component({
   selector: 'app-home',
@@ -34,9 +25,6 @@ import {
     CommonModule,
     RouterLink,
     IonContent,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonButton,
     IonGrid,
     IonRow,
@@ -45,8 +33,7 @@ import {
     IonCardHeader,
     IonCardTitle,
     IonCardContent,
-    IonIcon,
-    IonButtons
+    IonIcon
   ]
 })
 export class HomePage  {

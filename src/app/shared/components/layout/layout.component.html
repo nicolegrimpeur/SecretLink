@@ -32,7 +32,7 @@
         <ion-button fill="clear" color="primary" [routerLink]="user ? '/dashboard' : '/auth'">
           <ion-icon slot="start" name="person-circle-outline"></ion-icon>
           @if (user) {
-            <span class="email ion-hide-md-down">{{ user?.email || "Chargement en cours" }}</span>
+            <span class="email ion-hide-md-down">{{ user.email || "Chargement en cours" }}</span>
           } @else {
             <span class="email ion-hide-md-down">Se connecter / S'inscrire</span>
           }
