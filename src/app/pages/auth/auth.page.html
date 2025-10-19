@@ -19,36 +19,41 @@
         </ion-segment>
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="form">
-          <ion-item>
+          <ion-item lines="none" [class.ion-invalid]="isInvalid('email')">
             <ion-input
               label="Email"
               type="email"
               formControlName="email"
+              helperText="Entrez votre adresse email"
+              [errorText]="errorFor('email') || ''"
               [required]="true"
-              autocomplete="email"
-            ></ion-input>
+              autocomplete="email">
+            </ion-input>
           </ion-item>
 
-          <ion-item>
+          <ion-item lines="none" [class.ion-invalid]="isInvalid('password')">
             <ion-input
               label="Mot de passe"
               type="password"
               formControlName="password"
+              [helperText]="'Entrez votre mot de passe' + (mode() === 'login' ? '' : ' (8 caractères minimum)')"
+              [errorText]="errorFor('password') || ''"
               [required]="true"
-              [autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
-            >
+              [autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'">
               <ion-input-password-toggle slot="end"></ion-input-password-toggle>
             </ion-input>
           </ion-item>
 
           <div class="confirm-accordion" [class.open]="mode() === 'signup'">
             <div class="confirm-inner">
-              <ion-item>
+              <ion-item lines="none" [class.ion-invalid]="isInvalid('passwordConfirm')">
                 <ion-input
                   label="Confirmer le mot de passe"
                   type="password"
                   formControlName="passwordConfirm"
-                  [required]="true"
+                  [required]="mode() === 'signup'"
+                  helperText="Confirmez votre mot de passe"
+                  [errorText]="errorFor('passwordConfirm') || ''"
                   autocomplete="new-password">
                   <ion-input-password-toggle slot="end"></ion-input-password-toggle>
                 </ion-input>
@@ -56,7 +61,7 @@
             </div>
           </div>
 
-          <ion-button expand="block" type="submit" [disabled]="loading()">
+          <ion-button expand="block" type="submit" [disabled]="!form.valid">
             {{ submitLabel() }}
           </ion-button>
 

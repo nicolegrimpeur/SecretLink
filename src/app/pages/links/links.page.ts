@@ -2,14 +2,17 @@ import {Component, computed, ElementRef, inject, signal, ViewChild} from '@angul
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
+  AlertController,
   IonBadge,
   IonButton,
   IonButtons,
   IonCard,
   IonCardContent,
   IonCardHeader,
-  IonCardTitle, IonCol,
-  IonContent, IonGrid,
+  IonCardTitle,
+  IonCol,
+  IonContent,
+  IonGrid,
   IonIcon,
   IonInput,
   IonItem,
@@ -17,16 +20,17 @@ import {
   IonList,
   IonListHeader,
   IonNote,
-  IonPopover, IonRow,
+  IonPopover,
+  IonRow,
   IonSegment,
   IonSegmentButton,
-  IonTextarea, AlertController
+  IonTextarea
 } from '@ionic/angular/standalone';
 import {LinksService} from "../../core/links";
 import {SegmentValue} from "@ionic/angular";
 import {LinkCreateItem, LinkCreateResult} from "../../shared/models/link-create";
 import {LinkStatus} from "../../shared/models/link-status";
-import {closeCircleOutline, copyOutline, informationCircleOutline, syncOutline, trashOutline} from "ionicons/icons";
+import {copyOutline, informationOutline, syncOutline, trashOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
 import {environment} from "../../../environments/environment";
 import {Storage} from "../../core/storage";
@@ -86,7 +90,7 @@ export class LinksPage {
   countExpired = computed(() => this.rows().filter(r => this.statusOf(r) === 'expired').length);
 
   constructor() {
-    addIcons({syncOutline, informationCircleOutline, copyOutline, trashOutline});
+    addIcons({syncOutline, informationOutline, copyOutline, trashOutline});
   }
 
   async ionViewWillEnter() {

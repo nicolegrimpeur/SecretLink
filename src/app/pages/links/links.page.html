@@ -21,8 +21,8 @@
           </ion-item>
           <ion-item>
             <ion-input type="number" label="Durée de vie du lien" formControlName="ttl_days">
-              <ion-button fill="clear" slot="end" id="infoTTL">
-                <ion-icon name="information-circle-outline"></ion-icon>
+              <ion-button fill="clear" slot="end" id="infoTTL" shape="round">
+                <ion-icon name="information-outline"></ion-icon>
               </ion-button>
               <ion-popover trigger="infoTTL" triggerAction="click" [showBackdrop]="false">
                 <ng-template>
@@ -34,7 +34,10 @@
             </ion-input>
           </ion-item>
 
-          <ion-button type="submit" [disabled]="form.invalid || loading">Créer</ion-button>
+          <div class="ion-display-flex ion-justify-content-center">
+            <ion-button type="submit" [disabled]="form.invalid || loading">Créer</ion-button>
+          </div>
+
         </form>
 
         @if (lastResults?.length && Number(lastResults?.length) === 1) {
@@ -75,7 +78,9 @@
 alice@example.com,vpn-ALICE,7
 bob@example.com,vpn-BOB,7"></ion-textarea>
 
-        <ion-button (click)="createBulk()" [disabled]="loading || !csvText.trim()">Créer les liens</ion-button>
+        <div class="ion-display-flex ion-justify-content-center">
+          <ion-button (click)="createBulk()" [disabled]="loading || !csvText.trim()">Créer les liens</ion-button>
+        </div>
 
         @if (lastResults?.length && Number(lastResults?.length) > 1) {
           <ion-list>

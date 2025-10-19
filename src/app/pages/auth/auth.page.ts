@@ -46,49 +46,7 @@ export class AuthPage {
   mode = signal<Mode>('login');
   loading = signal(false);
   error = signal<string | null>(null);
-
-  form = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]],
-    passwordConfirm: ['', []],
-  });
-
-  private passwordMatchValidator: ValidatorFn = (group) => {
-    const pass = group.get('password')?.value;
-    const confirm = group.get('passwordConfirm')?.value;
-    return pass && confirm && pass !== confirm ? { passwordMismatch: true } : null;
-  };
-
-  constructor() {
-    addIcons({ lockClosedOutline, personAddOutline });
-
-    effect(() => {
-      const m = this.mode();
-
-      const passwordConfirmForm = this.form.get('passwordConfirm')!;
-      if (m === 'signup') {
-        // active le champ + validators
-        passwordConfirmForm.enable({ emitEvent: false });
-        passwordConfirmForm.addValidators(Validators.required);
-        this.form.setValidators(this.passwordMatchValidator);
-      } else {
-        // désactive le champ + enlève ses validators et sa valeur
-        passwordConfirmForm.clearValidators();
-        passwordConfirmForm.setValue(null, { emitEvent: false });
-        passwordConfirmForm.disable({ emitEvent: false });
-        this.form.clearValidators();
-      }
-
-      passwordConfirmForm.updateValueAndValidity({ emitEvent: false });
-      this.form.updateValueAndValidity({ emitEvent: false });
-    });
-  }
-
-  switchMode(m: Mode | SegmentValue) {
-    if (m !== this.mode()) {
-      this.mode.set(m as Mode);
-    }
-  }
+  submitted = signal(false);
 
   title = computed(() => this.mode() === 'login' ? "Se connecter" : "Créer un compte");
   icon  = computed(() => this.mode() === 'login' ? 'lock-closed-outline' : 'person-add-outline');
@@ -97,8 +55,102 @@ export class AuthPage {
   altActionLabel = computed(() => this.mode() === 'login' ? "Créer un compte" : "Se connecter");
   altTarget = computed<Mode>(() => this.mode() === 'login' ? 'signup' : 'login');
 
+  backendError = [
+    { code: 'UNAUTHORIZED', message: "Mot de passe incorrect." },
+    { code: 'VALIDATION_ERROR', message: "Une erreur a eu lieu, vérifiez le format du mail." },
+    { code: 'CONFLICT', message: "Un compte avec cet email existe déjà." },
+  ];
+
+  form = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
+    passwordConfirm: ['', []],
+  });
+
+  private passwordMatchValidator: ValidatorFn = (group) => {
+    const passCtrl = group.get('password');
+    const confirmCtrl = group.get('passwordConfirm');
+    if (!passCtrl || !confirmCtrl || confirmCtrl.disabled) return null;
+
+    const pass = passCtrl.value ?? '';
+    const confirm = confirmCtrl.value ?? '';
+    const mismatch = pass && confirm && pass !== confirm;
+
+    if (mismatch) {
+      confirmCtrl.setErrors({ ...(confirmCtrl.errors || {}), passwordMismatch: true });
+    } else {
+      if (confirmCtrl.hasError('passwordMismatch')) {
+        const { passwordMismatch, ...rest } = confirmCtrl.errors || {};
+        confirmCtrl.setErrors(Object.keys(rest).length ? rest : null);
+      }
+    }
+    return mismatch ? { passwordMismatch: true } : null;
+  };
+
+  constructor() {
+    addIcons({ lockClosedOutline, personAddOutline });
+
+    effect(() => {
+      const m = this.mode();
+      this.submitted.set(false); // reset affichage erreurs quand on change d’onglet
+
+      const passwordConfirmForm = this.form.get('passwordConfirm')!;
+      if (m === 'signup') {
+        passwordConfirmForm.enable({ emitEvent: false });
+        passwordConfirmForm.setValidators([Validators.required]);
+        this.form.setValidators(this.passwordMatchValidator);
+      } else {
+        passwordConfirmForm.setValue(null, { emitEvent: false });
+        passwordConfirmForm.clearValidators();
+        passwordConfirmForm.setErrors(null);
+        passwordConfirmForm.disable({ emitEvent: false });
+
+        this.form.clearValidators();
+        this.form.setErrors(null);
+      }
+
+      passwordConfirmForm.updateValueAndValidity({ emitEvent: false });
+      this.form.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
+
+  switchMode(m: Mode | SegmentValue) {
+    if (m !== this.mode()) {
+      this.mode.set(m as Mode);
+    }
+  }
+
+  private control(name: 'email' | 'password' | 'passwordConfirm') {
+    return this.form.get(name)!;
+  }
+
+  isInvalid(name: 'email' | 'password' | 'passwordConfirm') {
+    const c = this.control(name);
+    return c.invalid && (c.touched || c.dirty || this.submitted());
+  }
+
+  errorFor(name: 'email' | 'password' | 'passwordConfirm'): string | null {
+    const c = this.control(name);
+    if (!this.isInvalid(name)) return null;
+
+    const e = c.errors || {};
+    if (e['required']) return 'Ce champ est requis.';
+    if (e['email']) return 'Adresse email invalide.';
+    if (e['minlength']) return `Au moins ${e['minlength'].requiredLength} caractères (actuel : ${e['minlength'].actualLength}).`;
+    if (e['passwordMismatch']) return 'Les mots de passe ne correspondent pas.';
+    return 'Valeur invalide.';
+  }
+
   async submit() {
-    if (this.form.invalid) return;
+    this.submitted.set(true);
+    this.form.updateValueAndValidity({ onlySelf: false, emitEvent: true });
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
     this.loading.set(true);
     this.error.set(null);
     const { email, password } = this.form.value as any;
@@ -111,9 +163,12 @@ export class AuthPage {
       }
       await this.router.navigateByUrl('/dashboard');
     } catch (e: any) {
-      this.error.set(e?.error?.error?.message || 'Action failed');
+      const code = e?.error?.error?.code || e?.code || e?.message;
+      const known = this.backendError.find(x => x.code === code);
+      this.error.set(known?.message ?? 'Une erreur est survenue.');
     } finally {
       this.loading.set(false);
     }
   }
+
 }
