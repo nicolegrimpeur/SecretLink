@@ -9,7 +9,7 @@
   @if (tab === 'create') {
     <ion-card>
       <ion-card-header>
-        <ion-card-title>Créer un lien (unitaire)</ion-card-title>
+        <ion-card-title>Créer un lien sécurisé</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <form [formGroup]="form" (ngSubmit)="createSingle()">
@@ -67,41 +67,53 @@
       </ion-card-content>
     </ion-card>
 
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Créer en bulk (coller CSV)</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-note>Colonnes supportées: <code>item_id,secret,ttl_days</code> — entête optionnelle.</ion-note>
-        <ion-textarea [(ngModel)]="csvText" [ngModelOptions]="{standalone:true}" [autoGrow]="true" [rows]="6"
-                      placeholder="item_id,secret,ttl_days
+    <div class="ion-display-flex ion-justify-content-center ion-margin-vertical">
+      <ion-checkbox [(ngModel)]="showBulk" [ngModelOptions]="{standalone:true}" color="primary">
+        <ion-label color="medium">Afficher les options avancées</ion-label>
+      </ion-checkbox>
+    </div>
+
+    @if (showBulk) {
+      <ion-card class="fade-in">
+        <ion-card-header>
+          <ion-card-title>Créer en bulk (coller CSV)</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-note>Colonnes supportées: <code>item_id,secret,ttl_days</code> — entête optionnelle.</ion-note>
+          <ion-textarea
+            [(ngModel)]="csvText"
+            [ngModelOptions]="{standalone:true}"
+            [autoGrow]="true"
+            [rows]="6"
+            placeholder="item_id,secret,ttl_days
 alice@example.com,vpn-ALICE,7
 bob@example.com,vpn-BOB,7"></ion-textarea>
 
-        <div class="ion-display-flex ion-justify-content-center">
-          <ion-button (click)="createBulk()" [disabled]="loading || !csvText.trim()">Créer les liens</ion-button>
-        </div>
+          <div class="ion-display-flex ion-justify-content-center">
+            <ion-button (click)="createBulk()" [disabled]="loading || !csvText.trim()">Créer les liens</ion-button>
+          </div>
 
-        @if (lastResults?.length && Number(lastResults?.length) > 1) {
-          <ion-list>
-            @for (r of lastResults; track r.item_id) {
-              <ion-item>
-                <ion-label>
-                  <b>{{ r.item_id }}</b> — {{ statusHelp[r.status] }}
+          @if (lastResults?.length && Number(lastResults?.length) > 1) {
+            <ion-list>
+              @for (r of lastResults; track r.item_id) {
+                <ion-item>
+                  <ion-label>
+                    <b>{{ r.item_id }}</b> — {{ statusHelp[r.status] }}
+                    @if (r.link_token) {
+                      <div><a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a></div>
+                    }
+                  </ion-label>
+
                   @if (r.link_token) {
-                    <div><a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a></div>
+                    <ion-button fill="clear" (click)="copy(linkUrl(r.link_token))">Copier</ion-button>
                   }
-                </ion-label>
-
-                @if (r.link_token) {
-                  <ion-button fill="clear" (click)="copy(linkUrl(r.link_token))">Copier</ion-button>
-                }
-              </ion-item>
-            }
-          </ion-list>
-        }
-      </ion-card-content>
-    </ion-card>
+                </ion-item>
+              }
+            </ion-list>
+          }
+        </ion-card-content>
+      </ion-card>
+    }
   }
 
 

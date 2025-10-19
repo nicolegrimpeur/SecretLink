@@ -10,6 +10,7 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
+  IonCheckbox,
   IonCol,
   IonContent,
   IonGrid,
@@ -43,7 +44,7 @@ type StatusFilter = 'active' | 'used' | 'deleted' | 'expired';
   templateUrl: './links.page.html',
   styleUrls: ['./links.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, IonListHeader, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonPopover, IonBadge, IonCol, IonGrid, IonRow]
+  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, IonListHeader, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonPopover, IonBadge, IonCol, IonGrid, IonRow, IonCheckbox]
 })
 export class LinksPage {
   @ViewChild(IonContent, { read: ElementRef }) contentEl!: ElementRef;
@@ -64,6 +65,7 @@ export class LinksPage {
   lastResults: LinkCreateResult[] | null = null;
 
   // bulk
+  showBulk: boolean = false;
   csvText = '';
   idempotencyKey = '';
 
