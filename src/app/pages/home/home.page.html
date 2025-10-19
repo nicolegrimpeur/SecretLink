@@ -1,0 +1,118 @@
+<ion-content class="ion-padding">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-text">
+      <h1>🔒 Partagez vos secrets en toute sécurité</h1>
+      <p>
+        SecretLink vous permet de transmettre un mot de passe ou toute donnée sensible
+        via un <b>lien unique</b>, consultable une seule fois puis supprimé définitivement.
+      </p>
+    </div>
+  </section>
+
+  <!-- COMMENT ÇA MARCHE -->
+  <section class="steps">
+    <h2>Comment ça marche&nbsp;?</h2>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" size-md="4">
+          <ion-card>
+            <ion-card-header>
+              <ion-icon name="lock-closed-outline"></ion-icon>
+              <ion-card-title>1. Saisissez votre secret</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              Entrez manuellement un mot de passe, une clé API ou importez un fichier CSV
+              contenant vos identifiants.
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="12" size-md="4">
+          <ion-card>
+            <ion-card-header>
+              <ion-icon name="link-outline"></ion-icon>
+              <ion-card-title>2. Générez un lien unique</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              Le lien est à usage unique et s’autodétruit après lecture ou à expiration.
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="12" size-md="4">
+          <ion-card>
+            <ion-card-header>
+              <ion-icon name="share-social-outline"></ion-icon>
+              <ion-card-title>3. Partagez en toute confiance</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              Envoyez simplement le lien au destinataire : aucune inscription requise
+              pour consulter le secret.
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </section>
+
+  <!-- AVANTAGES -->
+  <section class="features">
+    <h2>Pourquoi SecretLink&nbsp;?</h2>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" size-md="4">
+          <ion-card>
+            <ion-card-header>
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <ion-card-title>Simplicité</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              Une interface claire et intuitive : aucune configuration complexe.
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="12" size-md="4">
+          <ion-card>
+            <ion-card-header>
+              <ion-icon name="lock-closed-outline"></ion-icon>
+              <ion-card-title>Sécurité</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              Les secrets sont chiffrés de bout en bout et supprimés dès leur lecture. Aucun stockage permanent.
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="12" size-md="4">
+          <ion-card>
+            <ion-card-header>
+              <ion-icon name="cloud-outline"></ion-icon>
+              <ion-card-title>API & automatisation</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              Automatisez vos partages de secrets grâce aux tokens personnels et à l’API REST.
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </section>
+
+  <!-- CTA BAS DE PAGE -->
+  <section class="cta-bottom">
+    <h2>Prêt à simplifier le partage de vos secrets&nbsp;?</h2>
+    <ion-button size="large" color="primary" routerLink="/auth/register">
+      Créer un compte gratuit
+    </ion-button>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2025 SecretLink — Nicolas Barrat</p>
+    <p class="links">
+      <a href="https://github.com/nicolegrimpeur/SecretLink" target="_blank">GitHub</a> ·
+      <a routerLink="/privacy">Confidentialité</a> ·
+      <a routerLink="/mentions">Mentions légales</a>
+    </p>
+  </footer>
+
+</ion-content>

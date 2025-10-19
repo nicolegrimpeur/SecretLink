@@ -52,6 +52,8 @@ export class LayoutComponent implements OnInit {
   private router = inject(Router);
   private auth = inject(AuthService);
   user: User = null;
+  isManagementPage = false;
+  tabManagementPages = ['/account', '/dashboard', '/links'];
 
   constructor() {
     addIcons({
@@ -69,12 +71,15 @@ export class LayoutComponent implements OnInit {
 
   ngOnInit() {
     this.auth.user$.subscribe(u => this.user = u);
+
+    this.router.events.subscribe(() => {
+      this.isManagementPage = this.tabManagementPages.some(path => this.router.url.startsWith(path));
+    });
   }
 
   async handleLogout() {
     // dismiss the popover first
     this.popoverOpen = false;
-
 
     await this.auth.logout();
     await this.router.navigateByUrl('/auth');

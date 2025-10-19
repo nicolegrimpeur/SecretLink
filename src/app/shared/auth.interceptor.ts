@@ -1,16 +1,5 @@
-import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
-import {Router} from '@angular/router';
-import {inject} from '@angular/core';
-import {catchError, throwError} from "rxjs";
+import {HttpInterceptorFn} from '@angular/common/http';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const router = inject(Router);
-  const cloned = req.clone({ withCredentials: true });
-  return next(cloned).pipe(
-    catchError((err: HttpErrorResponse) => {
-      if (err?.status === 401 && !req.url.endsWith('/users/password'))
-        void router.navigateByUrl('/auth');
-      return throwError(() => err);
-    })
-  );
+  return next(req.clone({ withCredentials: true }));
 };
