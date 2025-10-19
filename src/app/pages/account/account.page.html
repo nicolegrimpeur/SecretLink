@@ -88,6 +88,10 @@
   <br>
 
   <div class="ion-display-flex ion-justify-content-center">
+    <ion-button fill="clear" color="medium" shape="round" (click)="purgeAccount()" class="delete-account-button">
+      <ion-icon slot="start" name="trash-bin-outline"></ion-icon>
+      Purger mes données
+    </ion-button>
     <ion-button fill="clear" color="danger" shape="round" (click)="deleteAccount()" class="delete-account-button">
       <ion-icon slot="start" name="trash-outline"></ion-icon>
       Supprimer mon compte

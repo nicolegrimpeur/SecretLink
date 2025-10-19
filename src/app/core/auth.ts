@@ -44,6 +44,11 @@ export class AuthService {
     await firstValueFrom(this.http.post(url, { current_password, new_password }, { withCredentials: true }));
   }
 
+  async purgeMe() {
+    const url = `${environment.apiBaseUrl}/api/v1/users/me/purge`;
+    await firstValueFrom(this.http.delete(url, { withCredentials: true }));
+  }
+
   async deleteMe() {
     const url = `${environment.apiBaseUrl}/api/v1/users/me`;
     await firstValueFrom(this.http.delete(url, { withCredentials: true }));

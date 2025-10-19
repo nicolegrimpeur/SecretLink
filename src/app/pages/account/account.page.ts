@@ -27,7 +27,7 @@ import {AuthService} from "../../core/auth";
 import {Storage} from "../../core/storage";
 import {ToastService} from "../../shared/toast-service";
 import {addIcons} from "ionicons";
-import {constructOutline, trashOutline} from "ionicons/icons";
+import {constructOutline, trashBinOutline, trashOutline} from "ionicons/icons";
 
 @Component({
   selector: 'app-tokens',
@@ -57,7 +57,7 @@ export class AccountPage {
   });
 
   constructor() {
-    addIcons({trashOutline});
+    addIcons({trashOutline, trashBinOutline});
   }
 
   async submit() {
@@ -139,7 +139,29 @@ export class AccountPage {
     }
   }
 
-  /////////// Suppression du compte ///////////
+  ///// purge du compte, donc supprimer les liens inactifs et les api keys révoqués /////
+  async purgeAccount() {
+    const a = await this.alert.create({
+      header: 'Purger le compte ?',
+      message: `Cette action supprimera tous les liens inactifs (utilisés, expirés ou supprimés) et supprimera tous les tokens révoqués.`,
+      buttons: [
+        {text: 'Annuler', role: 'cancel'},
+        {
+          text: 'Purger', role: 'destructive', handler: async () => {
+            try {
+              await this.auth.purgeMe();
+              this.toast.toastMsg('Compte purgé').then();
+              await this.reload();
+            } catch {
+              this.toast.toastMsg('Échec de la purge du compte').then();
+            }
+          }
+        },
+      ]
+    });
+    await a.present();
+  }
+
   async deleteAccount() {
     const a = await this.alert.create({
       header: 'Supprimer le compte ?',
