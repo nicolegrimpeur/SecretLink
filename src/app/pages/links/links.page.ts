@@ -31,13 +31,14 @@ import {LinksService} from "../../core/links";
 import {SegmentValue} from "@ionic/angular";
 import {LinkCreateItem, LinkCreateResult} from "../../shared/models/link-create";
 import {LinkStatus} from "../../shared/models/link-status";
+import {StatusFilter} from "../../shared/models/statutsFilter";
 import {copyOutline, informationOutline, syncOutline, trashOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
 import {environment} from "../../../environments/environment";
 import {Storage} from "../../core/storage";
 import {ToastService} from "../../shared/toast-service";
+import {ActivatedRoute} from "@angular/router";
 
-type StatusFilter = 'active' | 'used' | 'deleted' | 'expired';
 
 @Component({
   selector: 'app-links',
@@ -48,6 +49,7 @@ type StatusFilter = 'active' | 'used' | 'deleted' | 'expired';
 })
 export class LinksPage {
   @ViewChild(IonContent, { read: ElementRef }) contentEl!: ElementRef;
+  private route = inject(ActivatedRoute);
   private api = inject(LinksService);
   private storage = inject(Storage);
   private toast = inject(ToastService);
@@ -96,40 +98,13 @@ export class LinksPage {
   }
 
   async ionViewWillEnter() {
+    if (this.route.snapshot.queryParamMap.get('tab') === 'status') {
+      this.tab = 'status';
+    }
+
     this.idempotencyKey = await this.storage.get('links_idempotencyKey') || '';
     this.statusFilter.set(await this.storage.get('links_statusFilter') || 'active');
     this.reload().then();
-  }
-
-  generateKey() {
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const ts = [
-      now.getFullYear(),
-      pad(now.getMonth() + 1),
-      pad(now.getDate()),
-      '-',
-      pad(now.getHours()),
-      pad(now.getMinutes()),
-      pad(now.getSeconds())
-    ].join('');
-    this.idempotencyKey = `bulk-${ts}-${this.randSuffix(6)}`;
-    this.persistKey();
-  }
-
-  // Petit suffixe random base36
-  private randSuffix(len = 6) {
-    return [...crypto.getRandomValues(new Uint8Array(len))]
-      .map(b => (b % 36).toString(36))
-      .join('');
-  }
-
-  private persistKey() {
-    if (this.idempotencyKey) this.storage.set('links_idempotencyKey', this.idempotencyKey).then();
-  }
-
-  clearKey() {
-    if (this.idempotencyKey === '') this.storage.delete('links_idempotencyKey').then();
   }
 
   async createSingle() {

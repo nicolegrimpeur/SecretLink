@@ -1,16 +1,160 @@
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">dashboard2</ion-title>
-    </ion-toolbar>
-  </ion-header>
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Welcome to the Dashboard</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p>This is your main dashboard where you can find an overview of your application.</p>
-      <p>Use the navigation menu to access different sections.</p>
-    </ion-card-content>
-  </ion-card>
+<ion-content [fullscreen]="true" class="ion-padding">
+
+  <ion-refresher slot="fixed" (ionRefresh)="reload($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Stats rapides -->
+  <ion-grid class="stats">
+    <ion-row>
+      <ion-col size="6" size-md="3">
+        <ion-card class="kpi">
+          <ion-card-content>
+            <div class="kpi-icon"><ion-icon name="stats-chart-outline"></ion-icon></div>
+            <div class="kpi-num">
+              @if (!loading()) {
+                {{ countActive() }}
+              } @else {
+                <ion-skeleton-text [animated]="true" style="width:48px;height:24px;border-radius:8px;"></ion-skeleton-text>
+              }
+            </div>
+            <div class="kpi-label">Liens actifs</div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="6" size-md="3">
+        <ion-card class="kpi">
+          <ion-card-content>
+            <div class="kpi-icon"><ion-icon name="link-outline"></ion-icon></div>
+            <div class="kpi-num">
+              @if (!loading()) {
+                {{ countUsed() }}
+              } @else {
+                <ion-skeleton-text [animated]="true" style="width:48px;height:24px;border-radius:8px;"></ion-skeleton-text>
+              }
+            </div>
+            <div class="kpi-label">Liens utilisés</div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="6" size-md="3">
+        <ion-card class="kpi">
+          <ion-card-content>
+            <div class="kpi-icon"><ion-icon name="link-outline"></ion-icon></div>
+            <div class="kpi-num">
+              @if (!loading()) {
+                {{ countExpired() }}
+              } @else {
+                <ion-skeleton-text [animated]="true" style="width:48px;height:24px;border-radius:8px;"></ion-skeleton-text>
+              }
+            </div>
+            <div class="kpi-label">Liens expirés</div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="6" size-md="3">
+        <ion-card class="kpi">
+          <ion-card-content>
+            <div class="kpi-icon"><ion-icon name="trash-outline"></ion-icon></div>
+            <div class="kpi-num">
+              @if (!loading()) {
+                {{ countDeleted() }}
+              } @else {
+                <ion-skeleton-text [animated]="true" style="width:48px;height:24px;border-radius:8px;"></ion-skeleton-text>
+              }
+            </div>
+            <div class="kpi-label">Liens supprimés</div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Actions rapides -->
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-md="6">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Créer un lien</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            Générez un lien à usage unique pour partager un secret en toute sécurité.
+            <div class="mt">
+              <ion-button color="primary" routerLink="/links" [queryParams]="{ tab: 'create' }">Nouveau lien</ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-md="6">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Afficher tous mes liens</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+
+            Créez, listez et révoquez vos tokens personnels pour les scripts et l’API.
+            <div class="mt">
+              <ion-button fill="outline" routerLink="/links" [queryParams]="{ tab: 'status' }">Voir tous les liens</ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  @if (tokens().length > 0) {
+    <ion-grid class="stats">
+      <ion-row>
+        <ion-col size="12" size-md="6">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Gérer mes tokens</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              Créez, listez et révoquez vos tokens personnels pour les scripts et l’API.
+              <div class="mt">
+                <ion-button routerLink="/account">Aller à Mon compte</ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+        <ion-col size="6" size-md="3">
+            <ion-card class="kpi">
+              <ion-card-content>
+                <div class="kpi-icon"><ion-icon name="key-outline"></ion-icon></div>
+                <div class="kpi-num">
+                  @if (!loading()) {
+                    {{ countActiveTokens() }}
+                  } @else {
+                    <ion-skeleton-text [animated]="true" style="width:48px;height:24px;border-radius:8px;"></ion-skeleton-text>
+                  }
+                </div>
+                <div class="kpi-label">Tokens actifs</div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        <ion-col size="6" size-md="3">
+            <ion-card class="kpi">
+              <ion-card-content>
+                <div class="kpi-icon"><ion-icon name="trash-bin-outline"></ion-icon></div>
+                <div class="kpi-num">
+                  @if (!loading()) {
+                    {{ countDeletedTokens() }}
+                  } @else {
+                    <ion-skeleton-text [animated]="true" style="width:48px;height:24px;border-radius:8px;"></ion-skeleton-text>
+                  }
+                </div>
+                <div class="kpi-label">Tokens révoqués</div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+      </ion-row>
+    </ion-grid>
+  }
+
 </ion-content>

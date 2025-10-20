@@ -2,6 +2,7 @@ import {Component, computed, inject, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
+  AlertController,
   IonBadge,
   IonButton,
   IonButtons,
@@ -10,6 +11,7 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonContent,
+  IonIcon,
   IonInput,
   IonInputPasswordToggle,
   IonItem,
@@ -17,8 +19,7 @@ import {
   IonList,
   IonText,
   IonToggle,
-  ModalController,
-  AlertController, IonIcon
+  ModalController
 } from '@ionic/angular/standalone';
 import {PAT} from "../../shared/models/pat";
 import {PatService} from "../../core/pat";
@@ -27,7 +28,7 @@ import {AuthService} from "../../core/auth";
 import {Storage} from "../../core/storage";
 import {ToastService} from "../../shared/toast-service";
 import {addIcons} from "ionicons";
-import {constructOutline, trashBinOutline, trashOutline} from "ionicons/icons";
+import {trashBinOutline, trashOutline} from "ionicons/icons";
 
 @Component({
   selector: 'app-tokens',

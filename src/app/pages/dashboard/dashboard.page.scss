@@ -1,0 +1,26 @@
+:host { display:block; }
+
+.stats .kpi {
+  text-align: center;
+}
+.kpi-icon {
+  font-size: 24px;
+  color: var(--ion-color-primary);
+  margin-bottom: .25rem;
+}
+.kpi-num {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: .25rem;
+  display: flex;
+  justify-content: center;
+}
+.kpi-label {
+  color: var(--ion-color-medium);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.mt { margin-top: 12px; }
