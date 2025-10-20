@@ -1,6 +1,5 @@
 <ion-content class="ion-padding">
 
-  <!-- HERO -->
   <section class="hero">
     <div class="hero-text">
       <h1>🔒 Partagez vos secrets en toute sécurité</h1>
@@ -11,9 +10,8 @@
     </div>
   </section>
 
-  <!-- COMMENT ÇA MARCHE -->
   <section class="steps">
-    <h2>Comment ça marche&nbsp;?</h2>
+    <h2>Comment ça marche ?</h2>
     <ion-grid>
       <ion-row>
         <ion-col size="12" size-md="4">
@@ -55,9 +53,8 @@
     </ion-grid>
   </section>
 
-  <!-- AVANTAGES -->
   <section class="features">
-    <h2>Pourquoi SecretLink&nbsp;?</h2>
+    <h2>Pourquoi SecretLink ?</h2>
     <ion-grid>
       <ion-row>
         <ion-col size="12" size-md="4">
@@ -97,11 +94,10 @@
     </ion-grid>
   </section>
 
-  <!-- CTA BAS DE PAGE -->
   <section class="cta-bottom">
-    <h2>Prêt à simplifier le partage de vos secrets&nbsp;?</h2>
-    <ion-button size="large" color="primary" routerLink="/auth/register">
-      Créer un compte gratuit
+    <h2>Prêt à simplifier le partage de vos secrets ?</h2>
+    <ion-button size="large" color="primary" [routerLink]="user ? '/dashboard' : '/auth'">
+      {{ user ? 'Accéder à mon espace' : 'Créer un compte gratuit' }}
     </ion-button>
   </section>
 

@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {
   IonButton,
   IonCard,
@@ -15,6 +15,8 @@ import {CommonModule} from '@angular/common';
 import {RouterLink} from '@angular/router';
 import {addIcons} from 'ionicons';
 import {checkmarkCircleOutline, cloudOutline, linkOutline, lockClosedOutline, shareSocialOutline} from 'ionicons/icons';
+import {AuthService} from "../../core/auth";
+import {User} from "../../shared/models/user";
 
 @Component({
   selector: 'app-home',
@@ -36,7 +38,9 @@ import {checkmarkCircleOutline, cloudOutline, linkOutline, lockClosedOutline, sh
     IonIcon
   ]
 })
-export class HomePage  {
+export class HomePage implements OnInit {
+  private auth = inject(AuthService);
+  user: User = null;
 
   constructor() {
     addIcons({
@@ -48,5 +52,8 @@ export class HomePage  {
     });
   }
 
+  ngOnInit() {
+    this.auth.user$.subscribe(u => this.user = u);
+  }
 }
 

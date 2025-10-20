@@ -10,7 +10,8 @@ import {
   IonPopover,
   IonRouterOutlet,
   IonTitle,
-  IonToolbar
+  IonToolbar,
+  NavController
 } from "@ionic/angular/standalone";
 import {Router, RouterLink} from "@angular/router";
 import {addIcons} from 'ionicons';
@@ -51,6 +52,7 @@ export class LayoutComponent implements OnInit {
   public popoverOpen = false;
   private router = inject(Router);
   private auth = inject(AuthService);
+  private nav = inject(NavController);
   user: User = null;
   isManagementPage = false;
   tabManagementPages = ['/account', '/dashboard', '/links'];
@@ -75,6 +77,10 @@ export class LayoutComponent implements OnInit {
     this.router.events.subscribe(() => {
       this.isManagementPage = this.tabManagementPages.some(path => this.router.url.startsWith(path));
     });
+  }
+
+  onClickSecretLink()  {
+    this.nav.navigateRoot('/home').then();
   }
 
   async handleLogout() {

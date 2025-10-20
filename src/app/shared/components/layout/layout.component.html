@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button fill="clear" [routerLink]="isManagementPage ? '/dashboard' : '/home'" color="primary">
+      <ion-button fill="clear" (click)="onClickSecretLink()" color="primary">
         <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
         <ion-title>SecretLink</ion-title>
       </ion-button>
@@ -15,7 +15,6 @@
           Liens
         </ion-button>
       }
-
     </ion-buttons>
 
     <ion-buttons slot="end">
