@@ -14,7 +14,7 @@ import {
 import {CommonModule} from '@angular/common';
 import {RouterLink} from '@angular/router';
 import {addIcons} from 'ionicons';
-import {checkmarkCircleOutline, cloudOutline, linkOutline, lockClosedOutline, shareSocialOutline} from 'ionicons/icons';
+import {bulbOutline, cloudOutline, linkOutline, lockClosedOutline, shareSocialOutline} from 'ionicons/icons';
 import {AuthService} from "../../core/auth";
 import {User} from "../../shared/models/user";
 
@@ -47,7 +47,7 @@ export class HomePage implements OnInit {
       lockClosedOutline,
       linkOutline,
       shareSocialOutline,
-      checkmarkCircleOutline,
+      bulbOutline,
       cloudOutline
     });
   }

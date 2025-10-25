@@ -62,8 +62,24 @@ export class LinksPage {
   form = inject(FormBuilder).group({
     item_id: ['', [Validators.required]],
     secret: ['', [Validators.required]],
-    ttl_days: [7, []],
+    ttl_days: [7, [Validators.min(0)]]
   });
+
+  isInvalid(name: 'item_id' | 'secret' | 'ttl_days') {
+    const c = this.form.get(name)!;
+    return c.invalid && (c.touched || c.dirty);
+  }
+
+  errorFor(name: 'item_id' | 'secret' | 'ttl_days'): string | null {
+    const c = this.form.get(name)!;
+    if (!this.isInvalid(name)) return null;
+
+    const e = c.errors || {};
+    if (e['required']) return 'Ce champ est requis.';
+    if (e['min']) return 'Doit être supérieur ou égal à 0.';
+    return 'Valeur invalide.';
+  }
+
   lastResults: LinkCreateResult[] | null = null;
 
   // bulk

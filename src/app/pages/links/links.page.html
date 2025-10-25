@@ -13,25 +13,35 @@
       </ion-card-header>
       <ion-card-content>
         <form [formGroup]="form" (ngSubmit)="createSingle()">
-          <ion-item>
-            <ion-input label="Identifiant" formControlName="item_id" [required]="true"/>
+          <ion-item lines="none">
+            <ion-input
+              label="Identifiant :"
+              formControlName="item_id"
+              [required]="true"
+              helperText="L'identifiant unique du secret. Ne peut pas être déjà utilisé sur un secret actif."
+              [errorText]="errorFor('item_id') || ''"
+            />
           </ion-item>
-          <ion-item>
-            <ion-textarea label="Secret" formControlName="secret" [autoGrow]="true" [required]="true"></ion-textarea>
+          <ion-item lines="none">
+            <ion-textarea
+              label="Secret :"
+              formControlName="secret"
+              [autoGrow]="true"
+              [required]="true"
+              helperText="Le secret associé à l'identifiant."
+              [errorText]="errorFor('secret') || ''"
+            />
           </ion-item>
-          <ion-item>
-            <ion-input type="number" label="Durée de vie du lien" formControlName="ttl_days">
-              <ion-button fill="clear" slot="end" id="infoTTL" shape="round">
-                <ion-icon name="information-outline"></ion-icon>
-              </ion-button>
-              <ion-popover trigger="infoTTL" triggerAction="click" [showBackdrop]="false">
-                <ng-template>
-                  <ion-content class="ion-padding">
-                    Durée de validité du lien en jours. Par défaut 7 jours. Mettre 0 pour un lien sans expiration.
-                  </ion-content>
-                </ng-template>
-              </ion-popover>
-            </ion-input>
+          <ion-item lines="none">
+            <ion-input
+              type="number"
+              inputmode="numeric"
+              label="Durée de vie du lien :"
+              formControlName="ttl_days"
+              min="0"
+              helperText="Durée en jours, peut être égal à 0 pour un lien sans expiration."
+              [errorText]="errorFor('ttl_days') || ''"
+            />
           </ion-item>
 
           <div class="ion-display-flex ion-justify-content-center">
@@ -42,7 +52,6 @@
 
         @if (lastResults?.length && Number(lastResults?.length) === 1) {
           <ion-list>
-            <ion-list-header>Résultat</ion-list-header>
             @for (r of lastResults; track r.item_id) {
               <ion-item>
                 <ion-label>

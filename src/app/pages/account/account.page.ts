@@ -29,6 +29,7 @@ import {Storage} from "../../core/storage";
 import {ToastService} from "../../shared/toast-service";
 import {addIcons} from "ionicons";
 import {trashBinOutline, trashOutline} from "ionicons/icons";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-tokens',
@@ -45,6 +46,7 @@ export class AccountPage {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private storage = inject(Storage);
+  private router = inject(Router);
 
 
   /////////// Gestion du mot de passe ///////////
@@ -164,24 +166,45 @@ export class AccountPage {
   }
 
   async deleteAccount() {
-    const a = await this.alert.create({
+    const alert = await this.alert.create({
       header: 'Supprimer le compte ?',
-      message: `Cette action est irréversible. Tous vos tokens seront révoqués et vos données supprimées.`,
-      buttons: [
-        {text: 'Annuler', role: 'cancel'},
+      message: `Cette action est irréversible. Tapez \'supprimer\' ci-dessous pour confirmer :`,
+      cssClass: 'delete-account-alert',
+      inputs: [
         {
-          text: 'Supprimer', role: 'destructive', handler: () => {
-            this.auth.deleteMe().then(() => {
-              this.toast.toastMsg('Compte supprimé');
-              this.auth.logout();
-            })
-              .catch(() => {
-                this.toast.toastMsg('Échec de la suppression du compte');
-              });
-          }
+          name: 'confirmText',
+          type: 'text',
+          placeholder: 'Écrire "supprimer" pour confirmer'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Annuler',
+          role: 'cancel'
         },
+        {
+          text: 'Supprimer',
+          role: 'destructive',
+          handler: (data) => {
+            if (data.confirmText?.toLowerCase() === 'supprimer') {
+              this.auth.deleteMe()
+                .then(() => {
+                  this.toast.toastMsg('Compte supprimé');
+                  this.router.navigateByUrl('/auth', {replaceUrl: true}).then();
+                })
+                .catch(() => {
+                  this.toast.toastMsg('Échec de la suppression du compte');
+                });
+              return true; // permet la fermeture de l’alerte
+            } else {
+              this.toast.toastMsg('Texte de confirmation invalide');
+              return false; // empêche la fermeture de l’alerte
+            }
+          }
+        }
       ]
     });
-    await a.present();
+
+    await alert.present();
   }
 }

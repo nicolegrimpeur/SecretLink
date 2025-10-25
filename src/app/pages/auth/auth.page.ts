@@ -162,6 +162,7 @@ export class AuthPage {
         await this.auth.signup(email, password);
       }
       await this.router.navigateByUrl('/dashboard');
+      this.form.reset();
     } catch (e: any) {
       const code = e?.error?.error?.code || e?.code || e?.message;
       const known = this.backendError.find(x => x.code === code);

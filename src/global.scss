@@ -50,3 +50,13 @@ ion-popover::part(content) {
   border-radius: 16px;
   --box-shadow: 0 6px 10px var(--ion-color-primary-rgba);
 }
+
+ion-alert {
+  .alert-input-group {
+    padding-top: 0 !important;
+  }
+
+  .alert-input {
+    margin: 0 !important;
+  }
+}
