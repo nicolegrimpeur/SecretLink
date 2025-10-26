@@ -26,6 +26,14 @@ export const routes: Routes = [
         path: 'auth',
         loadComponent: () => import('./pages/auth/auth.page').then(m => m.AuthPage)
       },
+      {
+        path: 'legal',
+        loadComponent: () => import('./pages/legal/legal.page').then( m => m.LegalPage)
+      },
+      {
+        path: 'privacy',
+        loadComponent: () => import('./pages/privacy/privacy.page').then( m => m.PrivacyPage)
+      },
 
       // --- Protégé ---
       {

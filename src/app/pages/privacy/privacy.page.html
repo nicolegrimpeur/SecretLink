@@ -1,0 +1,91 @@
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Politique de confidentialité</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-card-subtitle>1) Qui sommes-nous ?</ion-card-subtitle>
+      Le site <strong>SecretLink</strong> (le “Service”) est édité par BARRAT Nicolas. Contact : <a href="mailto:nicolas.barrat@nicob.ovh">nicolas.barrat@nicob.ovh</a>.
+    </ion-card-content>
+    <ion-card-content>
+      <ion-card-subtitle>2) Finalités du Service</ion-card-subtitle>
+      SecretLink permet de partager des informations sensibles (ex. mots de passe) via des <strong>liens à usage unique</strong>. Le destinataire peut consulter le secret <strong>une fois</strong>, sans authentification ; le secret est ensuite <strong>supprimé</strong>.
+    </ion-card-content>
+    <ion-card-content>
+      <ion-card-subtitle>3) Données traitées</ion-card-subtitle>
+      <ul>
+        <li><strong>Compte utilisateur</strong> : e-mail, mot de passe (haché).</li>
+        <li><strong>Authentification</strong> : cookie de <strong>session</strong> strictement nécessaire (voir § cookies).</li>
+        <li><strong>Tokens personnels (PAT)</strong> : <strong>empreinte</strong> (hash) du token, libellé, scopes, dates (jamais affiché en clair après création).</li>
+        <li><strong>Liens/“items”</strong> : identifiant, jeton de lien, <strong>secret chiffré</strong> jusqu’à sa lecture/expiration, dates (création, expiration, usage, suppression).</li>
+        <li><strong>Journaux techniques</strong> : logs serveurs (accès/erreurs) pour sécurité, diagnostic et audit.</li>
+        <li><strong>Aucune donnée du destinataire n’est collectée par obligation</strong> : il peut consulter un lien sans compte.</li>
+      </ul>
+    </ion-card-content>
+    <ion-card-content>
+      <ion-card-subtitle>4) Bases juridiques (RGPD art. 6)</ion-card-subtitle>
+      <ul>
+        <li><strong>Exécution du contrat</strong> : création et gestion du compte ; génération et gestion des liens et PAT.</li>
+        <li><strong>Intérêt légitime</strong> : sécurité du service (journalisation technique, détection d’abus), amélioration du service, suivi des usages.</li>
+        <li><strong>Obligation légale</strong> : réponse à une réquisition ou injonction des autorités.</li>
+      </ul>
+    </ion-card-content>
+    <ion-card-content>
+      <ion-card-subtitle>5) Destinataires / sous-traitants</ion-card-subtitle>
+      Les données sont traitées par l’éditeur. Pas de transfert à des tiers hors UE. Les secrets ne sont <strong>jamais</strong> transmis à des tiers.
+    </ion-card-content>
+    <ion-card-content>
+      <ion-card-subtitle>6) Localisation des traitements</ion-card-subtitle>
+      Serveur <strong>hébergé en France</strong> (auto-hébergement). Les données ne sont pas transférées hors Union européenne.
+    </ion-card-content>
+    <ion-card-content>
+      <ion-card-subtitle>7) Durées de conservation</ion-card-subtitle>
+      <ul>
+        <li><strong>Compte</strong> : jusqu’à suppression du compte par l’utilisateur.</li>
+        <li><strong>Secrets</strong> : chiffrés, <strong>supprimés immédiatement</strong> après première lecture ; sinon jusqu’à la <strong>date d’expiration</strong> configurée ou suppression manuelle.</li>
+        <li><strong>Métadonnées de liens</strong> (sans secret) : tant que le compte existe ; suppression lors de la suppression du compte.</li>
+        <li><strong>PAT</strong> : actifs jusqu’à révocation ; <strong>hash + métadonnées</strong> conservés pour preuve d’audit jusqu’à la suppression du compte.</li>
+        <li><strong>Logs techniques</strong> : 90 jours.</li>
+      </ul>
+      Les durées sont limitées au strict nécessaire (principe de minimisation).
+    </ion-card-content>
+    <ion-card-content>
+      <ion-card-subtitle>8) Sécurité</ion-card-subtitle>
+      <ul>
+        <li>Hachage des mots de passe.</li>
+        <li>Secrets chiffrés <strong>au repos</strong> ; suppression immédiate après usage.</li>
+        <li>Jetons PAT <strong>non stockés en clair</strong> (uniquement leur empreinte).</li>
+        <li>Chiffrement TLS en transit ; contrôle d’accès ; journalisation sécurité.</li>
+      </ul>
+    </ion-card-content>
+    <ion-card-content>
+      <ion-card-subtitle>9) Vos droits (RGPD)</ion-card-subtitle>
+      Vous disposez des droits d’<strong>accès</strong>, <strong>rectification</strong>, <strong>effacement</strong>, <strong>limitation</strong>, <strong>opposition</strong> et <strong>portabilité</strong> (si applicable).
+    </ion-card-content>
+    <ion-card-content>
+      <ion-card-subtitle>10) Cookies</ion-card-subtitle>
+      Le Service n’utilise qu’un <strong>cookie de session</strong> strictement nécessaire au fonctionnement technique (authentification et maintien de session).
+      <ul>
+        <li><strong>Nom :</strong> <code>sid</code></li>
+        <li><strong>Finalité :</strong> authentification, maintien de session, sécurité (CSRF/anti-fraude)</li>
+        <li><strong>Durée :</strong> 7 jours</li>
+        <li><strong>Provenance :</strong> interne (1st-party)</li>
+        <li><strong>Propriétés :</strong> HTTP-Only, Secure, SameSite=Lax/Strict</li>
+      </ul>
+      Aucun cookie publicitaire, de profilage ou de mesure d’audience non essentielle n’est déposé.
+      <br>
+      Conformément aux lignes directrices CNIL, pas de bannière de consentement pour ce cookie strictement nécessaire.
+    </ion-card-content>
+    <ion-card-content>
+      <ion-card-subtitle>11) Mineurs</ion-card-subtitle>
+      Le Service n’est pas destiné aux mineurs. Si une collecte devait avoir lieu par erreur, merci de nous contacter pour suppression.
+    </ion-card-content>
+    <ion-card-content>
+      <ion-card-subtitle>12) Modifications</ion-card-subtitle>
+      La présente politique peut être mise à jour.
+    </ion-card-content>
+    <ion-card-content>
+      <strong>Dernière mise à jour :</strong> 26 octobre 2025
+    </ion-card-content>
+  </ion-card>
+</ion-content>
