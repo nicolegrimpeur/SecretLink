@@ -33,7 +33,7 @@ import {StatusFilter} from "../../shared/models/statutsFilter";
 import {copyOutline, informationOutline, syncOutline, trashOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
 import {environment} from "../../../environments/environment";
-import {Storage} from "../../core/storage";
+import {StorageService} from "../../core/storage.service";
 import {ToastService} from "../../shared/toast-service";
 import {ActivatedRoute} from "@angular/router";
 
@@ -49,7 +49,7 @@ export class LinksPage {
   @ViewChild(IonContent, { read: ElementRef }) contentEl!: ElementRef;
   private route = inject(ActivatedRoute);
   private api = inject(LinksService);
-  private storage = inject(Storage);
+  private storage = inject(StorageService);
   private toast = inject(ToastService);
   private alert = inject(AlertController);
 

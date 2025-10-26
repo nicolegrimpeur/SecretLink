@@ -25,7 +25,7 @@ import {PAT} from "../../shared/models/pat";
 import {PatService} from "../../core/pat";
 import {TokenCreateComponent} from "./modal/token-create.component";
 import {AuthService} from "../../core/auth";
-import {Storage} from "../../core/storage";
+import {StorageService} from "../../core/storage.service";
 import {ToastService} from "../../shared/toast-service";
 import {addIcons} from "ionicons";
 import {trashBinOutline, trashOutline} from "ionicons/icons";
@@ -45,7 +45,7 @@ export class AccountPage {
   private modal = inject(ModalController);
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
-  private storage = inject(Storage);
+  private storage = inject(StorageService);
   private router = inject(Router);
 
 

@@ -4,7 +4,7 @@ import {Preferences} from '@capacitor/preferences';
 @Injectable({
   providedIn: 'root'
 })
-export class Storage {
+export class StorageService {
   async get<T>(key: string): Promise<T | null> {
     const { value } = await Preferences.get({ key });
     return value ? JSON.parse(value) as T : null;

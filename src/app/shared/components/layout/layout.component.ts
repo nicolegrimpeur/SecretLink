@@ -11,7 +11,8 @@ import {
   IonRouterOutlet,
   IonTitle,
   IonToolbar,
-  NavController
+  NavController,
+  ToastController
 } from "@ionic/angular/standalone";
 import {Router, RouterLink} from "@angular/router";
 import {addIcons} from 'ionicons';
@@ -27,6 +28,7 @@ import {
   personCircleOutline,
 } from 'ionicons/icons';
 import {AuthService} from "../../../core/auth";
+import {StorageService} from "../../../core/storage.service";
 import {User} from "../../models/user";
 
 @Component({
@@ -53,9 +55,12 @@ export class LayoutComponent implements OnInit {
   private router = inject(Router);
   private auth = inject(AuthService);
   private nav = inject(NavController);
+  private storage = inject(StorageService);
+  private toastController = inject(ToastController);
   user: User = null;
   isManagementPage = false;
   tabManagementPages = ['/account', '/dashboard', '/links'];
+  cookieConsentGiven = false;
 
   constructor() {
     addIcons({
@@ -77,6 +82,13 @@ export class LayoutComponent implements OnInit {
     this.router.events.subscribe(() => {
       this.isManagementPage = this.tabManagementPages.some(path => this.router.url.startsWith(path));
     });
+
+    this.storage.get<boolean>('cookieConsent').then(consent => {
+      this.cookieConsentGiven = consent === true;
+      if (!this.cookieConsentGiven) {
+        this.showCookieConsent().then();
+      }
+    });
   }
 
   onClickSecretLink()  {
@@ -84,10 +96,39 @@ export class LayoutComponent implements OnInit {
   }
 
   async handleLogout() {
-    // dismiss the popover first
     this.popoverOpen = false;
 
     await this.auth.logout();
     await this.router.navigateByUrl('/auth');
+  }
+
+  async showCookieConsent() {
+    const toastButton = [
+      {
+        text: 'Plus d\'informations',
+        role: 'info',
+        handler: () => {
+          this.router.navigateByUrl('/privacy').then();
+        }
+      },
+      {
+        text: 'Fermer',
+        role: 'accept',
+        handler: async () => {
+          this.cookieConsentGiven = true;
+          await this.storage.set('cookieConsent', true);
+        }
+      }
+    ];
+
+    const toast = await this.toastController.create({
+      message: 'Ce site utilise uniquement des cookies essentiels à son bon fonctionnement. Aucun cookie de suivi n’est utilisé.',
+      duration: 10000,
+      position: 'bottom',
+      buttons: toastButton,
+      color: 'primary'
+    });
+
+    await toast.present();
   }
 }
