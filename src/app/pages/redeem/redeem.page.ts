@@ -22,6 +22,7 @@ import {environment} from "../../../environments/environment";
 import {addIcons} from "ionicons";
 import {copyOutline, lockClosedOutline} from "ionicons/icons";
 import {RedeemResponse} from "../../shared/models/redeem-response";
+import {LinksService} from "../../core/links";
 
 @Component({
   selector: 'app-redeem',
@@ -34,6 +35,7 @@ export class RedeemPage implements OnInit {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
   private toast = inject(ToastController);
+  private linksService = inject(LinksService);
 
   token = '';
   state: 'ready' | 'loading' | 'success' | 'error' = 'ready';
@@ -60,22 +62,11 @@ export class RedeemPage implements OnInit {
     this.loading = true;
     this.state = 'loading';
     try {
-      const url = `${environment.apiBaseUrl}/api/vaultlink/links/${encodeURIComponent(this.token)}/redeem`;
-      const res = await this.http.get<RedeemResponse>(url, {withCredentials: false}).toPromise();
-
-      const anyRes = res as any;
-      // si la requête a réussi
-      if ((anyRes?.secret && typeof anyRes.secret === 'string')) {
-        this.secret = anyRes.secret;
-        this.itemId = typeof anyRes.item_id === 'string' ? anyRes.item_id : null;
-        this.state = 'success';
-      } else {
-        // échec
-        const msg = (anyRes?.error?.message) || undefined;
-        this.fail(msg);
-      }
+      const redeemResponse = await this.linksService.redeemLink(this.token);
+      this.secret = redeemResponse.secret;
+      this.itemId = redeemResponse.itemId;
+      this.state = 'success';
     } catch (e: any) {
-      // Mapping simple des codes HTTP
       const status = e?.status;
       const msg =
         status === 404 ? 'Lien introuvable.' :

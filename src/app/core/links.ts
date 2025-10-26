@@ -42,4 +42,11 @@ export class LinksService {
     const url = `${environment.apiBaseUrl}/secretLink/links/${encodeURIComponent(linkToken)}`;
     await firstValueFrom(this.http.delete(url, { withCredentials: true, headers }));
   }
+
+  async redeemLink(linkToken: string) {
+    const url = `${environment.apiBaseUrl}/secretLink/links/redeem/${encodeURIComponent(linkToken)}`;
+    return await firstValueFrom(
+      this.http.get<{ secret: string; itemId: string }>(url, { withCredentials: false })
+    );
+  }
 }
