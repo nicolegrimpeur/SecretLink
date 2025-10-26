@@ -35,7 +35,7 @@ export class AuthService {
 
   async logout() {
     const url = `${environment.apiBaseUrl}/secretLink/users/logout`;
-    await firstValueFrom(this.http.post(url, {}));
+    await firstValueFrom(this.http.post(url, {}, { withCredentials: true }));
     this.userSubject.next(null);
   }
 
