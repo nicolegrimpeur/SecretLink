@@ -15,7 +15,7 @@ export class LinksService {
     let headers = new HttpHeaders();
     if (opts?.idempotencyKey) headers = headers.set('Idempotency-Key', opts.idempotencyKey);
 
-    const url = `${environment.apiBaseUrl}/api/vaultlink/links`;
+    const url = `${environment.apiBaseUrl}/secretLink/links`;
     const res = await firstValueFrom(
       this.http.post<{ results: LinkCreateResult[] }>(url, items, { withCredentials: true, headers })
     );
@@ -30,7 +30,7 @@ export class LinksService {
     if (params?.since) q = q.set('since', params.since);
     if (params?.until) q = q.set('until', params.until);
 
-    const url = `${environment.apiBaseUrl}/api/vaultlink/links/status`;
+    const url = `${environment.apiBaseUrl}/secretLink/links/status`;
     return await firstValueFrom(
       this.http.get<LinkStatus[]>(url, { withCredentials: true, headers, params: q })
     );
@@ -39,7 +39,7 @@ export class LinksService {
   async deleteLink(linkToken: string, opts?: { pat?: string }) {
     let headers = new HttpHeaders();
     if (opts?.pat) headers = headers.set('Authorization', `Bearer ${opts.pat}`);
-    const url = `${environment.apiBaseUrl}/api/vaultlink/links/${encodeURIComponent(linkToken)}`;
+    const url = `${environment.apiBaseUrl}/secretLink/links/${encodeURIComponent(linkToken)}`;
     await firstValueFrom(this.http.delete(url, { withCredentials: true, headers }));
   }
 }

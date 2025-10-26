@@ -19,9 +19,7 @@ import {
   IonItem,
   IonLabel,
   IonList,
-  IonListHeader,
   IonNote,
-  IonPopover,
   IonRow,
   IonSegment,
   IonSegmentButton,
@@ -45,7 +43,7 @@ import {ActivatedRoute} from "@angular/router";
   templateUrl: './links.page.html',
   styleUrls: ['./links.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, IonListHeader, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonPopover, IonBadge, IonCol, IonGrid, IonRow, IonCheckbox]
+  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonBadge, IonCol, IonGrid, IonRow, IonCheckbox]
 })
 export class LinksPage {
   @ViewChild(IonContent, { read: ElementRef }) contentEl!: ElementRef;
@@ -85,7 +83,6 @@ export class LinksPage {
   // bulk
   showBulk: boolean = false;
   csvText = '';
-  idempotencyKey = '';
 
   // status
   since = '';
@@ -100,6 +97,7 @@ export class LinksPage {
   // filtres
   statusFilter = signal<StatusFilter | 'all'>('active');
   statusSearch: string = '';
+
   // Signal pour forcer l'actualisation des liens filtrés
   private refreshTrigger = signal(0);
 
@@ -114,11 +112,8 @@ export class LinksPage {
   }
 
   async ionViewWillEnter() {
-    if (this.route.snapshot.queryParamMap.get('tab') === 'status') {
-      this.tab = 'status';
-    }
+    if (this.route.snapshot.queryParamMap.get('tab') === 'status') this.tab = 'status';
 
-    this.idempotencyKey = await this.storage.get('links_idempotencyKey') || '';
     this.statusFilter.set(await this.storage.get('links_statusFilter') || 'active');
     this.reload().then();
   }
