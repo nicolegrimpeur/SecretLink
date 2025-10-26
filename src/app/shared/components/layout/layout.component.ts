@@ -28,7 +28,7 @@ import {
   personCircleOutline,
 } from 'ionicons/icons';
 import {AuthService} from "../../../core/auth";
-import {StorageService} from "../../../core/storage.service";
+import {StorageService} from "../../../core/storage";
 import {User} from "../../models/user";
 
 @Component({

@@ -33,7 +33,7 @@ import {StatusFilter} from "../../shared/models/statutsFilter";
 import {copyOutline, informationOutline, syncOutline, trashOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
 import {environment} from "../../../environments/environment";
-import {StorageService} from "../../core/storage.service";
+import {StorageService} from "../../core/storage";
 import {ToastService} from "../../shared/toast-service";
 import {ActivatedRoute} from "@angular/router";
 
