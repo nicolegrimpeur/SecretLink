@@ -1,5 +1,5 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PrivacyPage } from './privacy.page';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {PrivacyPage} from './privacy.page';
 
 describe('PrivacyPage', () => {
   let component: PrivacyPage;

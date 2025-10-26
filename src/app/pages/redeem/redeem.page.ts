@@ -18,10 +18,8 @@ import {
 import {HttpClient} from "@angular/common/http";
 import {ToastController} from "@ionic/angular";
 import {ActivatedRoute} from "@angular/router";
-import {environment} from "../../../environments/environment";
 import {addIcons} from "ionicons";
 import {copyOutline, lockClosedOutline} from "ionicons/icons";
-import {RedeemResponse} from "../../shared/models/redeem-response";
 import {LinksService} from "../../core/links";
 
 @Component({

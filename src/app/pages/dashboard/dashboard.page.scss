@@ -24,3 +24,16 @@
 }
 
 .mt { margin-top: 12px; }
+
+ion-row {
+  align-items: stretch;
+}
+
+ion-col {
+  display: flex;
+}
+
+ion-card {
+  flex: 1;
+  flex-direction: column;
+}
