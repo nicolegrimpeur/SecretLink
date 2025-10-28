@@ -17,6 +17,7 @@ import {addIcons} from 'ionicons';
 import {bulbOutline, cloudOutline, linkOutline, lockClosedOutline, shareSocialOutline} from 'ionicons/icons';
 import {AuthService} from "../../core/auth";
 import {User} from "../../shared/models/user";
+import {AppVersionService} from '../../shared/app-version.service'
 
 @Component({
   selector: 'app-home',
@@ -40,7 +41,9 @@ import {User} from "../../shared/models/user";
 })
 export class HomePage implements OnInit {
   private auth = inject(AuthService);
+  private appVersion = inject(AppVersionService);
   user: User = null;
+  version = this.appVersion.version;
 
   constructor() {
     addIcons({

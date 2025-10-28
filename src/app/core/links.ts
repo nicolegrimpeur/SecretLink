@@ -4,6 +4,7 @@ import {LinkCreateItem, LinkCreateResult} from "../shared/models/link-create";
 import {firstValueFrom} from "rxjs";
 import {environment} from "../../environments/environment";
 import {LinkStatus} from "../shared/models/link-status";
+import {RedeemResponse} from "../shared/models/redeem-response";
 
 @Injectable({
   providedIn: 'root'
@@ -46,7 +47,7 @@ export class LinksService {
   async redeemLink(linkToken: string) {
     const url = `${environment.apiBaseUrl}/secretLink/links/redeem/${encodeURIComponent(linkToken)}`;
     return await firstValueFrom(
-      this.http.get<{ secret: string; itemId: string }>(url, { withCredentials: false })
+      this.http.get<RedeemResponse>(url, { withCredentials: false })
     );
   }
 }

@@ -62,7 +62,7 @@ export class RedeemPage implements OnInit {
     try {
       const redeemResponse = await this.linksService.redeemLink(this.token);
       this.secret = redeemResponse.secret;
-      this.itemId = redeemResponse.itemId;
+      this.itemId = redeemResponse.item_id;
       this.state = 'success';
     } catch (e: any) {
       const status = e?.status;
