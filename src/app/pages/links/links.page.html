@@ -20,6 +20,7 @@
               [required]="true"
               helperText="L'identifiant unique du secret. Ne peut pas être déjà utilisé sur un secret actif."
               [errorText]="errorFor('item_id') || ''"
+              [maxlength]="320"
             />
           </ion-item>
           <ion-item lines="none">
@@ -30,6 +31,8 @@
               [required]="true"
               helperText="Le secret associé à l'identifiant."
               [errorText]="errorFor('secret') || ''"
+              [counter]="true"
+              [maxlength]="4096"
             />
           </ion-item>
           <ion-item lines="none">
@@ -39,6 +42,7 @@
               label="Durée de vie du lien :"
               formControlName="ttl_days"
               min="0"
+              max="365"
               helperText="Durée en jours, peut être égal à 0 pour un lien sans expiration."
               [errorText]="errorFor('ttl_days') || ''"
             />
@@ -47,7 +51,6 @@
           <div class="ion-display-flex ion-justify-content-center">
             <ion-button type="submit" [disabled]="form.invalid || loading">Créer</ion-button>
           </div>
-
         </form>
 
         @if (lastResults?.length && Number(lastResults?.length) === 1) {

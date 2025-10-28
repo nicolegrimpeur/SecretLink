@@ -65,7 +65,7 @@ export class LinksPage {
   form = inject(FormBuilder).group({
     item_id: ['', [Validators.required]],
     secret: ['', [Validators.required]],
-    ttl_days: [7, [Validators.min(0)]]
+    ttl_days: [7, [Validators.min(0), Validators.max(365)]],
   });
 
   isInvalid(name: 'item_id' | 'secret' | 'ttl_days') {
@@ -80,6 +80,7 @@ export class LinksPage {
     const e = c.errors || {};
     if (e['required']) return 'Ce champ est requis.';
     if (e['min']) return 'Doit être supérieur ou égal à 0.';
+    if (e['max']) return 'Doit être inférieur ou égal à 365 jours.';
     return 'Valeur invalide.';
   }
 
