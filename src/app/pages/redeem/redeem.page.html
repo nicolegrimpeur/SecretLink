@@ -1,31 +1,36 @@
 <ion-content>
   <div class="redeem-container">
-    @if (state==='ready') {
-    <ion-card class="redeem-card large-card">
-      <ion-card-header>
-        <ion-card-title>Ce lien est à usage unique</ion-card-title>
-        <ion-card-subtitle>Le secret sera affiché une seule fois</ion-card-subtitle>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-item lines="none">
-          <ion-checkbox [(ngModel)]="ack" [ngModelOptions]="{standalone:true}" justify="start" id="checkbox-ack">
-            <div class="ion-text-wrap">J’ai compris qu’il ne sera plus accessible après affichage</div>
-          </ion-checkbox>
-        </ion-item>
-        <ion-button expand="block" [disabled]="!ack || loading" (click)="reveal()">Afficher le secret</ion-button>
-        <p class="hint">Conseil : ne stockez pas ce secret dans un email. Copiez-le puis conservez-le en lieu sûr (gestionnaire de mots de passe, etc.).</p>
-      </ion-card-content>
-    </ion-card>
-    }
-
-    @if (state==='loading') {
-      <ion-card class="redeem-card small-card">
-        <ion-card-header><ion-card-title>Chargement…</ion-card-title></ion-card-header>
-        <ion-card-content><ion-skeleton-text [animated]="true" style="height: 80px"></ion-skeleton-text></ion-card-content>
+    @if (state === 'ready') {
+      <ion-card class="redeem-card large-card">
+        <ion-card-header>
+          <ion-card-title>Ce lien est à usage unique</ion-card-title>
+          <ion-card-subtitle>Le secret sera affiché une seule fois</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-item lines="none">
+            <ion-checkbox [(ngModel)]="ack" [ngModelOptions]="{standalone:true}" justify="start" id="checkbox-ack">
+              <div class="ion-text-wrap">J’ai compris qu’il ne sera plus accessible après affichage</div>
+            </ion-checkbox>
+          </ion-item>
+          <ion-button expand="block" [disabled]="!ack || loading" (click)="reveal()">Afficher le secret</ion-button>
+          <p class="hint">Conseil : ne stockez pas ce secret dans un email. Copiez-le puis conservez-le en lieu sûr
+            (gestionnaire de mots de passe, etc.).</p>
+        </ion-card-content>
       </ion-card>
     }
 
-    @if (state==='success') {
+    @if (state === 'loading') {
+      <ion-card class="redeem-card small-card">
+        <ion-card-header>
+          <ion-card-title>Chargement…</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-skeleton-text [animated]="true" style="height: 80px"></ion-skeleton-text>
+        </ion-card-content>
+      </ion-card>
+    }
+
+    @if (state === 'success') {
       <ion-card class="redeem-card small-card">
         <ion-card-header>
           <ion-card-title>Secret révélé</ion-card-title>
@@ -46,7 +51,7 @@
       </ion-card>
     }
 
-    @if (state==='error') {
+    @if (state === 'error') {
       <ion-card class="redeem-card invalid-code small-card">
         <ion-card-header>
           <ion-card-title>Lien invalide ou expiré</ion-card-title>
