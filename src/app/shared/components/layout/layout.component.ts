@@ -30,6 +30,7 @@ import {
 import {AuthService} from "../../../core/auth";
 import {StorageService} from "../../../core/storage";
 import {User} from "../../models/user";
+import {NgOptimizedImage} from "@angular/common";
 
 @Component({
   selector: 'app-layout',
@@ -47,7 +48,8 @@ import {User} from "../../models/user";
     IonList,
     RouterLink,
     IonTitle,
-    IonRouterOutlet
+    IonRouterOutlet,
+    NgOptimizedImage
   ]
 })
 export class LayoutComponent implements OnInit {

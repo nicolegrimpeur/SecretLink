@@ -2,8 +2,8 @@
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button fill="clear" (click)="onClickSecretLink()" color="primary">
-        <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
-        <ion-title>SecretLink</ion-title>
+        <img slot="start" ngSrc="assets/icon/logo.svg" alt="lock" width="24" height="24" />
+        <ion-title id="title">SecretLink</ion-title>
       </ion-button>
       @if (isManagementPage) {
         <ion-button class="ion-hide-md-down" fill="clear" routerLink="/dashboard" color="primary">
