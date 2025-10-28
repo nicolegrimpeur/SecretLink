@@ -140,8 +140,7 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
                 Statut des liens
               </ion-card-title>
             </ion-col>
-            <ion-col size="2" class="ion-hide-md-down"></ion-col>
-            <ion-col size="8" class="ion-hide-md-down">
+            <ion-col size="8" offset="2" class="ion-hide-md-down">
               <ion-segment [value]="statusFilter().toString()"
                            (ionChange)="setStatusFilter($event.detail.value ?? 'all')">
                 <ion-segment-button value="active">
@@ -182,6 +181,31 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
       </ion-card-header>
       <ion-card-content>
         <ion-list class="ion-no-padding">
+          <ion-item lines="none" class="ion-hide-md-up">
+            <ion-select aria-label="Statut du lien"
+                        id="select-status-filter-mobile"
+                        interface="popover"
+                        placeholder="Filtrer par statut"
+                        [value]="statusFilter().toString()"
+                        (ionChange)="setStatusFilter($event.detail.value ?? 'all')">
+              <ion-select-option value="active">
+                Actifs ({{ countActive() }})
+              </ion-select-option>
+              <ion-select-option value="used">
+                Utilisés ({{ countUsed() }})
+              </ion-select-option>
+              <ion-select-option value="deleted">
+                Supprimés ({{ countDeleted() }})
+              </ion-select-option>
+              <ion-select-option value="expired">
+                Expirés ({{ countExpired() }})
+              </ion-select-option>
+              <ion-select-option value="all">
+                Tous
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
           <ion-item lines="none">
             <ion-input placeholder="Rechercher par identifiant"
                        color="primary"
@@ -190,7 +214,7 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
                        [clearInput]="true"
                        (ionInput)="forceRefresh()"
             />
-            <ion-button fill="outline" (click)="exportCsv()" [disabled]="!filteredRows().length" slot="end">
+            <ion-button class="ion-hide-md-down" fill="outline" (click)="exportCsv()" [disabled]="!filteredRows().length" slot="end">
               Exporter CSV
             </ion-button>
           </ion-item>

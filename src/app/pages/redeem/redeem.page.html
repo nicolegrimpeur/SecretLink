@@ -8,8 +8,8 @@
       </ion-card-header>
       <ion-card-content>
         <ion-item lines="none">
-          <ion-checkbox [(ngModel)]="ack" [ngModelOptions]="{standalone:true}" justify="start">
-            J’ai compris qu’il ne sera plus accessible après affichage
+          <ion-checkbox [(ngModel)]="ack" [ngModelOptions]="{standalone:true}" justify="start" id="checkbox-ack">
+            <div class="ion-text-wrap">J’ai compris qu’il ne sera plus accessible après affichage</div>
           </ion-checkbox>
         </ion-item>
         <ion-button expand="block" [disabled]="!ack || loading" (click)="reveal()">Afficher le secret</ion-button>

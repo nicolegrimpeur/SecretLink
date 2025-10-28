@@ -128,7 +128,8 @@ export class LayoutComponent implements OnInit {
       duration: 10000,
       position: 'bottom',
       buttons: toastButton,
-      color: 'primary'
+      color: 'primary',
+      layout: 'stacked'
     });
 
     await toast.present();

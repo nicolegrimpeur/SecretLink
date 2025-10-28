@@ -23,6 +23,8 @@ import {
   IonRow,
   IonSegment,
   IonSegmentButton,
+  IonSelect,
+  IonSelectOption,
   IonTextarea
 } from '@ionic/angular/standalone';
 import {LinksService} from "../../core/links";
@@ -43,7 +45,7 @@ import {ActivatedRoute} from "@angular/router";
   templateUrl: './links.page.html',
   styleUrls: ['./links.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonBadge, IonCol, IonGrid, IonRow, IonCheckbox]
+  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonBadge, IonCol, IonGrid, IonRow, IonCheckbox, IonSelect, IonSelectOption]
 })
 export class LinksPage {
   @ViewChild(IonContent, { read: ElementRef }) contentEl!: ElementRef;
