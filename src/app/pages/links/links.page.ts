@@ -56,6 +56,11 @@ export class LinksPage {
   tab: 'create' | 'status' = 'create';
   loading = false;
 
+  private readonly errorCreationHelpText = [
+    {code: 'VALIDATION_ERROR', text: 'Les informations fournies ne sont pas valides. Veuillez vérifier les champs et réessayer.'},
+    {code: 'SERVER_ERROR', text: 'Une erreur serveur est survenue. Veuillez réessayer plus tard.'},
+  ]
+
   // single
   form = inject(FormBuilder).group({
     item_id: ['', [Validators.required]],
@@ -130,7 +135,11 @@ export class LinksPage {
       this.lastResults = await this.api.createBulk(payload);
       if (this.lastResults?.length) await this.reload();
     } catch (e: any) {
-      this.toast.toastMsg(e?.error?.error?.message || 'Création échouée').then();
+      const errorCode = e?.error?.error?.code || 'SERVER_ERROR';
+      const helpEntry = this.errorCreationHelpText.find(entry => entry.code === errorCode);
+      const helpMessage = helpEntry ? helpEntry.text : 'Création échouée.';
+
+      this.toast.toastMsg(helpMessage, 3000).then();
     } finally {
       this.loading = false;
     }

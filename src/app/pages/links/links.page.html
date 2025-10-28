@@ -206,7 +206,9 @@ bob@example.com,vpn-BOB,7"></ion-textarea>
               <!-- Identifiant + Badges -->
               <ion-col size="8" size-md="3" class="grid-col ion-text-center">
                 <div class="badge-align">
-                  <b>{{ row.item_id.length > 20 ? row.item_id.slice(0, 20) + '...' : row.item_id }}</b>
+                  <b [title]="row.item_id">
+                    {{ row.item_id.length > 20 ? row.item_id.slice(0, 20) + '...' : row.item_id }}
+                  </b>
                   @if (statusOf(row) === 'active') {
                     <ion-badge color="success" class="tight">Actif</ion-badge>
                   }
