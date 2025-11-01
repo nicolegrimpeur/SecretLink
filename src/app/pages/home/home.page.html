@@ -11,6 +11,56 @@
   </section>
 
   <section class="steps">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Créer un lien sécurisé</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <form [formGroup]="form" (ngSubmit)="createSecret()">
+          <ion-item lines="none">
+            <ion-input
+              label="Secret :"
+              formControlName="secret"
+              [required]="true"
+              errorText="Ce champ est requis."
+              [counter]="true"
+              [maxlength]="64"
+            />
+          </ion-item>
+
+          <div class="ion-display-flex ion-justify-content-center">
+            <ion-button type="submit" [disabled]="form.invalid || loading">Créer</ion-button>
+          </div>
+        </form>
+
+        @if (creationResult) {
+          <ion-list>
+              <ion-item>
+                <ion-label>
+                  {{ statusHelp[creationResult.status] }}
+
+                  <br>
+
+                  @if (creationResult.link_token) {
+                    <a [href]="linkUrl(creationResult.link_token)" target="_blank">{{ linkUrl(creationResult.link_token) }}</a>
+                  }
+
+                  @if (creationResult.expires_at) {
+                    <div>Expire : {{ creationResult.expires_at | date:'medium' }}</div>
+                  }
+                </ion-label>
+                @if (creationResult.link_token) {
+                  <ion-button fill="clear" (click)="copy(linkUrl(creationResult.link_token))">Copier</ion-button>
+                }
+              </ion-item>
+          </ion-list>
+        }
+
+      </ion-card-content>
+    </ion-card>
+  </section>
+
+  <section class="steps">
     <h2>Comment ça marche ?</h2>
     <ion-grid>
       <ion-row>

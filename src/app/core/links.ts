@@ -1,6 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
-import {LinkCreateItem, LinkCreateResult} from "../shared/models/link-create";
+import {LinkCreateItem, LinkCreateResult, LinkCreateSingleItem} from "../shared/models/link-create";
 import {firstValueFrom} from "rxjs";
 import {environment} from "../../environments/environment";
 import {LinkStatus} from "../shared/models/link-status";
@@ -12,11 +12,19 @@ import {RedeemResponse} from "../shared/models/redeem-response";
 export class LinksService {
   private http = inject(HttpClient);
 
+  async createSingle(item: LinkCreateSingleItem): Promise<LinkCreateResult> {
+    const url = `${environment.apiBaseUrl}/secretLink/links`;
+    const res = await firstValueFrom(
+      this.http.post<{result: LinkCreateResult}>(url, item, { withCredentials: false })
+    );
+    return res.result;
+  }
+
   async createBulk(items: LinkCreateItem[], opts?: { idempotencyKey?: string }) {
     let headers = new HttpHeaders();
     if (opts?.idempotencyKey) headers = headers.set('Idempotency-Key', opts.idempotencyKey);
 
-    const url = `${environment.apiBaseUrl}/secretLink/links`;
+    const url = `${environment.apiBaseUrl}/secretLink/links/bulk`;
     const res = await firstValueFrom(
       this.http.post<{ results: LinkCreateResult[] }>(url, items, { withCredentials: true, headers })
     );

@@ -49,7 +49,7 @@ export class RedeemPage implements OnInit {
   }
 
   ngOnInit() {
-    this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
+    this.token = this.route.snapshot.paramMap.get('token') ?? '';
   }
 
   async reveal() {

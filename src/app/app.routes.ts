@@ -18,7 +18,7 @@ export const routes: Routes = [
           import('./pages/home/home.page').then(m => m.HomePage),
       },
       {
-        path: 'redeem',
+        path: 'redeem/:token',
         loadComponent: () =>
           import('./pages/redeem/redeem.page').then(m => m.RedeemPage),
       },
