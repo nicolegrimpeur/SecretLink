@@ -224,6 +224,9 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                        [clearInput]="true"
                        (ionInput)="forceRefresh()"
             />
+            <ion-button (click)="reload()" [disabled]="loading" slot="end">
+              <ion-icon name="refresh-outline" [class.spin]="loading"></ion-icon>
+            </ion-button>
             <ion-button class="ion-hide-md-down" fill="outline" (click)="exportCsv()" [disabled]="!filteredRows().length" slot="end">
               Exporter CSV
             </ion-button>

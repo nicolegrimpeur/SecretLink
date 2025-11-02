@@ -32,7 +32,7 @@ import {SegmentValue} from "@ionic/angular";
 import {LinkCreateItem, LinkCreateResult} from "../../shared/models/link-create";
 import {LinkStatus} from "../../shared/models/link-status";
 import {StatusFilter} from "../../shared/models/statutsFilter";
-import {copyOutline, informationOutline, syncOutline, trashOutline} from "ionicons/icons";
+import {copyOutline, informationOutline, refreshOutline, syncOutline, trashOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
 import {environment} from "../../../environments/environment";
 import {StorageService} from "../../shared/services/storage";
@@ -124,7 +124,7 @@ export class LinksPage {
   countExpired = computed(() => this.rows().filter(r => this.statusOf(r) === 'expired').length);
 
   constructor() {
-    addIcons({syncOutline, informationOutline, copyOutline, trashOutline});
+    addIcons({syncOutline, informationOutline, copyOutline, trashOutline, refreshOutline});
   }
 
   async ionViewWillEnter() {
@@ -218,7 +218,7 @@ export class LinksPage {
       const ttl = ttlStr ? Number(ttlStr) : 0;
       if (!item_id || !secret) continue;
       const {secret: hashed_secret, passphraseHash} = await this.crypto.encryptIfPassphrase(secret, passphrase);
-      out = {item_id, secret: hashed_secret, ttl_days: Number.isFinite(ttl) ? ttl : 7};
+      out = {item_id, secret: hashed_secret, ttl_days: Number.isFinite(ttl) ? ttl : 0};
       if (passphraseHash) (out as LinkCreateItem).passphrase_hash = passphraseHash;
       items.push(out);
     }
@@ -226,13 +226,17 @@ export class LinksPage {
   }
 
   async reload() {
+    this.loading = true;
     try {
       this.rows.set(await this.api.listStatus(
         {since: this.since || undefined, until: this.until || undefined}
       ));
       this.forceRefresh();
     } catch (e: any) {
-      // ignore 401 ici si pas connecté
+    } finally {
+      setTimeout(() => {
+        this.loading = false;
+      }, 2000);
     }
   }
 
@@ -250,7 +254,7 @@ export class LinksPage {
   /////////// Status ///////////
   exportCsv() {
     const header = 'item_id;link_token;created_at;expires_at;used_at;deleted_at';
-    const lines = this.rows().map(r => [
+    const lines = this.filteredRows().map(r => [
       r.item_id, r.link_token, r.created_at, r.expires_at ?? '', r.used_at ?? '', r.deleted_at ?? ''
     ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(';'));
     const blob = new Blob([header + '\n' + lines.join('\n')], {type: 'text/csv;charset=utf-8;'});
