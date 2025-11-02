@@ -53,7 +53,7 @@
                       }
                     </ion-label>
                     @if (creationResult.link_token) {
-                      <ion-button fill="clear" (click)="copy(linkUrl(creationResult.link_token))">Copier</ion-button>
+                      <ion-button size="default" fill="clear" (click)="copy(linkUrl(creationResult.link_token))" slot="end">Copier</ion-button>
                     }
                   </ion-item>
                 </ion-list>
