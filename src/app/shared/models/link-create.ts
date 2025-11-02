@@ -1,5 +1,5 @@
 export type LinkCreateSingleItem = { secret: string };
-export type LinkCreateItem = { item_id: string; secret: string; ttl_days?: number };
+export type LinkCreateItem = { item_id: string; secret: string; passphrase_hash?: string; ttl_days?: number };
 
 export interface LinkCreateResult {
   item_id: string;

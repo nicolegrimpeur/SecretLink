@@ -8,7 +8,8 @@ import {
   IonCol,
   IonContent,
   IonGrid,
-  IonIcon, IonInput,
+  IonIcon,
+  IonInput,
   IonItem,
   IonLabel,
   IonList,
@@ -20,11 +21,11 @@ import {addIcons} from 'ionicons';
 import {bulbOutline, cloudOutline, linkOutline, lockClosedOutline, shareSocialOutline} from 'ionicons/icons';
 import {AuthService} from "../../core/auth";
 import {User} from "../../shared/models/user";
-import {AppVersionService} from '../../shared/app-version.service'
+import {AppVersionService} from '../../shared/services/app-version'
 import {LinksService} from "../../core/links";
 import {FormBuilder, ReactiveFormsModule, Validators} from "@angular/forms";
 import {LinkCreateResult, LinkCreateSingleItem} from "../../shared/models/link-create";
-import {ToastService} from "../../shared/toast-service";
+import {ToastService} from "../../shared/services/toast";
 import {environment} from "../../../environments/environment";
 
 @Component({

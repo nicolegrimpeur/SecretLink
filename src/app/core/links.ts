@@ -52,8 +52,8 @@ export class LinksService {
     await firstValueFrom(this.http.delete(url, { withCredentials: true, headers }));
   }
 
-  async redeemLink(linkToken: string) {
-    const url = `${environment.apiBaseUrl}/secretLink/links/redeem/${encodeURIComponent(linkToken)}`;
+  async redeemLink(linkToken: string, passphraseHash?: string): Promise<RedeemResponse> {
+    const url = `${environment.apiBaseUrl}/secretLink/links/redeem/${encodeURIComponent(linkToken)}?pass=${passphraseHash ? encodeURIComponent(passphraseHash) : ''}`;
     return await firstValueFrom(
       this.http.get<RedeemResponse>(url, { withCredentials: false })
     );

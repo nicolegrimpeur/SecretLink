@@ -1,6 +1,6 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
+import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   IonButton,
   IonCard,
@@ -12,37 +12,45 @@ import {
   IonContent,
   IonIcon,
   IonInput,
+  IonInputPasswordToggle,
   IonItem,
-  IonSkeletonText
+  IonSkeletonText,
+  IonText,
+  IonTextarea
 } from '@ionic/angular/standalone';
-import {HttpClient} from "@angular/common/http";
 import {ToastController} from "@ionic/angular";
 import {ActivatedRoute} from "@angular/router";
 import {addIcons} from "ionicons";
 import {copyOutline, lockClosedOutline} from "ionicons/icons";
 import {LinksService} from "../../core/links";
+import {CryptoService} from "../../shared/services/crypto";
 
 @Component({
   selector: 'app-redeem',
   templateUrl: './redeem.page.html',
   styleUrls: ['./redeem.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardSubtitle, IonCardContent, IonItem, IonCheckbox, IonButton, IonSkeletonText, IonIcon, IonInput]
+  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardSubtitle, IonCardContent, IonItem, IonCheckbox, IonButton, IonSkeletonText, IonIcon, IonInput, IonInputPasswordToggle, ReactiveFormsModule, IonText, IonTextarea]
 })
 export class RedeemPage implements OnInit {
   private route = inject(ActivatedRoute);
-  private http = inject(HttpClient);
   private toast = inject(ToastController);
   private linksService = inject(LinksService);
+  private crypto = inject(CryptoService);
+  private fb = inject(FormBuilder);
 
   token = '';
-  state: 'ready' | 'loading' | 'success' | 'error' = 'ready';
+  state: 'ready' | 'loading' | 'success' | 'error' | 'passphrase_required' = 'ready';
   loading = false;
   ack = false;
 
   secret: string | null = null;
   itemId: string | null = null;
   errorMessage = 'Ce lien a peut-être déjà été utilisé, supprimé ou a expiré.';
+  form = this.fb.group({
+    passphrase: ['', [Validators.required]]
+  });
+  isPassphraseInvalid = false;
 
   constructor() {
     addIcons({lockClosedOutline, copyOutline});
@@ -58,20 +66,35 @@ export class RedeemPage implements OnInit {
       return;
     }
     this.loading = true;
-    this.state = 'loading';
+    if (this.state !== 'passphrase_required') this.state = 'loading';
+
     try {
-      const redeemResponse = await this.linksService.redeemLink(this.token);
-      this.secret = redeemResponse.secret;
+      const pass = this.form.value.passphrase?.trim();
+      const passphrase_hash = pass ? await this.crypto.hashPassphrase(pass) : '';
+
+      const redeemResponse = await this.linksService.redeemLink(this.token, passphrase_hash);
+
       this.itemId = redeemResponse.item_id;
+      this.secret = await this.crypto.decryptIfNeeded(redeemResponse.secret, pass);
       this.state = 'success';
     } catch (e: any) {
-      const status = e?.status;
-      const msg =
-        status === 404 ? 'Lien introuvable.' :
-          status === 410 ? 'Lien déjà utilisé ou expiré.' :
-            status === 429 ? 'Trop de tentatives. Réessayez dans un instant.' :
-              e?.error?.error?.message || 'Impossible de révéler le secret.';
-      this.fail(msg);
+      if (e?.status === 403) {
+        if (e?.error?.error?.code === 'PASSPHRASE_REQUIRED') {
+          this.state = 'passphrase_required';
+        } else if (e?.error?.error?.code === 'INVALID_PASSPHRASE') {
+          this.state = 'passphrase_required';
+          this.isPassphraseInvalid = true;
+        }
+      } else {
+        const status = e?.status;
+        const msg =
+          status === 404 ? 'Lien introuvable.' :
+            status === 410 ? 'Lien déjà utilisé ou expiré.' :
+              status === 429 ? 'Trop de tentatives. Réessayez dans un instant.' :
+                status === 403 ? 'Passphrase incorrecte.' :
+                  e?.error?.error?.message || 'Impossible de révéler le secret.';
+        this.fail(msg);
+      }
     } finally {
       this.loading = false;
     }

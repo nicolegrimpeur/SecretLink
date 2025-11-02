@@ -30,19 +30,44 @@
       </ion-card>
     }
 
+    @if (state === 'passphrase_required') {
+      <ion-card class="redeem-card large-card">
+        <ion-card-header>
+          <ion-card-title>Passphrase requise</ion-card-title>
+          <ion-card-subtitle>Ce secret est protégé par une passphrase</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <form [formGroup]="form" (ngSubmit)="reveal()">
+            <ion-item lines="none">
+              <ion-input label="Passphrase :" type="password" formControlName="passphrase" errorText="Champ requis.">
+                <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+              </ion-input>
+            </ion-item>
+            <ion-button expand="block" [disabled]="!form.valid" (click)="reveal()">Afficher le secret
+            </ion-button>
+            @if (isPassphraseInvalid) {
+              <ion-text color="danger">
+                La passphrase est incorrecte. Veuillez réessayer.
+              </ion-text>
+            }
+          </form>
+        </ion-card-content>
+      </ion-card>
+    }
+
     @if (state === 'success') {
-      <ion-card class="redeem-card small-card">
+      <ion-card class="redeem-card large-card">
         <ion-card-header>
           <ion-card-title>Secret révélé</ion-card-title>
           <ion-card-subtitle>Identifiant : {{ itemId }}</ion-card-subtitle>
         </ion-card-header>
         <ion-card-content>
           <ion-item lines="none" class="ion-no-padding">
-            <ion-input label="Secret :" type="text" [value]="secret" [readonly]="true">
+            <ion-textarea label="Secret :" type="text" [value]="secret" [readonly]="true" auto-grow>
               <ion-button (click)="copy()" slot="end">
                 <ion-icon name="copy-outline"></ion-icon>
               </ion-button>
-            </ion-input>
+            </ion-textarea>
           </ion-item>
         </ion-card-content>
         <ion-card-content>

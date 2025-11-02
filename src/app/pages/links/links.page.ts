@@ -35,9 +35,10 @@ import {StatusFilter} from "../../shared/models/statutsFilter";
 import {copyOutline, informationOutline, syncOutline, trashOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
 import {environment} from "../../../environments/environment";
-import {StorageService} from "../../core/storage";
-import {ToastService} from "../../shared/toast-service";
+import {StorageService} from "../../shared/services/storage";
+import {ToastService} from "../../shared/services/toast";
 import {ActivatedRoute} from "@angular/router";
+import {CryptoService} from "../../shared/services/crypto";
 
 
 @Component({
@@ -49,11 +50,13 @@ import {ActivatedRoute} from "@angular/router";
 })
 export class LinksPage {
   @ViewChild(IonContent, { read: ElementRef }) contentEl!: ElementRef;
+  protected readonly Number = Number;
   private route = inject(ActivatedRoute);
   private api = inject(LinksService);
   private storage = inject(StorageService);
   private toast = inject(ToastService);
   private alert = inject(AlertController);
+  private crypto = inject(CryptoService);
 
   tab: 'create' | 'status' = 'create';
   loading = false;
@@ -67,20 +70,22 @@ export class LinksPage {
   form = inject(FormBuilder).group({
     item_id: ['', [Validators.required]],
     secret: ['', [Validators.required]],
+    passphrase: ['', Validators.minLength(8)],
     ttl_days: [7, [Validators.min(0), Validators.max(365)]],
   });
 
-  isInvalid(name: 'item_id' | 'secret' | 'ttl_days') {
+  isInvalid(name: 'item_id' | 'secret' | 'ttl_days' | 'passphrase'): boolean {
     const c = this.form.get(name)!;
     return c.invalid && (c.touched || c.dirty);
   }
 
-  errorFor(name: 'item_id' | 'secret' | 'ttl_days'): string | null {
+  errorFor(name: 'item_id' | 'secret' | 'ttl_days' | 'passphrase'): string | null {
     const c = this.form.get(name)!;
     if (!this.isInvalid(name)) return null;
 
     const e = c.errors || {};
     if (e['required']) return 'Ce champ est requis.';
+    if (e['minlength']) return '8 caractères minimum.';
     if (e['min']) return 'Doit être supérieur ou égal à 0.';
     if (e['max']) return 'Doit être inférieur ou égal à 365 jours.';
     return 'Valeur invalide.';
@@ -130,11 +135,18 @@ export class LinksPage {
     if (this.form.invalid) return;
     this.loading = true;
     try {
+      const { secret, passphraseHash } = await this.crypto.encryptIfPassphrase(
+        this.form.value.secret!,
+        this.form.value.passphrase || ''
+      );
+
       const payload: LinkCreateItem[] = [{
         item_id: this.form.value.item_id!,
-        secret: this.form.value.secret!,
+        secret,
         ttl_days: Number(this.form.value.ttl_days || 0),
       }];
+      if (passphraseHash) (payload[0] as LinkCreateItem).passphrase_hash = passphraseHash;
+
       this.lastResults = await this.api.createBulk(payload);
       if (this.lastResults?.length) await this.reload();
     } catch (e: any) {
@@ -149,7 +161,6 @@ export class LinksPage {
   }
 
   private async generateIdempotencyKey(items: LinkCreateItem[]): Promise<string> {
-    console.log(items);
     const itemsString = JSON.stringify(items.map(item => ({
       item_id: item.item_id,
       secret: item.secret,
@@ -222,32 +233,14 @@ export class LinksPage {
     return `${environment.frontBaseUrl}/redeem/${encodeURIComponent(token)}`;
   }
 
-  askBeforeDelete(token: string) {
-    this.alert.create({
-      header: 'Supprimer ce lien ?',
-      message: `Cette action est irréversible.`,
-      buttons: [
-        {text: 'Annuler', role: 'cancel'},
-        {text: 'Supprimer', role: 'destructive', handler: () => this.delete(token)}
-      ]
-    }).then(a => a.present());
-  }
-
-  private async delete(token: string) {
-    try {
-      await this.api.deleteLink(token);
-      await this.reload();
-    } catch (e: any) {
-      this.toast.toastMsg(e?.error?.error?.message || 'Suppression échouée').then();
-    }
-  }
-
   copy(text: string) {
     navigator.clipboard.writeText(text)
       .then(() => this.toast.toastMsg('Copié dans le presse-papier').then())
       .catch(() => this.toast.toastMsg('Échec de la copie dans le presse-papier').then());
   }
 
+
+  /////////// Status ///////////
   exportCsv() {
     const header = 'item_id;link_token;created_at;expires_at;used_at;deleted_at';
     const lines = this.rows().map(r => [
@@ -262,8 +255,6 @@ export class LinksPage {
     URL.revokeObjectURL(url);
   }
 
-
-  /////////// Status ///////////
   statusOf(row: LinkStatus): StatusFilter {
     const now = Date.now();
     if (row.deleted_at) return 'deleted';
@@ -312,5 +303,24 @@ export class LinksPage {
       return true;
     });
   });
-  protected readonly Number = Number;
+
+  askBeforeDelete(token: string) {
+    this.alert.create({
+      header: 'Supprimer ce lien ?',
+      message: `Cette action est irréversible.`,
+      buttons: [
+        {text: 'Annuler', role: 'cancel'},
+        {text: 'Supprimer', role: 'destructive', handler: () => this.delete(token)}
+      ]
+    }).then(a => a.present());
+  }
+
+  private async delete(token: string) {
+    try {
+      await this.api.deleteLink(token);
+      await this.reload();
+    } catch (e: any) {
+      this.toast.toastMsg(e?.error?.error?.message || 'Suppression échouée').then();
+    }
+  }
 }

@@ -21,7 +21,7 @@ import {
 } from '@ionic/angular/standalone';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 import {PatService} from "../../../core/pat";
-import {ToastService} from "../../../shared/toast-service";
+import {ToastService} from "../../../shared/services/toast";
 
 type Scope = { key: string; label: string; help: string };
 

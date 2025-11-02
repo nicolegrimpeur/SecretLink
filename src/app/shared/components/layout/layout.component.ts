@@ -28,7 +28,7 @@ import {
   personCircleOutline,
 } from 'ionicons/icons';
 import {AuthService} from "../../../core/auth";
-import {StorageService} from "../../../core/storage";
+import {StorageService} from "../../services/storage";
 import {User} from "../../models/user";
 import {NgOptimizedImage} from "@angular/common";
 

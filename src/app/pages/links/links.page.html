@@ -47,6 +47,16 @@
               [errorText]="errorFor('ttl_days') || ''"
             />
           </ion-item>
+          <ion-item lines="none">
+            <ion-input
+              type="text"
+              inputmode="numeric"
+              label="Phrase secrète :"
+              formControlName="passphrase"
+              helperText="Ajoutez une phrase secrète pour un chiffrement de bout en bout (Facultatif)."
+              [errorText]="errorFor('passphrase') || ''"
+            />
+          </ion-item>
 
           <div class="ion-display-flex ion-justify-content-center">
             <ion-button type="submit" [disabled]="form.invalid || loading">Créer</ion-button>
