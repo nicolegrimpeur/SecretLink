@@ -101,15 +101,15 @@
           <ion-card-title>Créer en bulk (coller CSV)</ion-card-title>
         </ion-card-header>
         <ion-card-content>
-          <ion-note>Colonnes supportées: <code>item_id,secret,ttl_days</code> — entête optionnelle.</ion-note>
+          <ion-note>Colonnes supportées: <code>item_id,secret,ttl_days,passphrase</code> — entête optionnelle, passphrase optionnel.</ion-note>
           <ion-textarea
             [(ngModel)]="csvText"
             [ngModelOptions]="{standalone:true}"
             [autoGrow]="true"
             [rows]="6"
-            placeholder="item_id,secret,ttl_days
-alice@example.com,vpn-ALICE,7
-bob@example.com,vpn-BOB,7"></ion-textarea>
+            placeholder="item_id,secret,ttl_days,passphrase
+alice@example.com,vpn-ALICE,7,12345678
+bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
 
           <div class="ion-display-flex ion-justify-content-center">
             <ion-button (click)="createBulk()" [disabled]="loading || !csvText.trim()">Créer les liens</ion-button>

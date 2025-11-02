@@ -49,7 +49,7 @@ import {CryptoService} from "../../shared/services/crypto";
   imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonBadge, IonCol, IonGrid, IonRow, IonCheckbox, IonSelect, IonSelectOption]
 })
 export class LinksPage {
-  @ViewChild(IonContent, { read: ElementRef }) contentEl!: ElementRef;
+  @ViewChild(IonContent, {read: ElementRef}) contentEl!: ElementRef;
   protected readonly Number = Number;
   private route = inject(ActivatedRoute);
   private api = inject(LinksService);
@@ -62,7 +62,10 @@ export class LinksPage {
   loading = false;
 
   private readonly errorCreationHelpText = [
-    {code: 'VALIDATION_ERROR', text: 'Les informations fournies ne sont pas valides. Veuillez vérifier les champs et réessayer.'},
+    {
+      code: 'VALIDATION_ERROR',
+      text: 'Les informations fournies ne sont pas valides. Veuillez vérifier les champs et réessayer.'
+    },
     {code: 'SERVER_ERROR', text: 'Une erreur serveur est survenue. Veuillez réessayer plus tard.'},
   ]
 
@@ -135,7 +138,7 @@ export class LinksPage {
     if (this.form.invalid) return;
     this.loading = true;
     try {
-      const { secret, passphraseHash } = await this.crypto.encryptIfPassphrase(
+      const {secret, passphraseHash} = await this.crypto.encryptIfPassphrase(
         this.form.value.secret!,
         this.form.value.passphrase || ''
       );
@@ -177,7 +180,7 @@ export class LinksPage {
   }
 
   async createBulk() {
-    const items = this.parseCsv(this.csvText);
+    const items = await this.parseCsv(this.csvText);
     if (!items.length) {
       this.toast.toastMsg('CSV vide ou invalide').then();
       return;
@@ -195,7 +198,7 @@ export class LinksPage {
     }
   }
 
-  parseCsv(text: string): LinkCreateItem[] {
+  async parseCsv(text: string): Promise<LinkCreateItem[]> {
     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     if (!lines.length) return [];
     let start = 0;
@@ -206,14 +209,18 @@ export class LinksPage {
     const hasHeader = ['item_id,secret', 'item_id;secret'].some(h => first.startsWith(h));
     if (hasHeader) start = 1;
 
+    let out;
     for (let i = start; i < lines.length; i++) {
       const sep = lines[i].includes(';') ? ';' : ',';
       const parts = lines[i].split(sep).map(s => s.trim());
-      if (parts.length < 2) continue;
-      const [item_id, secret, ttlStr] = parts;
+      if (parts.length < 3) continue;
+      const [item_id, secret, ttlStr, passphrase] = parts;
       const ttl = ttlStr ? Number(ttlStr) : 0;
       if (!item_id || !secret) continue;
-      items.push({item_id, secret, ttl_days: Number.isFinite(ttl) ? ttl : 7});
+      const {secret: hashed_secret, passphraseHash} = await this.crypto.encryptIfPassphrase(secret, passphrase);
+      out = {item_id, secret: hashed_secret, ttl_days: Number.isFinite(ttl) ? ttl : 7};
+      if (passphraseHash) (out as LinkCreateItem).passphrase_hash = passphraseHash;
+      items.push(out);
     }
     return items;
   }
