@@ -18,7 +18,14 @@ import {
 import {CommonModule} from '@angular/common';
 import {RouterLink} from '@angular/router';
 import {addIcons} from 'ionicons';
-import {bulbOutline, cloudOutline, linkOutline, lockClosedOutline, shareSocialOutline} from 'ionicons/icons';
+import {
+  bulbOutline,
+  cloudOutline,
+  linkOutline,
+  lockClosedOutline,
+  shareSocialOutline,
+  textOutline, timeOutline
+} from 'ionicons/icons';
 import {AuthService} from "../../core/auth";
 import {User} from "../../shared/models/user";
 import {AppVersionService} from '../../shared/services/app-version'
@@ -82,7 +89,9 @@ export class HomePage implements OnInit {
       linkOutline,
       shareSocialOutline,
       bulbOutline,
-      cloudOutline
+      cloudOutline,
+      textOutline,
+      timeOutline
     });
   }
 

@@ -1,13 +1,11 @@
 <ion-content class="ion-padding">
 
-  <section class="hero">
-    <div class="hero-text">
+  <section class="header">
       <h1>🔒 Partagez vos secrets en toute sécurité</h1>
       <p>
         SecretLink vous permet de transmettre un mot de passe ou toute donnée sensible
         via un <b>lien unique</b>, consultable une seule fois puis supprimé définitivement.
       </p>
-    </div>
   </section>
 
   <section class="steps">
@@ -66,7 +64,7 @@
     </ion-grid>
   </section>
 
-  <section class="steps">
+  <section id="how-it-works">
     <h2>Comment ça marche ?</h2>
     <ion-grid>
       <ion-row>
@@ -109,7 +107,7 @@
     </ion-grid>
   </section>
 
-  <section class="features">
+  <section id="features">
     <h2>Pourquoi SecretLink ?</h2>
     <ion-grid>
       <ion-row>
@@ -150,6 +148,51 @@
       </ion-row>
     </ion-grid>
   </section>
+
+  <section id="account">
+    <h2>Pourquoi créer un compte ?</h2>
+
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" size-md="4">
+          <ion-card>
+            <ion-card-header>
+              <ion-icon name="text-outline"></ion-icon>
+              <ion-card-title>Secrets plus longs</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              Passez d’une limite de <b>64</b> à <b>4096 caractères</b> par secret. Idéal pour les clés, tokens ou mots de passe complexes.
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <ion-col size="12" size-md="4">
+          <ion-card>
+            <ion-card-header>
+              <ion-icon name="time-outline"></ion-icon>
+              <ion-card-title>Durée personnalisée</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              Définissez une durée de vie sur mesure pour chaque lien, au lieu des <b>7 jours fixes</b> de la version anonyme.
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <ion-col size="12" size-md="4">
+          <ion-card>
+            <ion-card-header>
+              <ion-icon name="lock-closed-outline"></ion-icon>
+              <ion-card-title>Chiffrement renforcé</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              Profitez du <b>chiffrement de bout en bout</b> complet. Le secret est encrypté côté client avant d’être envoyé, et supprimé automatiquement après lecture.
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </section>
+
 
   <section class="cta-bottom">
     <h2>Prêt à simplifier le partage de vos secrets ?</h2>
