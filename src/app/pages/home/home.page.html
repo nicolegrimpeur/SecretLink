@@ -1,17 +1,25 @@
 <ion-content class="ion-padding">
 
-  <section class="header">
+  <section class="hero">
       <h1>🔒 Partagez vos secrets en toute sécurité</h1>
       <p>
-        SecretLink vous permet de transmettre un mot de passe ou toute donnée sensible
-        via un <b>lien unique</b>, consultable une seule fois puis supprimé définitivement.
+        Envoyez un <b>lien unique</b> consultable une seule fois. Le secret est
+        <b>supprimé définitivement</b> après lecture.
       </p>
+    <div class="cta">
+      <ion-button color="primary" [routerLink]="user ? '/dashboard' : '/auth'">
+        {{ user ? 'Accéder à mon espace' : 'Se connecter / Créer un compte' }}
+      </ion-button>
+      <ion-button fill="outline" href="https://github.com/nicolegrimpeur/SecretLink/wiki" target="_blank">
+        Documentation
+      </ion-button>
+    </div>
   </section>
 
   <section class="steps">
     <ion-grid>
       <ion-row>
-        <ion-col size="12" size-md="6" offset-md="3">
+        <ion-col size="12" size-md="5" offset-md="3.5">
           <ion-card>
             <ion-card-header>
               <ion-card-title>Créer un lien sécurisé</ion-card-title>
@@ -26,11 +34,12 @@
                     errorText="Ce champ est requis."
                     [counter]="true"
                     [maxlength]="64"
+                    placeholder="Collez un mot de passe, un code, un token…"
                   />
                 </ion-item>
 
                 <div class="ion-display-flex ion-justify-content-center">
-                  <ion-button type="submit" [disabled]="form.invalid || loading">Créer</ion-button>
+                  <ion-button type="submit" [disabled]="form.invalid || loading">Créer le lien</ion-button>
                 </div>
               </form>
 
@@ -68,34 +77,39 @@
     <h2>Comment ça marche ?</h2>
     <ion-grid>
       <ion-row>
-        <ion-col size="12" size-md="4">
+        <ion-col size="12" size-md="3" offset-md="1.5">
           <ion-card>
             <ion-card-header>
-              <ion-icon name="lock-closed-outline"></ion-icon>
-              <ion-card-title>1. Saisissez votre secret</ion-card-title>
+              <ion-card-title>
+                <ion-icon name="lock-closed-outline"></ion-icon>
+                1. Saisissez votre secret
+              </ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              Entrez manuellement un mot de passe, une clé API ou importez un fichier CSV
-              contenant vos identifiants.
+              Mot de passe, clé API, token…
             </ion-card-content>
           </ion-card>
         </ion-col>
-        <ion-col size="12" size-md="4">
+        <ion-col size="12" size-md="3">
           <ion-card>
             <ion-card-header>
-              <ion-icon name="link-outline"></ion-icon>
-              <ion-card-title>2. Générez un lien unique</ion-card-title>
+              <ion-card-title>
+                <ion-icon name="link-outline"></ion-icon>
+                2. Générez un lien unique
+              </ion-card-title>
             </ion-card-header>
             <ion-card-content>
               Le lien est à usage unique et s’autodétruit après lecture ou à expiration.
             </ion-card-content>
           </ion-card>
         </ion-col>
-        <ion-col size="12" size-md="4">
+        <ion-col size="12" size-md="3">
           <ion-card>
             <ion-card-header>
-              <ion-icon name="share-social-outline"></ion-icon>
-              <ion-card-title>3. Partagez en toute confiance</ion-card-title>
+              <ion-card-title>
+                <ion-icon name="share-social-outline"></ion-icon>
+                3. Partagez le lien
+              </ion-card-title>
             </ion-card-header>
             <ion-card-content>
               Envoyez simplement le lien au destinataire : aucune inscription requise
@@ -111,33 +125,39 @@
     <h2>Pourquoi SecretLink ?</h2>
     <ion-grid>
       <ion-row>
-        <ion-col size="12" size-md="4">
+        <ion-col size="12" size-md="3" offset-md="1.5">
           <ion-card>
             <ion-card-header>
-              <ion-icon name="bulb-outline"></ion-icon>
-              <ion-card-title>Intuitive</ion-card-title>
+              <ion-card-title>
+                <ion-icon name="bulb-outline"></ion-icon>
+                Intuitive
+              </ion-card-title>
             </ion-card-header>
             <ion-card-content>
               Une interface simple, claire et intuitive.
             </ion-card-content>
           </ion-card>
         </ion-col>
-        <ion-col size="12" size-md="4">
+        <ion-col size="12" size-md="3">
           <ion-card>
             <ion-card-header>
-              <ion-icon name="lock-closed-outline"></ion-icon>
-              <ion-card-title>Sécurité</ion-card-title>
+              <ion-card-title>
+                <ion-icon name="lock-closed-outline"></ion-icon>
+                Sécurité
+              </ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              Les secrets sont chiffrés de bout en bout et supprimés dès leur lecture. Aucun stockage permanent.
+              Les secrets sont chiffrés en transit et au repos, et supprimés dès leur lecture ou expiration.
             </ion-card-content>
           </ion-card>
         </ion-col>
-        <ion-col size="12" size-md="4">
+        <ion-col size="12" size-md="3">
           <ion-card>
             <ion-card-header>
-              <ion-icon name="cloud-outline"></ion-icon>
-              <ion-card-title>API & automatisation</ion-card-title>
+              <ion-card-title>
+                <ion-icon name="cloud-outline"></ion-icon>
+                API & automatisation
+              </ion-card-title>
             </ion-card-header>
             <ion-card-content>
               Automatisez vos partages de secrets grâce aux tokens personnels et à l’API REST. Collection Postman
@@ -149,43 +169,82 @@
     </ion-grid>
   </section>
 
-  <section id="account">
+  <section>
     <h2>Pourquoi créer un compte ?</h2>
-
     <ion-grid>
       <ion-row>
-        <ion-col size="12" size-md="4">
+        <ion-col size="12" size-md="8" offset-md="2">
           <ion-card>
-            <ion-card-header>
-              <ion-icon name="text-outline"></ion-icon>
-              <ion-card-title>Secrets plus longs</ion-card-title>
-            </ion-card-header>
             <ion-card-content>
-              Passez d’une limite de <b>64</b> à <b>4096 caractères</b> par secret. Idéal pour les clés, tokens ou mots de passe complexes.
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
+              <div class="cmp-grid" role="table" aria-label="Comparatif Anonyme versus Compte">
+                <!-- Header row -->
+                <div class="cmp-row cmp-head" role="row">
+                  <div class="cmp-cell cmp-col-feature" role="columnheader">Élément</div>
+                  <div class="cmp-cell cmp-col-plan" role="columnheader">Anonyme</div>
+                  <div class="cmp-cell cmp-col-plan" role="columnheader">Compte</div>
+                </div>
 
-        <ion-col size="12" size-md="4">
-          <ion-card>
-            <ion-card-header>
-              <ion-icon name="time-outline"></ion-icon>
-              <ion-card-title>Durée personnalisée</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              Définissez une durée de vie sur mesure pour chaque lien, au lieu des <b>7 jours fixes</b> de la version anonyme.
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
+                <!-- Longueur du secret -->
+                <div class="cmp-row" role="row">
+                  <div class="cmp-cell cmp-col-feature" role="rowheader">Longueur du secret</div>
+                  <div class="cmp-cell" role="cell">
+                    <ion-badge color="medium">64 caractères</ion-badge>
+                  </div>
+                  <div class="cmp-cell" role="cell">
+                    <ion-badge color="primary">4096 caractères</ion-badge>
+                  </div>
+                </div>
 
-        <ion-col size="12" size-md="4">
-          <ion-card>
-            <ion-card-header>
-              <ion-icon name="lock-closed-outline"></ion-icon>
-              <ion-card-title>Chiffrement renforcé</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              Profitez du <b>chiffrement de bout en bout</b> complet. Le secret est encrypté côté client avant d’être envoyé, et supprimé automatiquement après lecture.
+                <!-- Durée de vie du lien -->
+                <div class="cmp-row" role="row">
+                  <div class="cmp-cell cmp-col-feature" role="rowheader">Durée de vie du lien</div>
+                  <div class="cmp-cell" role="cell">
+                    <ion-badge color="medium">7 jours</ion-badge>
+                  </div>
+                  <div class="cmp-cell" role="cell">
+                    <ion-badge color="tertiary">Valeur personnalisée</ion-badge>
+                  </div>
+                </div>
+
+                <!-- Chiffrement bout en bout -->
+                <div class="cmp-row" role="row">
+                  <div class="cmp-cell cmp-col-feature" role="rowheader">Chiffrement bout en bout</div>
+                  <div class="cmp-cell" role="cell" aria-label="Anonyme: Non">
+                    <ion-icon name="close-circle-outline" class="x"></ion-icon>
+                  </div>
+                  <div class="cmp-cell cmp-note" role="cell" aria-label="Compte: Oui via passphrase">
+                    <ion-icon name="checkmark-circle-outline" class="v"></ion-icon>
+                    <span class="note">via passphrase</span>
+                  </div>
+                </div>
+
+                <!-- Création de liens en bulk -->
+                <div class="cmp-row" role="row">
+                  <div class="cmp-cell cmp-col-feature" role="rowheader">Création de liens en bulk</div>
+                  <div class="cmp-cell" role="cell" aria-label="Anonyme: Non">
+                    <ion-icon name="close-circle-outline" class="x"></ion-icon>
+                  </div>
+                  <div class="cmp-cell" role="cell" aria-label="Compte: Oui">
+                    <ion-icon name="checkmark-circle-outline" class="v"></ion-icon>
+                  </div>
+                </div>
+
+                <!-- Suivi du statut de vos liens -->
+                <div class="cmp-row" role="row">
+                  <div class="cmp-cell cmp-col-feature" role="rowheader">Suivi du statut de vos liens</div>
+                  <div class="cmp-cell" role="cell" aria-label="Anonyme: Non">
+                    <ion-icon name="close-circle-outline" class="x"></ion-icon>
+                  </div>
+                  <div class="cmp-cell" role="cell" aria-label="Compte: Oui">
+                    <ion-icon name="checkmark-circle-outline" class="v"></ion-icon>
+                  </div>
+                </div>
+              </div>
+            </ion-card-content>
+            <!-- Petite légende -->
+            <ion-card-content class="cmp-legend">
+                <span class="ion-display-flex ion-align-items-center"><ion-icon name="checkmark-circle-outline" class="v"></ion-icon> Inclus</span>
+                <span class="ion-display-flex ion-align-items-center"><ion-icon name="close-circle-outline" class="x"></ion-icon> Non inclus</span>
             </ion-card-content>
           </ion-card>
         </ion-col>

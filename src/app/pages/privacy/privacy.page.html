@@ -18,10 +18,16 @@
         <li><strong>Authentification</strong> : cookie de <strong>session</strong> strictement nécessaire (voir § cookies).</li>
         <li><strong>Tokens personnels (PAT)</strong> : <strong>empreinte</strong> (hash) du token, libellé, scopes, dates (jamais affiché en clair après création).</li>
         <li><strong>Liens/“items”</strong> : identifiant, jeton de lien, <strong>secret chiffré</strong> jusqu’à sa lecture/expiration, dates (création, expiration, usage, suppression).</li>
+        <li><strong>Passphrase (optionnelle)</strong> : lors de la création d’un lien, l’utilisateur peut définir une passphrase utilisée pour chiffrer le secret <strong>localement</strong> (dans son navigateur). Seul le <strong>hachage</strong> de la passphrase est transmis au serveur à des fins de vérification lors de la consultation.
+          <ul>
+            <li>Dans ce mode, le <strong>secret est chiffré côté client</strong> avant envoi, puis à nouveau chiffré côté serveur pour stockage. Le serveur ne peut donc pas connaître le secret en clair (<strong>chiffrement de bout en bout</strong>).</li>
+          </ul>
+        </li>
         <li><strong>Journaux techniques</strong> : logs serveurs (accès/erreurs) pour sécurité, diagnostic et audit.</li>
         <li><strong>Aucune donnée du destinataire n’est collectée par obligation</strong> : il peut consulter un lien sans compte.</li>
       </ul>
     </ion-card-content>
+
     <ion-card-content>
       <ion-card-subtitle>4) Bases juridiques (RGPD art. 6)</ion-card-subtitle>
       <ul>
@@ -43,6 +49,7 @@
       <ul>
         <li><strong>Compte</strong> : jusqu’à suppression du compte par l’utilisateur.</li>
         <li><strong>Secrets</strong> : chiffrés, <strong>supprimés immédiatement</strong> après première lecture ; sinon jusqu’à la <strong>date d’expiration</strong> configurée ou suppression manuelle.</li>
+        <li><strong>Passphrases</strong> : non conservées (seule une empreinte temporaire peut être utilisée pour vérification technique, supprimée en même temps que le secret).</li>
         <li><strong>Métadonnées de liens</strong> (sans secret) : tant que le compte existe ; suppression lors de la suppression du compte.</li>
         <li><strong>PAT</strong> : actifs jusqu’à révocation ; <strong>hash + métadonnées</strong> conservés pour preuve d’audit jusqu’à la suppression du compte.</li>
         <li><strong>Logs techniques</strong> : 90 jours.</li>
@@ -56,6 +63,8 @@
         <li>Secrets chiffrés <strong>au repos</strong> ; suppression immédiate après usage.</li>
         <li>Jetons PAT <strong>non stockés en clair</strong> (uniquement leur empreinte).</li>
         <li>Chiffrement TLS en transit ; contrôle d’accès ; journalisation sécurité.</li>
+        <li>Chiffrement <strong>de bout en bout</strong> pour les secrets protégés par passphrase : le secret est chiffré avant envoi et déchiffré uniquement côté client ; le serveur n’a jamais accès au secret en clair.</li>
+        <li>Hachage des passphrases (non stockées en clair).</li>
       </ul>
     </ion-card-content>
     <ion-card-content>
@@ -85,7 +94,7 @@
       La présente politique peut être mise à jour.
     </ion-card-content>
     <ion-card-content>
-      <strong>Dernière mise à jour :</strong> 26 octobre 2025
+      <strong>Dernière mise à jour :</strong> 10 novembre 2025
     </ion-card-content>
   </ion-card>
 </ion-content>

@@ -1,5 +1,6 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {
+  IonBadge,
   IonButton,
   IonCard,
   IonCardContent,
@@ -20,11 +21,14 @@ import {RouterLink} from '@angular/router';
 import {addIcons} from 'ionicons';
 import {
   bulbOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline,
   cloudOutline,
   linkOutline,
   lockClosedOutline,
   shareSocialOutline,
-  textOutline, timeOutline
+  textOutline,
+  timeOutline
 } from 'ionicons/icons';
 import {AuthService} from "../../core/auth";
 import {User} from "../../shared/models/user";
@@ -57,7 +61,8 @@ import {environment} from "../../../environments/environment";
     IonLabel,
     IonList,
     ReactiveFormsModule,
-    IonInput
+    IonInput,
+    IonBadge
   ]
 })
 export class HomePage implements OnInit {
@@ -91,7 +96,9 @@ export class HomePage implements OnInit {
       bulbOutline,
       cloudOutline,
       textOutline,
-      timeOutline
+      timeOutline,
+      closeCircleOutline,
+      checkmarkCircleOutline
     });
   }
 
