@@ -1,5 +1,6 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {
+  IonAccordion, IonAccordionGroup,
   IonBadge,
   IonButton,
   IonCard,
@@ -62,7 +63,9 @@ import {environment} from "../../../environments/environment";
     IonList,
     ReactiveFormsModule,
     IonInput,
-    IonBadge
+    IonBadge,
+    IonAccordion,
+    IonAccordionGroup
   ]
 })
 export class HomePage implements OnInit {

@@ -147,6 +147,12 @@ ion-badge {
   opacity: 0.8;
 }
 
+#faq {
+  ion-accordion-group {
+    width: 100%;
+  }
+}
+
 
 footer {
   text-align: center;

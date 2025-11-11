@@ -260,7 +260,137 @@
     </ion-button>
   </section>
 
-  <!-- FOOTER -->
+  <section id="faq">
+    <h2>Foire aux questions</h2>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" size-md="4" offset-md="4">
+          <ion-accordion-group expand="inset" [multiple]="true" class="ion-no-margin">
+            <ion-accordion value="q1">
+              <ion-item slot="header">
+                <ion-label>Qu’est-ce que SecretLink ?</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">
+                SecretLink est un service permettant de partager en toute sécurité un mot de passe, une clé API ou toute donnée sensible
+                via un <b>lien à usage unique</b>. Dès que le lien est consulté, le secret est supprimé définitivement du serveur.
+              </div>
+            </ion-accordion>
+
+            <ion-accordion value="q2">
+              <ion-item slot="header">
+                <ion-label>Est-ce que SecretLink conserve mes mots de passe ?</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">
+                Non. Les secrets sont <b>chiffrés avant stockage</b> et automatiquement supprimés dès leur première lecture
+                ou à expiration. Aucun mot de passe n’est enregistré en clair.
+              </div>
+            </ion-accordion>
+
+            <ion-accordion value="q3">
+              <ion-item slot="header">
+                <ion-label>Comment fonctionne la lecture d’un lien ?</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">
+                Le destinataire clique sur le lien unique, affiche le secret une seule fois, puis celui-ci est immédiatement supprimé.
+                Si le lien est rouvert ensuite, il renverra un message d’expiration ou d’utilisation.
+              </div>
+            </ion-accordion>
+
+            <ion-accordion value="q4">
+              <ion-item slot="header">
+                <ion-label>Puis-je utiliser SecretLink sans compte ?</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">
+                Oui, il est possible de créer des liens anonymes sans s’inscrire.
+                Cependant, certaines fonctionnalités avancées (durée personnalisée, secrets plus longs, gestion des secrets)
+                nécessitent un compte.
+              </div>
+            </ion-accordion>
+
+            <ion-accordion value="q5">
+              <ion-item slot="header">
+                <ion-label>Puis-je supprimer mon compte ?</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">
+                Oui, à tout moment depuis votre espace personnel.
+                La suppression entraîne également la suppression de <b>tous vos liens et tokens API</b>.
+              </div>
+            </ion-accordion>
+
+            <ion-accordion value="q6">
+              <ion-item slot="header">
+                <ion-label>Les secrets sont-ils chiffrés ?</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">
+                Oui, tous les secrets sont chiffrés côté serveur avant d’être stockés.
+                Pour les comptes, l'utilisation de passphrase permet le chiffrement <b>de bout en bout</b> : le secret est alors chiffré côté client avant envoi.
+              </div>
+            </ion-accordion>
+
+            <ion-accordion value="q7">
+              <ion-item slot="header">
+                <ion-label>Que se passe-t-il si le lien expire ?</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">
+                Une fois expiré, le secret est supprimé définitivement.
+                Il reste uniquement une trace minimale (horodatage et statut) pour audit,
+                mais le contenu du secret est irrécupérable.
+              </div>
+            </ion-accordion>
+
+            <ion-accordion value="q8">
+              <ion-item slot="header">
+                <ion-label>Puis-je automatiser la création de liens ?</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">
+                Oui ! En utilisant l’<b>API REST</b> de SecretLink.
+                Créez un <b>token personnel (PAT)</b> depuis votre compte, puis utilisez-le dans vos scripts ou outils (ex. CI/CD)
+                pour générer automatiquement des liens à usage unique.
+              </div>
+            </ion-accordion>
+
+            <ion-accordion value="q9">
+              <ion-item slot="header">
+                <ion-label>Comment utiliser la collection Postman ?</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">
+                Une collection Postman officielle est disponible sur le
+                <a href="https://github.com/nicolegrimpeur/SecretLink/blob/master/api/SecretLink%20API.json" target="_blank">
+                  GitHub du projet
+                </a>.
+                Elle contient tous les endpoints avec exemples de requêtes pour tester ou intégrer facilement l’API.
+                De plus, la documentation complète de l’API est disponible
+                <a href="https://github.com/nicolegrimpeur/SecretLink/wiki/api" target="_blank">
+                  ici
+                </a>.
+              </div>
+            </ion-accordion>
+
+            <ion-accordion value="q10">
+              <ion-item slot="header">
+                <ion-label>Puis-je supprimer un lien avant son expiration ?</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">
+                Si vous possédez un compte oui, vous pouvez révoquer un lien depuis le tableau de bord ou via l’API.
+                Le secret est immédiatement supprimé de la base de données, et le lien devient invalide.
+              </div>
+            </ion-accordion>
+
+            <ion-accordion value="q11">
+              <ion-item slot="header">
+                <ion-label>Puis-je réutiliser le même identifiant (ex. email) sur mon compte ?</ion-label>
+              </ion-item>
+              <div class="ion-padding" slot="content">
+                Oui, dès que le lien précédent associé à cet identifiant est <b>supprimé, utilisé ou expiré</b>,
+                vous pouvez en créer un nouveau avec le même.
+              </div>
+            </ion-accordion>
+          </ion-accordion-group>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </section>
+
   <footer>
     <p>© 2025 SecretLink ({{ version }}) - Nicolas Barrat</p>
     <p class="links">
