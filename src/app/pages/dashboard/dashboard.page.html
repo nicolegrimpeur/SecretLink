@@ -4,10 +4,42 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- Stats rapides -->
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-md="6" size-xl="4" offset-xl="2">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Créer un lien</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            Générez un lien à usage unique pour partager un secret en toute sécurité.
+            <div class="mt">
+              <ion-button color="primary" routerLink="/links" [queryParams]="{ tab: 'create' }">Nouveau lien</ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-md="6" size-xl="4">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Afficher tous mes liens</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+
+            Créez, listez et révoquez vos tokens personnels pour les scripts et l’API.
+            <div class="mt">
+              <ion-button fill="outline" routerLink="/links" [queryParams]="{ tab: 'status' }">Voir tous les liens</ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
   <ion-grid class="stats">
     <ion-row>
-      <ion-col size="6" size-md="3">
+      <ion-col size="6" size-md="3" size-xl="2" offset-xl="2">
         <ion-card class="kpi">
           <ion-card-content>
             <div class="kpi-icon"><ion-icon name="stats-chart-outline"></ion-icon></div>
@@ -23,7 +55,7 @@
         </ion-card>
       </ion-col>
 
-      <ion-col size="6" size-md="3">
+      <ion-col size="6" size-md="3" size-xl="2">
         <ion-card class="kpi">
           <ion-card-content>
             <div class="kpi-icon"><ion-icon name="link-outline"></ion-icon></div>
@@ -39,7 +71,7 @@
         </ion-card>
       </ion-col>
 
-      <ion-col size="6" size-md="3">
+      <ion-col size="6" size-md="3" size-xl="2">
         <ion-card class="kpi">
           <ion-card-content>
             <div class="kpi-icon"><ion-icon name="link-outline"></ion-icon></div>
@@ -55,7 +87,7 @@
         </ion-card>
       </ion-col>
 
-      <ion-col size="6" size-md="3">
+      <ion-col size="6" size-md="3" size-xl="2">
         <ion-card class="kpi">
           <ion-card-content>
             <div class="kpi-icon"><ion-icon name="trash-outline"></ion-icon></div>
@@ -73,44 +105,10 @@
     </ion-row>
   </ion-grid>
 
-  <!-- Actions rapides -->
-  <ion-grid>
-    <ion-row>
-      <ion-col size="12" size-md="6">
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>Créer un lien</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            Générez un lien à usage unique pour partager un secret en toute sécurité.
-            <div class="mt">
-              <ion-button color="primary" routerLink="/links" [queryParams]="{ tab: 'create' }">Nouveau lien</ion-button>
-            </div>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-
-      <ion-col size="12" size-md="6">
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>Afficher tous mes liens</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-
-            Créez, listez et révoquez vos tokens personnels pour les scripts et l’API.
-            <div class="mt">
-              <ion-button fill="outline" routerLink="/links" [queryParams]="{ tab: 'status' }">Voir tous les liens</ion-button>
-            </div>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-
   @if (tokens().length > 0) {
     <ion-grid class="stats">
       <ion-row>
-        <ion-col size="12" size-md="6">
+        <ion-col size="12" size-md="6" size-xl="4" offset-xl="2">
           <ion-card>
             <ion-card-header>
               <ion-card-title>Gérer mes tokens</ion-card-title>
@@ -123,7 +121,7 @@
             </ion-card-content>
           </ion-card>
         </ion-col>
-        <ion-col size="6" size-md="3">
+        <ion-col size="6" size-md="3" size-xl="2">
             <ion-card class="kpi">
               <ion-card-content>
                 <div class="kpi-icon"><ion-icon name="key-outline"></ion-icon></div>
@@ -138,7 +136,7 @@
               </ion-card-content>
             </ion-card>
           </ion-col>
-        <ion-col size="6" size-md="3">
+        <ion-col size="6" size-md="3" size-xl="2">
             <ion-card class="kpi">
               <ion-card-content>
                 <div class="kpi-icon"><ion-icon name="trash-bin-outline"></ion-icon></div>

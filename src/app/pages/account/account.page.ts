@@ -10,13 +10,16 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
+  IonCol,
   IonContent,
+  IonGrid,
   IonIcon,
   IonInput,
   IonInputPasswordToggle,
   IonItem,
   IonLabel,
   IonList,
+  IonRow,
   IonText,
   IonToggle,
   ModalController
@@ -36,7 +39,7 @@ import {Router} from "@angular/router";
   templateUrl: './account.page.html',
   styleUrls: ['./account.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonButton, IonList, IonLabel, IonItem, IonInput, IonBadge, IonButtons, IonText, ReactiveFormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonInputPasswordToggle, IonToggle, IonIcon]
+  imports: [IonContent, CommonModule, FormsModule, IonButton, IonList, IonLabel, IonItem, IonInput, IonBadge, IonButtons, IonText, ReactiveFormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonInputPasswordToggle, IonToggle, IonIcon, IonGrid, IonRow, IonCol]
 })
 export class AccountPage {
   private api = inject(PatService);

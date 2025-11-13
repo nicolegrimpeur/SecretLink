@@ -1,6 +1,7 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {
-  IonAccordion, IonAccordionGroup,
+  IonAccordion,
+  IonAccordionGroup,
   IonBadge,
   IonButton,
   IonCard,
