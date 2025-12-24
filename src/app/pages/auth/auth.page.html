@@ -58,6 +58,14 @@
                   <ion-input-password-toggle slot="end"></ion-input-password-toggle>
                 </ion-input>
               </ion-item>
+              <ion-item lines="none">
+                <ion-checkbox formControlName="termsAccepted" justify="start">
+                  <ion-label class="ion-text-wrap">
+                    J’ai lu et j’accepte la
+                    <a routerLink="/privacy" (click)="$event.stopPropagation()" target="_blank">Politique de confidentialité</a>.
+                  </ion-label>
+                </ion-checkbox>
+              </ion-item>
             </div>
           </div>
 

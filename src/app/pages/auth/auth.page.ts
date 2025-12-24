@@ -7,6 +7,7 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
+  IonCheckbox,
   IonContent,
   IonIcon,
   IonInput,
@@ -18,7 +19,7 @@ import {
   IonText
 } from '@ionic/angular/standalone';
 import {AuthService} from "../../core/auth";
-import {Router} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {addIcons} from 'ionicons';
 import {lockClosedOutline, personAddOutline} from 'ionicons/icons';
 import {SegmentValue} from "@ionic/angular";
@@ -35,7 +36,7 @@ type Mode = 'login' | 'signup';
     IonContent,
     IonItem, IonInput, IonButton, IonText, IonLabel,
     IonInputPasswordToggle, IonCardHeader, IonCard, IonCardTitle, IonCardContent,
-    IonIcon, IonSegment, IonSegmentButton
+    IonIcon, IonSegment, IonSegmentButton, IonCheckbox, RouterLink
   ]
 })
 export class AuthPage {
@@ -65,6 +66,7 @@ export class AuthPage {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     passwordConfirm: ['', []],
+    termsAccepted: [false, []],
   });
 
   private passwordMatchValidator: ValidatorFn = (group) => {
@@ -95,21 +97,32 @@ export class AuthPage {
       this.submitted.set(false); // reset affichage erreurs quand on change d’onglet
 
       const passwordConfirmForm = this.form.get('passwordConfirm')!;
+      const termsCtrl = this.form.get('termsAccepted')!;
+
       if (m === 'signup') {
         passwordConfirmForm.enable({ emitEvent: false });
         passwordConfirmForm.setValidators([Validators.required]);
         this.form.setValidators(this.passwordMatchValidator);
+
+        termsCtrl.enable({ emitEvent: false });
+        termsCtrl.setValidators([Validators.requiredTrue]);
       } else {
         passwordConfirmForm.setValue(null, { emitEvent: false });
         passwordConfirmForm.clearValidators();
         passwordConfirmForm.setErrors(null);
         passwordConfirmForm.disable({ emitEvent: false });
 
+        termsCtrl.setValue(false, { emitEvent: false });
+        termsCtrl.clearValidators();
+        termsCtrl.setErrors(null);
+        termsCtrl.disable({ emitEvent: false });
+
         this.form.clearValidators();
         this.form.setErrors(null);
       }
 
       passwordConfirmForm.updateValueAndValidity({ emitEvent: false });
+      termsCtrl.updateValueAndValidity({ emitEvent: false });
       this.form.updateValueAndValidity({ emitEvent: false });
     });
   }
