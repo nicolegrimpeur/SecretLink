@@ -22,6 +22,8 @@ export class CryptoError extends Error {
   }
 }
 
+type U8 = Uint8Array<ArrayBuffer>;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -30,6 +32,18 @@ export class CryptoService {
   private readonly iterations = 250_000;
   private readonly encoder = new TextEncoder();
   private readonly decoder = new TextDecoder();
+
+  // --- helpers "ArrayBuffer-only" ---
+  private u8(len: number): U8 {
+    return new Uint8Array(new ArrayBuffer(len));
+  }
+
+  private encodeU8(text: string): U8 {
+    const src = this.encoder.encode(text);
+    const out = this.u8(src.length);
+    out.set(src);
+    return out;
+  }
 
   // ---------- API PUBLIQUE ----------
 
@@ -73,8 +87,8 @@ export class CryptoService {
   // ---------- IMPLÉMENTATION PRIVÉE ----------
 
   private async encrypt(plaintext: string, passphrase: string): Promise<{ payload: EncPayload; passphraseHash: string; }> {
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const salt = crypto.getRandomValues(this.u8(16));
+    const iv = crypto.getRandomValues(this.u8(12));
     const key = await this.deriveKey(passphrase, salt, ['encrypt']);
     const ctBuf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, this.encoder.encode(plaintext));
     const payload = `enc:${this.toB64(salt)}:${this.toB64(iv)}:${this.toB64(new Uint8Array(ctBuf))}` as EncPayload;
@@ -91,6 +105,7 @@ export class CryptoService {
       const salt = this.fromB64(saltB64);
       const iv = this.fromB64(ivB64);
       const ct = this.fromB64(ctB64);
+
       const key = await this.deriveKey(passphrase, salt, ['decrypt']);
       const ptBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
       return this.decoder.decode(ptBuf);
@@ -99,8 +114,8 @@ export class CryptoService {
     }
   }
 
-  private async deriveKey(passphrase: string, salt: Uint8Array, usages: KeyUsage[]): Promise<CryptoKey> {
-    const material = await crypto.subtle.importKey('raw', this.encoder.encode(passphrase), { name: 'PBKDF2' }, false, ['deriveKey']);
+  private async deriveKey(passphrase: string, salt: U8, usages: KeyUsage[]): Promise<CryptoKey> {
+    const material = await crypto.subtle.importKey('raw', this.encodeU8(passphrase), { name: 'PBKDF2' }, false, ['deriveKey']);
     return crypto.subtle.deriveKey(
       { name: 'PBKDF2', salt, iterations: this.iterations, hash: 'SHA-256' },
       material,
@@ -121,9 +136,9 @@ export class CryptoService {
     return btoa(bin);
   }
 
-  private fromB64(b64: string): Uint8Array {
+  private fromB64(b64: string): U8 {
     const bin = atob(b64);
-    const u8 = new Uint8Array(bin.length);
+    const u8 = this.u8(bin.length);
     for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
     return u8;
   }

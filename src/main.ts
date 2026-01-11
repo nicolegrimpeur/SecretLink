@@ -2,7 +2,7 @@ import {bootstrapApplication} from '@angular/platform-browser';
 import {PreloadAllModules, provideRouter, RouteReuseStrategy, withPreloading} from '@angular/router';
 import {IonicRouteStrategy, provideIonicAngular} from '@ionic/angular/standalone';
 import {provideHttpClient} from '@angular/common/http';
-import {inject, LOCALE_ID, provideAppInitializer} from "@angular/core";
+import {inject, LOCALE_ID, provideAppInitializer, provideZoneChangeDetection} from "@angular/core";
 import {registerLocaleData} from "@angular/common";
 import localFr from '@angular/common/locales/fr';
 
@@ -13,7 +13,7 @@ import {AuthService} from "./app/core/auth";
 registerLocaleData(localFr, 'fr');
 bootstrapApplication(AppComponent, {
   providers: [
-    {provide: RouteReuseStrategy, useClass: IonicRouteStrategy},
+    provideZoneChangeDetection(),{provide: RouteReuseStrategy, useClass: IonicRouteStrategy},
     {provide: LOCALE_ID, useValue: 'fr'},
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),

@@ -14,7 +14,7 @@ import {
   IonRow,
   IonSkeletonText
 } from '@ionic/angular/standalone';
-import {CommonModule} from '@angular/common';
+
 import {RouterLink} from '@angular/router';
 import {environment} from "../../../environments/environment";
 import {LinkStatus} from "../../shared/models/link-status";
@@ -40,14 +40,7 @@ import {PatService} from "../../core/pat";
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   standalone: true,
-  imports: [CommonModule, RouterLink,
-    IonContent,
-    IonRefresher, IonRefresherContent,
-    IonGrid, IonRow, IonCol,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonButton, IonIcon,
-    IonSkeletonText
-  ]
+  imports: [RouterLink, IonContent, IonRefresher, IonRefresherContent, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonIcon, IonSkeletonText]
 })
 export class DashboardPage {
   private linksService = inject(LinksService);

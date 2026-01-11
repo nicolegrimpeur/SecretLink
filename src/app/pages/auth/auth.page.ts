@@ -1,5 +1,5 @@
 import {Component, computed, effect, inject, signal} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {FormBuilder, FormsModule, ReactiveFormsModule, ValidatorFn, Validators} from '@angular/forms';
 import {
   IonButton,
@@ -32,12 +32,25 @@ type Mode = 'login' | 'signup';
   templateUrl: './auth.page.html',
   styleUrls: ['./auth.page.scss'],
   imports: [
-    CommonModule, FormsModule, ReactiveFormsModule,
+    FormsModule,
+    ReactiveFormsModule,
     IonContent,
-    IonItem, IonInput, IonButton, IonText, IonLabel,
-    IonInputPasswordToggle, IonCardHeader, IonCard, IonCardTitle, IonCardContent,
-    IonIcon, IonSegment, IonSegmentButton, IonCheckbox, RouterLink
-  ]
+    IonItem,
+    IonInput,
+    IonButton,
+    IonText,
+    IonLabel,
+    IonInputPasswordToggle,
+    IonCardHeader,
+    IonCard,
+    IonCardTitle,
+    IonCardContent,
+    IonIcon,
+    IonSegment,
+    IonSegmentButton,
+    IonCheckbox,
+    RouterLink
+]
 })
 export class AuthPage {
   private fb = inject(FormBuilder);

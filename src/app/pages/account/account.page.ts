@@ -1,5 +1,5 @@
 import {Component, computed, inject, signal} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   AlertController,
@@ -39,7 +39,7 @@ import {Router} from "@angular/router";
   templateUrl: './account.page.html',
   styleUrls: ['./account.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonButton, IonList, IonLabel, IonItem, IonInput, IonBadge, IonButtons, IonText, ReactiveFormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonInputPasswordToggle, IonToggle, IonIcon, IonGrid, IonRow, IonCol]
+  imports: [IonContent, FormsModule, IonButton, IonList, IonLabel, IonItem, IonInput, IonBadge, IonButtons, IonText, ReactiveFormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonInputPasswordToggle, IonToggle, IonIcon, IonGrid, IonRow, IonCol]
 })
 export class AccountPage {
   private api = inject(PatService);

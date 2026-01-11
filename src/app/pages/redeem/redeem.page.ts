@@ -1,5 +1,5 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   IonButton,
@@ -30,7 +30,7 @@ import {CryptoService} from "../../shared/services/crypto";
   templateUrl: './redeem.page.html',
   styleUrls: ['./redeem.page.scss'],
   standalone: true,
-  imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardSubtitle, IonCardContent, IonItem, IonCheckbox, IonButton, IonSkeletonText, IonIcon, IonInput, IonInputPasswordToggle, ReactiveFormsModule, IonText, IonTextarea]
+  imports: [IonContent, FormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardSubtitle, IonCardContent, IonItem, IonCheckbox, IonButton, IonSkeletonText, IonIcon, IonInput, IonInputPasswordToggle, ReactiveFormsModule, IonText, IonTextarea]
 })
 export class RedeemPage implements OnInit {
   private route = inject(ActivatedRoute);
