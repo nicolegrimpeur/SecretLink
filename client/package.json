@@ -5,7 +5,7 @@
   "homepage": "https://nicob.ovh/",
   "scripts": {
     "start": "ionic serve",
-    "build": "ng run app:build:production --base-href=/secret/"
+    "build": "ng run app:build:production"
   },
   "dependencies": {
     "@angular/animations": "^21.0.8",
