@@ -23,7 +23,3 @@ dist
 coverage
 *.test.ts
 *.spec.ts
-
-# Old code (pre-refactor)
-modules/
-serveur.js
