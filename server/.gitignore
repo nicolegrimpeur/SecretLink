@@ -1,1 +1,29 @@
+# Environment
 .env
+.env.local
+
+# Dependencies
+node_modules
+package-lock.json
+npm-debug.log*
+
+# Build output
+dist
+*.tsbuildinfo
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*.vimrc
+.DS_Store
+
+# Testing
+coverage
+*.test.ts
+*.spec.ts
+
+# Old code (pre-refactor)
+modules/
+serveur.js

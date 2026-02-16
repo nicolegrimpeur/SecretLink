@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: mysql:lts
+    image: mysql:8.0
     container_name: secretlink-db
     environment:
       MYSQL_DATABASE: secretlink
@@ -19,7 +19,7 @@ services:
 
   server:
     build:
-      context: ../server
+      context: ./server
       dockerfile: Dockerfile
     container_name: secretlink-server
     depends_on:
@@ -46,7 +46,7 @@ services:
 
   client:
     build:
-      context: ../client
+      context: ./client
       dockerfile: Dockerfile
     container_name: secretlink-client
     depends_on:
