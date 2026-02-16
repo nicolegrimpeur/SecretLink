@@ -37,7 +37,7 @@ export function createApp(): Express {
   app.use(cookieParser());
 
   // CORS
-  const ALLOWED_ORIGINS = ['http://localhost:8100', 'https://nicob.ovh'];
+  const ALLOWED_ORIGINS = ['http://localhost:8100', 'https://nicob.ovh', 'http://localhost'];
   const corsOptions = {
     origin(origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) {
       if (!origin) return cb(null, true); // postman, curl, etc.
