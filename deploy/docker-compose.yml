@@ -40,7 +40,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./server/.env:/app/.env:ro
+      - ../server/.env:/app/.env:ro
     restart: unless-stopped
 
   client:
