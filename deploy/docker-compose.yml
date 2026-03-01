@@ -9,7 +9,7 @@ services:
       - db_data:/var/lib/mysql
       - ./mysql-init:/docker-entrypoint-initdb.d:ro
     ports:
-      - "3306:3306"
+      - "3306"
     healthcheck:
       test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
       interval: 10s
@@ -38,7 +38,7 @@ services:
       SESSION_SECRET: ${SESSION_SECRET}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     ports:
-      - "3000:3000"
+      - "3000"
     volumes:
       - ../server/.env:/app/.env:ro
     restart: unless-stopped
@@ -51,8 +51,7 @@ services:
     depends_on:
       - server
     ports:
-      - "80:80"
-      - "443:443"
+      - "80"
     restart: unless-stopped
 
 volumes:
