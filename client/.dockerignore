@@ -1,0 +1,47 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE / Editor
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Angular
+.angular
+dist
+build
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Documentation
+README.md
+LICENSE
+
+# Testing
+karma.conf.js
+test.ts
+tsconfig.spec.json
+**/*.spec.ts
+
+# Cache
+.eslintcache
+.cache
+.npm
+
+# Build artifacts
+*.map
+*.tgz
