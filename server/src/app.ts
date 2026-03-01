@@ -65,8 +65,8 @@ export function createApp(): Express {
   });
 
   // Mount routes
-  app.use('/secretLink/users', userRouter);
-  app.use('/secretLink/links', linkRouter);
+  app.use('/users', userRouter);
+  app.use('/links', linkRouter);
 
   // Health check
   app.get('/health', (_req, res) => {

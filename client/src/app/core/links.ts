@@ -13,7 +13,7 @@ export class LinksService {
   private http = inject(HttpClient);
 
   async createSingle(item: LinkCreateSingleItem): Promise<LinkCreateResult> {
-    const url = `${environment.apiBaseUrl}/secretLink/links`;
+    const url = `${environment.apiBaseUrl}/links`;
     const res = await firstValueFrom(
       this.http.post<{result: LinkCreateResult}>(url, item, { withCredentials: false })
     );
@@ -24,7 +24,7 @@ export class LinksService {
     let headers = new HttpHeaders();
     if (opts?.idempotencyKey) headers = headers.set('Idempotency-Key', opts.idempotencyKey);
 
-    const url = `${environment.apiBaseUrl}/secretLink/links/bulk`;
+    const url = `${environment.apiBaseUrl}/links/bulk`;
     const res = await firstValueFrom(
       this.http.post<{ results: LinkCreateResult[] }>(url, items, { withCredentials: true, headers })
     );
@@ -39,7 +39,7 @@ export class LinksService {
     if (params?.since) q = q.set('since', params.since);
     if (params?.until) q = q.set('until', params.until);
 
-    const url = `${environment.apiBaseUrl}/secretLink/links/status`;
+    const url = `${environment.apiBaseUrl}/links/status`;
     return await firstValueFrom(
       this.http.get<LinkStatus[]>(url, { withCredentials: true, headers, params: q })
     );
@@ -48,12 +48,12 @@ export class LinksService {
   async deleteLink(linkToken: string, opts?: { pat?: string }) {
     let headers = new HttpHeaders();
     if (opts?.pat) headers = headers.set('Authorization', `Bearer ${opts.pat}`);
-    const url = `${environment.apiBaseUrl}/secretLink/links/${encodeURIComponent(linkToken)}`;
+    const url = `${environment.apiBaseUrl}/links/${encodeURIComponent(linkToken)}`;
     await firstValueFrom(this.http.delete(url, { withCredentials: true, headers }));
   }
 
   async redeemLink(linkToken: string, passphraseHash?: string): Promise<RedeemResponse> {
-    const url = `${environment.apiBaseUrl}/secretLink/links/redeem/${encodeURIComponent(linkToken)}?pass=${passphraseHash ? encodeURIComponent(passphraseHash) : ''}`;
+    const url = `${environment.apiBaseUrl}/links/redeem/${encodeURIComponent(linkToken)}?pass=${passphraseHash ? encodeURIComponent(passphraseHash) : ''}`;
     return await firstValueFrom(
       this.http.get<RedeemResponse>(url, { withCredentials: false })
     );

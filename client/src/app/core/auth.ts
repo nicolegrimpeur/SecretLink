@@ -13,44 +13,44 @@ export class AuthService {
   get user(): User { return this.userSubject.value; }
 
   async signup(email: string, password: string) {
-    const url = `${environment.apiBaseUrl}/secretLink/users/signup`;
+    const url = `${environment.apiBaseUrl}/users/signup`;
     const u = await firstValueFrom(this.http.post<User>(url, { email, password }, { withCredentials: true }));
     this.userSubject.next(u);
     return u;
   }
 
   async login(email: string, password: string) {
-    const url = `${environment.apiBaseUrl}/secretLink/users/login`;
+    const url = `${environment.apiBaseUrl}/users/login`;
     const u = await firstValueFrom(this.http.post<User>(url, { email, password }, { withCredentials: true }));
     this.userSubject.next(u);
     return u;
   }
 
   async me() {
-    const url = `${environment.apiBaseUrl}/secretLink/users/me`;
+    const url = `${environment.apiBaseUrl}/users/me`;
     const u = await firstValueFrom(this.http.get<User>(url, { withCredentials: true }));
     this.userSubject.next(u);
     return u;
   }
 
   async logout() {
-    const url = `${environment.apiBaseUrl}/secretLink/users/logout`;
+    const url = `${environment.apiBaseUrl}/users/logout`;
     await firstValueFrom(this.http.post(url, {}, { withCredentials: true }));
     this.userSubject.next(null);
   }
 
   async changePassword(current_password: string, new_password: string) {
-    const url = `${environment.apiBaseUrl}/secretLink/users/password`;
+    const url = `${environment.apiBaseUrl}/users/password`;
     await firstValueFrom(this.http.post(url, { current_password, new_password }, { withCredentials: true }));
   }
 
   async purgeMe() {
-    const url = `${environment.apiBaseUrl}/secretLink/users/me/purge`;
+    const url = `${environment.apiBaseUrl}/users/me/purge`;
     await firstValueFrom(this.http.delete(url, { withCredentials: true }));
   }
 
   async deleteMe() {
-    const url = `${environment.apiBaseUrl}/secretLink/users/me`;
+    const url = `${environment.apiBaseUrl}/users/me`;
     await firstValueFrom(this.http.delete(url, { withCredentials: true }));
     this.userSubject.next(null);
   }
