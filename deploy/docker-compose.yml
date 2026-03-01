@@ -4,7 +4,9 @@ services:
     container_name: secretlink-db
     environment:
       MYSQL_DATABASE: secretlink
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-root}
+      MYSQL_RANDOM_ROOT_PASSWORD: 'true'
+      MYSQL_USER: ${MYSQL_USER:-link}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
     volumes:
       - db_data:/var/lib/mysql
       - ./mysql-init:/docker-entrypoint-initdb.d:ro
