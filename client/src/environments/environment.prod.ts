@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://secret.nicob.ovh/secretLink',
+  apiBaseUrl: 'https://api.secret.nicob.ovh',
   frontBaseUrl: 'https://secret.nicob.ovh',
 };
