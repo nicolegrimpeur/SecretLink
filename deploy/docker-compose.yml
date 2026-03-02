@@ -4,7 +4,7 @@ services:
     container_name: secretlink-db
     environment:
       MYSQL_DATABASE: secretlink
-      MYSQL_RANDOM_ROOT_PASSWORD: 'true'
+      MYSQL_RANDOM_ROOT_PASSWORD: "true"
       MYSQL_USER: ${MYSQL_USER:-link}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
     volumes:
@@ -13,7 +13,7 @@ services:
     expose:
       - "3306"
     healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
