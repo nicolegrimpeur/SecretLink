@@ -29,7 +29,7 @@ export class LinkService {
       };
     }
 
-    const uid = 0; // Public link
+    const uid = 1; // Public link
     const itemId = '';
     const now = new Date();
     const ttlDays = 7;
@@ -69,7 +69,7 @@ export class LinkService {
       return {
         status: 'created' as const,
         link_token: linkToken,
-        link_url: `${config.BASE_URL}/secretLink/links/${encodeURIComponent(linkToken)}/redeem`,
+        link_url: `${config.BASE_URL}/links/${encodeURIComponent(linkToken)}/redeem`,
         expires_at: expiresAt.toISOString(),
         error: null,
       };
@@ -181,7 +181,7 @@ export class LinkService {
         results.push({
           status: 'created',
           link_token: linkToken,
-          link_url: `${config.BASE_URL}/secretLink/links/${encodeURIComponent(linkToken)}/redeem`,
+          link_url: `${config.BASE_URL}/links/${encodeURIComponent(linkToken)}/redeem`,
           expires_at: expiresAt ? expiresAt.toISOString() : null,
           error: null,
         });

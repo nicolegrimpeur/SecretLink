@@ -3,7 +3,7 @@ services:
     image: mysql:lts
     container_name: secretlink-db
     environment:
-      MYSQL_DATABASE: secretlink
+      MYSQL_DATABASE: secretLink
       MYSQL_RANDOM_ROOT_PASSWORD: "true"
       MYSQL_USER: ${MYSQL_USER:-link}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
@@ -34,7 +34,7 @@ services:
       MYSQL_PORT: 3306
       MYSQL_USER: ${MYSQL_USER:-link}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
-      MYSQL_DB: secretlink
+      MYSQL_DB: secretLink
       MASTER_KEY_V1: ${MASTER_KEY_V1}
       KEY_VERSION: ${KEY_VERSION:-1}
       SESSION_SECRET: ${SESSION_SECRET}
