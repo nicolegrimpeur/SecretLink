@@ -32,7 +32,7 @@ services:
       BASE_URL: ${BASE_URL:-http://localhost:3000}
       MYSQL_HOST: db
       MYSQL_PORT: 3306
-      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_USER: ${MYSQL_USER:-link}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
       MYSQL_DB: secretlink
       MASTER_KEY_V1: ${MASTER_KEY_V1}

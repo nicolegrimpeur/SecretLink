@@ -3,11 +3,10 @@ import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
-import serveIndex from 'serve-index';
 
 import config from './config/env.js';
 import { httpLogger, getLogger } from './shared/logger.js';
-import { errorHandler, asyncHandler } from './middleware/errorHandler.js';
+import { errorHandler } from './middleware/errorHandler.js';
 import { userRouter } from './modules/users/user.routes.js';
 import { linkRouter } from './modules/links/link.routes.js';
 
@@ -19,6 +18,11 @@ export function createApp(): Express {
   // Trust proxy
   app.enable('trust proxy');
 
+  // Health check
+  app.get('/health', (_req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
   // Security headers
   app.use(
     helmet({
@@ -27,9 +31,6 @@ export function createApp(): Express {
       referrerPolicy: { policy: 'no-referrer' },
     }),
   );
-
-  // Static assets
-  app.use('./.well-known', express.static('.well-known'), serveIndex('.well-known'));
 
   // Body parsing
   app.use(bodyParser.json({ limit: '1mb' }));
@@ -56,9 +57,10 @@ export function createApp(): Express {
   app.use(httpLogger);
 
   // Maintenance mode middleware
-  app.get('/*path', (req, res, next): void => {
-    if (config.MAINTENANCE_MODE) {
-      res.send('Maintenance in progress');
+  app.use((req, res, next): void => {
+    const maintenance = String(config.MAINTENANCE_MODE) === '1';
+    if (maintenance && req.path !== '/health') {
+      res.status(503).send('Maintenance in progress');
       return;
     }
     next();
@@ -67,11 +69,6 @@ export function createApp(): Express {
   // Mount routes
   app.use('/users', userRouter);
   app.use('/links', linkRouter);
-
-  // Health check
-  app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
 
   // Redirect root to base URL
   app.get(['/*path', '/'], (req, res) => {
