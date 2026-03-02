@@ -39,6 +39,7 @@ services:
       KEY_VERSION: ${KEY_VERSION:-1}
       SESSION_SECRET: ${SESSION_SECRET}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      MAINTENANCE_MODE: ${MAINTENANCE_MODE:-0}
     ports:
       - "3000"
     volumes:
