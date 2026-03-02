@@ -40,7 +40,7 @@ services:
       SESSION_SECRET: ${SESSION_SECRET}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       MAINTENANCE_MODE: ${MAINTENANCE_MODE:-0}
-    ports:
+    expose:
       - "3000"
     volumes:
       - ../server/.env:/app/.env:ro
@@ -53,7 +53,7 @@ services:
     container_name: secretlink-client
     depends_on:
       - server
-    ports:
+    expose:
       - "80"
     restart: unless-stopped
 
