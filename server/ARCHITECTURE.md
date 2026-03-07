@@ -138,7 +138,7 @@ export default router
 ## Data Flow Example: Creating a User
 
 ```
-POST /secretLink/users/signup
+POST /users/signup
 │
 ├─ Express matches route → calls signup handler
 │
@@ -341,7 +341,7 @@ describe('UserService', () => {
 ```typescript
 it('POST /signup should create user and set session', async () => {
   const res = await request(app)
-    .post('/secretLink/users/signup')
+    .post('/users/signup')
     .send({ email: 'test@example.com', password: 'password123' })
   
   expect(res.status).toBe(201)

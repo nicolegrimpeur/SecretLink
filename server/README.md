@@ -69,27 +69,27 @@ docker-compose up --build
 ## API Endpoints
 
 ### Authentication
-- `POST /secretLink/users/signup` - Register
-- `POST /secretLink/users/login` - Login
-- `POST /secretLink/users/logout` - Logout (session required)
+- `POST /users/signup` - Register
+- `POST /users/login` - Login
+- `POST /users/logout` - Logout (session required)
 
 ### User Management
-- `GET /secretLink/users/me` - Get user profile (session required)
-- `POST /secretLink/users/password` - Change password (session required)
-- `DELETE /secretLink/users/me` - Delete user account (session required)
-- `DELETE /secretLink/users/me/purge` - Purge old data (session required)
+- `GET /users/me` - Get user profile (session required)
+- `POST /users/password` - Change password (session required)
+- `DELETE /users/me` - Delete user account (session required)
+- `DELETE /users/me/purge` - Purge old data (session required)
 
 ### Personal Access Tokens
-- `GET /secretLink/users/tokens` - List tokens (session required)
-- `POST /secretLink/users/tokens` - Create token (session required)
-- `DELETE /secretLink/users/tokens/:id` - Revoke token (session required)
+- `GET /users/tokens` - List tokens (session required)
+- `POST /users/tokens` - Create token (session required)
+- `DELETE /users/tokens/:id` - Revoke token (session required)
 
 ### Secret Links
-- `POST /secretLink/links` - Create anonymous link (public)
-- `POST /secretLink/links/bulk` - Create multiple links (auth required, scope: `links:write`)
-- `GET /secretLink/links/redeem/:token` - Redeem/decrypt link (public)
-- `DELETE /secretLink/links/:token` - Delete link (auth required, scope: `links:delete`)
-- `GET /secretLink/links/status` - List links (auth required, scope: `links:read`)
+- `POST /links` - Create anonymous link (public)
+- `POST /links/bulk` - Create multiple links (auth required, scope: `links:write`)
+- `GET /links/redeem/:token` - Redeem/decrypt link (public)
+- `DELETE /links/:token` - Delete link (auth required, scope: `links:delete`)
+- `GET /links/status` - List links (auth required, scope: `links:read`)
 
 ## Authentication Methods
 

@@ -12,7 +12,7 @@ export class PatService {
 
   async list(): Promise<PAT[]> {
     return await firstValueFrom(
-      this.http.get<PAT[]>(`${environment.apiBaseUrl}/secretLink/users/tokens`, { withCredentials: true })
+      this.http.get<PAT[]>(`${environment.apiBaseUrl}/users/tokens`, { withCredentials: true })
     );
   }
 
@@ -20,7 +20,7 @@ export class PatService {
   async create(label: string | null, scopes: string[]) {
     return await firstValueFrom(
       this.http.post<any>(
-        `${environment.apiBaseUrl}/secretLink/users/tokens`,
+        `${environment.apiBaseUrl}/users/tokens`,
         { label, scopes },
         { withCredentials: true }
       )
@@ -29,7 +29,7 @@ export class PatService {
 
   async revoke(id: number) {
     await firstValueFrom(
-      this.http.delete(`${environment.apiBaseUrl}/secretLink/users/tokens/${id}`, { withCredentials: true })
+      this.http.delete(`${environment.apiBaseUrl}/users/tokens/${id}`, { withCredentials: true })
     );
   }
 }
