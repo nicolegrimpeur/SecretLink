@@ -60,4 +60,5 @@ services:
 
 volumes:
   db_data:
+    external: true
     name: secretlink-db-data
