@@ -60,3 +60,4 @@ services:
 
 volumes:
   db_data:
+    name: secretlink-db-data
