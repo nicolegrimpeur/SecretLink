@@ -305,11 +305,36 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                 </ion-item>
 
                 <ion-item class="grid-header ion-no-padding ion-text-center">
-                  <ion-col size="8" size-md="3"><b>Identifiant / Statut</b></ion-col>
-                  <ion-col size="2" class="ion-hide-md-down"><b>Créé le</b></ion-col>
-                  <ion-col size="2" class="ion-hide-md-down"><b>Expire le</b></ion-col>
-                  <ion-col size="2" class="ion-hide-md-down"><b>Utilisé le</b></ion-col>
-                  <ion-col size="2" class="ion-hide-md-down"><b>Supprimé le</b></ion-col>
+                  <ion-col size="8" size-md="3" (click)="setSortColumn('item_id')" class="sortable-header">
+                    <div class="header-content">
+                      <b>Identifiant / Statut</b>
+                      <ion-icon [name]="getSortIcon('item_id')" *ngIf="getSortIcon('item_id')"></ion-icon>
+                    </div>
+                  </ion-col>
+                  <ion-col size="2" class="ion-hide-md-down sortable-header" (click)="setSortColumn('created_at')">
+                    <div class="header-content">
+                      <b>Créé le</b>
+                      <ion-icon [name]="getSortIcon('created_at')" *ngIf="getSortIcon('created_at')"></ion-icon>
+                    </div>
+                  </ion-col>
+                  <ion-col size="2" class="ion-hide-md-down sortable-header" (click)="setSortColumn('expires_at')">
+                    <div class="header-content">
+                      <b>Expire le</b>
+                      <ion-icon [name]="getSortIcon('expires_at')" *ngIf="getSortIcon('expires_at')"></ion-icon>
+                    </div>
+                  </ion-col>
+                  <ion-col size="2" class="ion-hide-md-down sortable-header" (click)="setSortColumn('used_at')">
+                    <div class="header-content">
+                      <b>Utilisé le</b>
+                      <ion-icon [name]="getSortIcon('used_at')" *ngIf="getSortIcon('used_at')"></ion-icon>
+                    </div>
+                  </ion-col>
+                  <ion-col size="2" class="ion-hide-md-down sortable-header" (click)="setSortColumn('deleted_at')">
+                    <div class="header-content">
+                      <b>Supprimé le</b>
+                      <ion-icon [name]="getSortIcon('deleted_at')" *ngIf="getSortIcon('deleted_at')"></ion-icon>
+                    </div>
+                  </ion-col>
                   <ion-col size="4" size-md="1"><b>Actions</b></ion-col>
                 </ion-item>
 

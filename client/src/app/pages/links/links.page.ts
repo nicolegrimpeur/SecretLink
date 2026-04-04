@@ -32,7 +32,7 @@ import {SegmentValue} from "@ionic/angular";
 import {LinkCreateItem, LinkCreateResult} from "../../shared/models/link-create";
 import {LinkStatus} from "../../shared/models/link-status";
 import {StatusFilter} from "../../shared/models/statutsFilter";
-import {copyOutline, informationOutline, refreshOutline, syncOutline, trashOutline} from "ionicons/icons";
+import {copyOutline, informationOutline, refreshOutline, syncOutline, trashOutline, arrowUpOutline, arrowDownOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
 import {environment} from "../../../environments/environment";
 import {StorageService} from "../../shared/services/storage";
@@ -118,6 +118,10 @@ export class LinksPage {
   statusFilter = signal<StatusFilter | 'all'>('active');
   statusSearch: string = '';
 
+  // Tri
+  sortColumn = signal<'item_id' | 'created_at' | 'expires_at' | 'used_at' | 'deleted_at'>('created_at');
+  sortDirection = signal<'asc' | 'desc'>('desc');
+
   // Signal pour forcer l'actualisation des liens filtrés
   private refreshTrigger = signal(0);
 
@@ -128,7 +132,7 @@ export class LinksPage {
   countExpired = computed(() => this.rows().filter(r => this.statusOf(r) === 'expired').length);
 
   constructor() {
-    addIcons({syncOutline, informationOutline, copyOutline, trashOutline, refreshOutline});
+    addIcons({syncOutline, informationOutline, copyOutline, trashOutline, refreshOutline, arrowUpOutline, arrowDownOutline});
   }
 
   async ionViewWillEnter() {
@@ -351,8 +355,10 @@ export class LinksPage {
 
     const q = this.statusSearch.toLowerCase();
     const f = this.statusFilter();
+    const sortCol = this.sortColumn();
+    const sortDir = this.sortDirection();
 
-    return this.rows().filter(r => {
+    const filtered = this.rows().filter(r => {
       // filtre statut
       const st = this.statusOf(r);
       if (f !== 'all' && st !== f) return false;
@@ -364,7 +370,40 @@ export class LinksPage {
       }
       return true;
     });
+
+    // Tri
+    return filtered.sort((a, b) => {
+      let aVal: any = a[sortCol];
+      let bVal: any = b[sortCol];
+
+      // Convertir les dates en timestamps pour comparaison
+      if (sortCol === 'created_at' || sortCol === 'expires_at' || sortCol === 'used_at' || sortCol === 'deleted_at') {
+        aVal = aVal ? new Date(aVal).getTime() : 0;
+        bVal = bVal ? new Date(bVal).getTime() : 0;
+      }
+
+      // Comparaison
+      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
   });
+
+  setSortColumn(column: 'item_id' | 'created_at' | 'expires_at' | 'used_at' | 'deleted_at') {
+    if (this.sortColumn() === column) {
+      // Inverser la direction si on clique sur la même colonne
+      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Nouvelle colonne, par défaut descendant
+      this.sortColumn.set(column);
+      this.sortDirection.set('desc');
+    }
+  }
+
+  getSortIcon(column: 'item_id' | 'created_at' | 'expires_at' | 'used_at' | 'deleted_at'): string {
+    if (this.sortColumn() !== column) return '';
+    return this.sortDirection() === 'asc' ? 'arrow-up-outline' : 'arrow-down-outline';
+  }
 
   askBeforeDelete(token: string) {
     this.alert.create({

@@ -45,3 +45,20 @@ ion-badge {
     transform: rotate(360deg);
   }
 }
+
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--ion-color-primary);
+  }
+}
