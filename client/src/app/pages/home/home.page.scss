@@ -147,6 +147,67 @@ ion-badge {
   opacity: 0.8;
 }
 
+/* Mobile Accordion Styles */
+.cmp-accordion {
+  display: none;
+
+  ion-accordion-group {
+    width: 100%;
+  }
+
+  .cmp-accordion-content {
+    padding: 1rem 0;
+  }
+
+  .cmp-comparison-row {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-around;
+  }
+
+  .cmp-plan {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+
+    .cmp-plan-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--ion-color-medium);
+    }
+  }
+
+  .cmp-flex-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  ion-badge {
+    font-weight: 600;
+  }
+}
+
+/* Responsive Display */
+@media (max-width: 767px) {
+  .cmp-grid {
+    display: none;
+  }
+
+  .cmp-accordion {
+    display: block;
+  }
+
+  .cmp-legend {
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+  }
+}
+
 #faq {
   ion-accordion-group {
     width: 100%;

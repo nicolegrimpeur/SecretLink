@@ -176,6 +176,7 @@
         <ion-col size="12" size-md="8" offset-md="2">
           <ion-card>
             <ion-card-content>
+              <!-- Desktop Grid Table -->
               <div class="cmp-grid" role="table" aria-label="Comparatif Anonyme versus Compte">
                 <!-- Header row -->
                 <div class="cmp-row cmp-head" role="row">
@@ -239,6 +240,109 @@
                     <ion-icon name="checkmark-circle-outline" class="v"></ion-icon>
                   </div>
                 </div>
+              </div>
+
+              <!-- Mobile Accordion -->
+              <div class="cmp-accordion">
+                <ion-accordion-group expand="inset" [multiple]="true" class="ion-no-margin">
+                  <!-- Longueur du secret -->
+                  <ion-accordion value="cmp1">
+                    <ion-item slot="header">
+                      <ion-label>Longueur du secret</ion-label>
+                    </ion-item>
+                    <div class="cmp-accordion-content" slot="content">
+                      <div class="cmp-comparison-row">
+                        <div class="cmp-plan">
+                          <div class="cmp-plan-title">Anonyme</div>
+                          <ion-badge color="medium">64 caractères</ion-badge>
+                        </div>
+                        <div class="cmp-plan">
+                          <div class="cmp-plan-title">Compte</div>
+                          <ion-badge color="primary">4096 caractères</ion-badge>
+                        </div>
+                      </div>
+                    </div>
+                  </ion-accordion>
+
+                  <!-- Durée de vie du lien -->
+                  <ion-accordion value="cmp2">
+                    <ion-item slot="header">
+                      <ion-label>Durée de vie du lien</ion-label>
+                    </ion-item>
+                    <div class="cmp-accordion-content" slot="content">
+                      <div class="cmp-comparison-row">
+                        <div class="cmp-plan">
+                          <div class="cmp-plan-title">Anonyme</div>
+                          <ion-badge color="medium">7 jours</ion-badge>
+                        </div>
+                        <div class="cmp-plan">
+                          <div class="cmp-plan-title">Compte</div>
+                          <ion-badge color="tertiary">Valeur personnalisée</ion-badge>
+                        </div>
+                      </div>
+                    </div>
+                  </ion-accordion>
+
+                  <!-- Chiffrement bout en bout -->
+                  <ion-accordion value="cmp3">
+                    <ion-item slot="header">
+                      <ion-label>Chiffrement bout en bout</ion-label>
+                    </ion-item>
+                    <div class="cmp-accordion-content" slot="content">
+                      <div class="cmp-comparison-row">
+                        <div class="cmp-plan">
+                          <div class="cmp-plan-title">Anonyme</div>
+                          <ion-icon name="close-circle-outline" class="x"></ion-icon>
+                        </div>
+                        <div class="cmp-plan">
+                          <div class="cmp-plan-title">Compte</div>
+                          <div class="cmp-flex-col">
+                            <ion-icon name="checkmark-circle-outline" class="v"></ion-icon>
+                            <span class="note">via passphrase</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </ion-accordion>
+
+                  <!-- Création de liens en bulk -->
+                  <ion-accordion value="cmp4">
+                    <ion-item slot="header">
+                      <ion-label>Création de liens en bulk</ion-label>
+                    </ion-item>
+                    <div class="cmp-accordion-content" slot="content">
+                      <div class="cmp-comparison-row">
+                        <div class="cmp-plan">
+                          <div class="cmp-plan-title">Anonyme</div>
+                          <ion-icon name="close-circle-outline" class="x"></ion-icon>
+                        </div>
+                        <div class="cmp-plan">
+                          <div class="cmp-plan-title">Compte</div>
+                          <ion-icon name="checkmark-circle-outline" class="v"></ion-icon>
+                        </div>
+                      </div>
+                    </div>
+                  </ion-accordion>
+
+                  <!-- Suivi du statut de vos liens -->
+                  <ion-accordion value="cmp5">
+                    <ion-item slot="header">
+                      <ion-label>Suivi du statut de vos liens</ion-label>
+                    </ion-item>
+                    <div class="cmp-accordion-content" slot="content">
+                      <div class="cmp-comparison-row">
+                        <div class="cmp-plan">
+                          <div class="cmp-plan-title">Anonyme</div>
+                          <ion-icon name="close-circle-outline" class="x"></ion-icon>
+                        </div>
+                        <div class="cmp-plan">
+                          <div class="cmp-plan-title">Compte</div>
+                          <ion-icon name="checkmark-circle-outline" class="v"></ion-icon>
+                        </div>
+                      </div>
+                    </div>
+                  </ion-accordion>
+                </ion-accordion-group>
               </div>
             </ion-card-content>
             <!-- Petite légende -->
