@@ -8,6 +8,60 @@
   <!-- === CREATE === -->
   @if (tab === 'create') {
     <ion-grid>
+      <!-- QUICK CREATION -->
+      <ion-row>
+        <ion-col size="12" size-md="10" offset-md="1" size-lg="6" offset-lg="3">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Créer rapidement</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <form (ngSubmit)="createQuick()">
+                <ion-item lines="none">
+                  <ion-textarea
+                    label="Secret :"
+                    [(ngModel)]="quickSecret"
+                    [ngModelOptions]="{standalone:true}"
+                    [autoGrow]="true"
+                    [required]="true"
+                    helperText="Le secret associé."
+                    [counter]="true"
+                    [maxlength]="4096"
+                  />
+                </ion-item>
+                <div class="ion-display-flex ion-justify-content-center">
+                  <ion-button type="submit" [disabled]="!quickSecret.trim() || loading">Créer</ion-button>
+                </div>
+              </form>
+
+              @if (lastQuickResults?.length) {
+                <ion-list>
+                  @for (r of lastQuickResults; track r.item_id) {
+                    <ion-item>
+                      <ion-label>
+                        <b>{{ r.item_id }}</b> - {{ statusHelp[r.status] }}
+
+                        @if (r.link_token) {
+                          <a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a>
+                        }
+
+                        @if (r.expires_at) {
+                          <div>Expire : {{ r.expires_at | date:'medium' }}</div>
+                        }
+                      </ion-label>
+                      @if (r.link_token) {
+                        <ion-button size="default" fill="clear" (click)="copy(linkUrl(r.link_token))">Copier</ion-button>
+                      }
+                    </ion-item>
+                  }
+                </ion-list>
+              }
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+      <!-- END QUICK CREATION -->
+
       <ion-row>
         <ion-col size="12" size-md="10" offset-md="1" size-lg="6" offset-lg="3">
           <ion-card>
@@ -71,7 +125,7 @@
                   @for (r of lastResults; track r.item_id) {
                     <ion-item>
                       <ion-label>
-                        <b>{{ r.item_id }}</b> — {{ statusHelp[r.status] }}
+                        <b>{{ r.item_id }}</b> - {{ statusHelp[r.status] }}
 
                         @if (r.link_token) {
                           <a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a>
@@ -110,7 +164,7 @@
                 <ion-card-title>Créer en bulk (coller CSV)</ion-card-title>
               </ion-card-header>
               <ion-card-content>
-                <ion-note>Colonnes supportées: <code>item_id,secret,ttl_days,passphrase</code> — entête optionnelle,
+                <ion-note>Colonnes supportées: <code>item_id,secret,ttl_days,passphrase</code> - entête optionnelle,
                   passphrase optionnel.
                 </ion-note>
                 <ion-textarea
@@ -131,7 +185,7 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                     @for (r of lastResults; track r.item_id) {
                       <ion-item>
                         <ion-label>
-                          <b>{{ r.item_id }}</b> — {{ statusHelp[r.status] }}
+                          <b>{{ r.item_id }}</b> - {{ statusHelp[r.status] }}
                           @if (r.link_token) {
                             <div><a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a></div>
                           }
@@ -288,15 +342,15 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                     </ion-col>
 
                     <ion-col size="2" class="ion-hide-md-down grid-col ion-text-center">
-                      {{ row.expires_at ? (row.expires_at | date:'short') : '—' }}
+                      {{ row.expires_at ? (row.expires_at | date:'short') : '-' }}
                     </ion-col>
 
                     <ion-col size="2" class="ion-hide-md-down grid-col ion-text-center">
-                      {{ row.used_at ? (row.used_at | date:'short') : '—' }}
+                      {{ row.used_at ? (row.used_at | date:'short') : '-' }}
                     </ion-col>
 
                     <ion-col size="2" class="ion-hide-md-down grid-col ion-text-center">
-                      {{ row.deleted_at ? (row.deleted_at | date:'short') : '—' }}
+                      {{ row.deleted_at ? (row.deleted_at | date:'short') : '-' }}
                     </ion-col>
 
                     <!-- Actions -->

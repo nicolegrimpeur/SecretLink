@@ -7,6 +7,7 @@ import { getLogger } from '../../shared/logger.js';
 const logger = getLogger('LinkService');
 
 interface CreateLinkResult {
+  item_id: string;
   status: 'created' | 'invalid_item_id' | 'duplicate_item_id';
   link_token: string | null;
   link_url: string | null;
@@ -21,6 +22,7 @@ export class LinkService {
   async createLink(secret: string): Promise<CreateLinkResult> {
     if (!secret) {
       return {
+        item_id: '',
         status: 'invalid_item_id',
         link_token: null,
         link_url: null,
@@ -67,6 +69,7 @@ export class LinkService {
       );
 
       return {
+        item_id: itemId,
         status: 'created' as const,
         link_token: linkToken,
         link_url: `${config.BASE_URL}/links/${encodeURIComponent(linkToken)}/redeem`,
@@ -112,6 +115,7 @@ export class LinkService {
           ttlDays > 365
         ) {
           results.push({
+            item_id: itemId,
             status: 'invalid_item_id',
             link_token: null,
             link_url: null,
@@ -131,6 +135,7 @@ export class LinkService {
             new Date(existingLink.expires_at) > now)
         ) {
           results.push({
+            item_id: itemId,
             status: 'duplicate_item_id',
             link_token: null,
             link_url: null,
@@ -147,6 +152,7 @@ export class LinkService {
           await linkStore.insertItem(cx, uid, itemId);
         } catch (err) {
           results.push({
+            item_id: itemId,
             status: 'duplicate_item_id',
             link_token: null,
             link_url: null,
@@ -179,6 +185,7 @@ export class LinkService {
         await linkStore.insertAudit(cx, uid, itemId, linkId, 'LINK_CREATED');
 
         results.push({
+          item_id: itemId,
           status: 'created',
           link_token: linkToken,
           link_url: `${config.BASE_URL}/links/${encodeURIComponent(linkToken)}/redeem`,

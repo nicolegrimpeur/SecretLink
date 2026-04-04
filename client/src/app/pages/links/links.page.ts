@@ -96,6 +96,10 @@ export class LinksPage {
 
   lastResults: LinkCreateResult[] | null = null;
 
+  // quick
+  quickSecret = '';
+  lastQuickResults: LinkCreateResult[] | null = null;
+
   // bulk
   showBulk: boolean = false;
   csvText = '';
@@ -134,8 +138,53 @@ export class LinksPage {
     this.reload().then();
   }
 
+  private generateTimestampId(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}-${minutes}-${seconds}`;
+  }
+
+  async createQuick() {
+    const secret = this.quickSecret.trim();
+    if (!secret) return;
+
+    this.lastResults = null;
+    this.loading = true;
+    try {
+      const {secret: encryptedSecret} = await this.crypto.encryptIfPassphrase(secret, '');
+      const item_id = this.generateTimestampId();
+
+      const payload: LinkCreateItem[] = [{
+        item_id,
+        secret: encryptedSecret,
+        ttl_days: 7,
+      }];
+
+      this.lastQuickResults = await this.api.createBulk(payload);
+      console.log('Quick create results:', this.lastQuickResults);
+      if (this.lastQuickResults?.length) {
+        this.quickSecret = '';
+        await this.reload();
+      }
+    } catch (e: any) {
+      const errorCode = e?.error?.error?.code || 'SERVER_ERROR';
+      const helpEntry = this.errorCreationHelpText.find(entry => entry.code === errorCode);
+      const helpMessage = helpEntry ? helpEntry.text : 'Création échouée.';
+      this.toast.toastMsg(helpMessage, 3000).then();
+    } finally {
+      this.loading = false;
+    }
+  }
+
   async createSingle() {
     if (this.form.invalid) return;
+
+    this.lastQuickResults = null;
     this.loading = true;
     try {
       const {secret, passphraseHash} = await this.crypto.encryptIfPassphrase(
@@ -185,6 +234,8 @@ export class LinksPage {
       this.toast.toastMsg('CSV vide ou invalide').then();
       return;
     }
+
+    this.lastQuickResults = null;
     this.loading = true;
     try {
       this.lastResults = await this.api.createBulk(items, {
