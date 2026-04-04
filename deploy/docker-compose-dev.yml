@@ -1,0 +1,64 @@
+services:
+  db:
+    image: mysql:lts
+    container_name: secretlink-db
+    environment:
+      MYSQL_DATABASE: secretLink
+      MYSQL_RANDOM_ROOT_PASSWORD: "true"
+      MYSQL_USER: ${MYSQL_USER:-link}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  server:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    container_name: secretlink-server
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      BASE_URL: ${BASE_URL:-http://localhost:3000}
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER:-link}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
+      MYSQL_DB: secretLink
+      MASTER_KEY_V1: ${MASTER_KEY_V1}
+      KEY_VERSION: ${KEY_VERSION:-1}
+      SESSION_SECRET: ${SESSION_SECRET}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      MAINTENANCE_MODE: ${MAINTENANCE_MODE:-0}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../server/.env:/app/.env:ro
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ../client
+      dockerfile: Dockerfile
+    container_name: secretlink-client
+    depends_on:
+      - server
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+volumes:
+  db_data:
+    external: true
+    name: secretlink-db-data
