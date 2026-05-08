@@ -1,0 +1,91 @@
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.setup-container,
+.recovery-container {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.intro-text {
+  font-size: 0.9rem;
+  color: var(--ion-color-medium);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.qr-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+
+  canvas {
+    border-radius: 8px;
+    border: 1px solid var(--ion-color-light-shade);
+  }
+}
+
+.secret-label {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+  margin: 8px 0 2px;
+  text-align: center;
+}
+
+.secret-text {
+  font-family: monospace;
+  font-size: 0.85rem;
+  text-align: center;
+  word-break: break-all;
+  background: var(--ion-color-light);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 0 0 12px;
+}
+
+.otp-item {
+  --border-radius: 8px;
+  --background: var(--ion-color-light);
+  margin-top: 8px;
+}
+
+// ─── Recovery codes ────────────────────────────────────
+.recovery-header {
+  text-align: center;
+  margin-bottom: 16px;
+
+  .shield-icon {
+    font-size: 48px;
+  }
+
+  h2 {
+    margin: 8px 0 4px;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: var(--ion-color-medium);
+    line-height: 1.5;
+  }
+}
+
+.recovery-list {
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  margin-bottom: 12px;
+
+  ion-item {
+    --background: transparent;
+  }
+}
+
+.recovery-code {
+  font-family: monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}

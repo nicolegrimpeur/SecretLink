@@ -8,6 +8,9 @@ import {
   changePassword,
   purgeMe,
   deleteMe,
+  generateMfa,
+  verifyMfa,
+  regenerateRecoveryCodes,
 } from './user.controller.js';
 import * as tokenController from '../tokens/token.controller.js';
 
@@ -16,6 +19,10 @@ export const userRouter = Router();
 userRouter.post('/signup', signup);
 userRouter.post('/login', login);
 userRouter.post('/logout', sessionAuth, logout);
+
+userRouter.post('/mfa/generate', generateMfa);
+userRouter.post('/mfa/verify', verifyMfa);
+userRouter.post('/mfa/recovery-codes', sessionAuth, regenerateRecoveryCodes);
 
 userRouter.get('/me', sessionAuth, me);
 userRouter.post('/password', sessionAuth, changePassword);

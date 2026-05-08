@@ -38,6 +38,10 @@ const envSchema = z.object({
     .enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal'])
     .default('info'),
 
+  // MFA / Trusted devices
+  TRUSTED_DEVICE_COOKIE_NAME: z.string().default('tdc'),
+  TRUSTED_DEVICE_TTL_DAYS: z.coerce.number().int().positive().default(30),
+
   // Features
   MAINTENANCE_MODE: z.coerce.number().default(0),
   RATE_LIMIT_ENABLED: z.coerce.number().default(0),

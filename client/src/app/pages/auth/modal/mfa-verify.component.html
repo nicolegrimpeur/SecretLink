@@ -1,0 +1,73 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Vérification MFA</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()" fill="clear">Annuler</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="verify-container">
+
+    @if (!useRecovery()) {
+      <!-- ─── TOTP code input ─── -->
+      <p class="intro-text">Entrez le code à 6 chiffres affiché dans votre application authenticator.</p>
+
+      <ion-item lines="none" class="otp-item">
+        <ion-input
+          label="Code OTP (6 chiffres)"
+          type="tel"
+          inputmode="numeric"
+          maxlength="6"
+          [(ngModel)]="otpCode"
+          placeholder="000000"
+          autocomplete="one-time-code">
+        </ion-input>
+      </ion-item>
+    } @else {
+      <!-- ─── Recovery code input ─── -->
+      <p class="intro-text">Entrez l'un de vos codes de récupération (format <code>XXXXX-XXXXX</code>).</p>
+
+      <ion-item lines="none" class="otp-item">
+        <ion-input
+          label="Code de récupération"
+          type="text"
+          [(ngModel)]="recoveryCode"
+          placeholder="ABCDE-FGHIJ"
+          autocomplete="off">
+        </ion-input>
+      </ion-item>
+    }
+
+    @if (error()) {
+      <ion-text color="danger">
+        <p>{{ error() }}</p>
+      </ion-text>
+    }
+
+    <ion-item lines="none" class="ion-margin-top remember-item">
+      <ion-checkbox [(ngModel)]="rememberDevice" justify="start">
+        <ion-label class="ion-text-wrap">Ne plus me demander sur cet appareil (30 jours)</ion-label>
+      </ion-checkbox>
+    </ion-item>
+
+    <ion-button
+      expand="block"
+      class="ion-margin-top"
+      [disabled]="isConfirmDisabled"
+      (click)="confirm()">
+      @if (submitting()) {
+        <ion-spinner name="crescent" slot="start"></ion-spinner>
+      }
+      Vérifier
+    </ion-button>
+
+    <div class="toggle-mode">
+      <ion-button fill="clear" size="small" (click)="toggleMode()">
+        {{ useRecovery() ? 'Utiliser mon code OTP' : 'Utiliser un code de récupération' }}
+      </ion-button>
+    </div>
+
+  </div>
+</ion-content>

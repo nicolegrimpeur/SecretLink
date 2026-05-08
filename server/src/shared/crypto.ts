@@ -95,6 +95,47 @@ export function decrypt(
 }
 
 /**
+ * Encrypt a TOTP secret (base32 string) for storage in the DB.
+ * AAD includes the user ID to bind the ciphertext to a specific user.
+ */
+export function encryptTotpSecret(secret: string, userId: number): { cipher: Buffer; nonce: Buffer } {
+  const nonce = crypto.randomBytes(12);
+  const aad = `totp:user_id:${userId}`;
+
+  const cipherInst = crypto.createCipheriv('aes-256-gcm', KEY_V1, nonce);
+  cipherInst.setAAD(Buffer.from(aad, 'utf-8'));
+
+  const encrypted = Buffer.concat([cipherInst.update(secret, 'utf-8'), cipherInst.final()]);
+  const authTag = cipherInst.getAuthTag();
+
+  return {
+    cipher: Buffer.concat([encrypted, authTag]),
+    nonce,
+  };
+}
+
+/**
+ * Decrypt a TOTP secret stored in the DB.
+ */
+export function decryptTotpSecret(cipher: Buffer, nonce: Buffer, userId: number): string {
+  const aad = `totp:user_id:${userId}`;
+  const authTagLength = 16;
+  const encrypted = cipher.subarray(0, cipher.length - authTagLength);
+  const authTag = cipher.subarray(cipher.length - authTagLength);
+
+  const decipherInst = crypto.createDecipheriv('aes-256-gcm', KEY_V1, nonce);
+  decipherInst.setAAD(Buffer.from(aad, 'utf-8'));
+  decipherInst.setAuthTag(authTag);
+
+  try {
+    const decrypted = Buffer.concat([decipherInst.update(encrypted), decipherInst.final()]);
+    return decrypted.toString('utf-8');
+  } catch {
+    throw new Error('TOTP secret decryption failed');
+  }
+}
+
+/**
  * Generate a random link token
  */
 export function generateLinkToken(): string {
