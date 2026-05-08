@@ -29,7 +29,7 @@ export const signup = asyncHandler(async (req: Request, res: Response): Promise<
   const { email, password, totp_secret, totp_code } = parsed.data;
   const result = await userService.signup(email, password, totp_secret, totp_code);
 
-  // Session is not issued here — the client navigates to login after signup
+  // Session is not issued here - the client navigates to login after signup
   res.status(201).json(result);
 });
 
