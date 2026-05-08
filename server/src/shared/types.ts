@@ -8,6 +8,13 @@ export interface SessionPayload {
   exp?: number;
 }
 
+export interface PreAuthPayload {
+  userId: number;
+  mfaPending: true;
+  iat?: number;
+  exp?: number;
+}
+
 export interface AuthRequest {
   method: 'session' | 'pat' | null;
   userId?: number;
@@ -21,6 +28,8 @@ export interface User {
   created_at: Date;
   email_verified_at: Date | null;
   password_changed_at: Date | null;
+  totp_secret_cipher: Buffer | null;
+  totp_secret_nonce: Buffer | null;
 }
 
 export interface Link {
@@ -53,6 +62,22 @@ export interface ApiToken {
   scopes: string;
   created_at: Date;
   revoked_at: Date | null;
+}
+
+export interface TrustedDevice {
+  id: number;
+  user_id: number;
+  device_token_hash: string;
+  created_at: Date;
+  expires_at: Date;
+}
+
+export interface RecoveryCode {
+  id: number;
+  user_id: number;
+  code_hash: string;
+  used_at: Date | null;
+  created_at: Date;
 }
 
 export interface AuditLog {
@@ -102,6 +127,13 @@ export class UnauthorizedError extends AppError {
   constructor(message: string = 'Unauthorized') {
     super(401, 'UNAUTHORIZED', message);
     this.name = 'UnauthorizedError';
+  }
+}
+
+export class PreAuthExpiredError extends AppError {
+  constructor() {
+    super(401, 'PRE_AUTH_EXPIRED', 'Pre-auth token expired, please log in again');
+    this.name = 'PreAuthExpiredError';
   }
 }
 

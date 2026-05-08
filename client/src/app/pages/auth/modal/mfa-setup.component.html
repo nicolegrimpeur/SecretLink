@@ -1,0 +1,104 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Configuration MFA</ion-title>
+    <ion-buttons slot="end">
+      @if (!showRecoveryCodes()) {
+        <ion-button (click)="cancel()" fill="clear">Annuler</ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  @if (loading()) {
+    <div class="center">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  } @else if (!showRecoveryCodes()) {
+
+    <!-- ─── Step 1: QR code + OTP input ─── -->
+    <div class="setup-container">
+      <p class="intro-text">
+        Scannez ce QR code avec <strong>Google Authenticator</strong> (ou toute application TOTP compatible), puis entrez le code généré pour confirmer.
+      </p>
+
+      <div class="qr-wrapper" (click)="onQrContainerVisible()">
+        <canvas #qrCanvas></canvas>
+      </div>
+
+      <p class="secret-label">Clé manuelle :</p>
+      <p class="secret-text">{{ secret() }}</p>
+
+      <ion-item lines="none" class="otp-item">
+        <ion-input
+          label="Code OTP (6 chiffres)"
+          type="tel"
+          inputmode="numeric"
+          maxlength="6"
+          [(ngModel)]="otpCode"
+          placeholder="000000"
+          autocomplete="one-time-code">
+        </ion-input>
+      </ion-item>
+
+      @if (error()) {
+        <ion-text color="danger">
+          <p>{{ error() }}</p>
+        </ion-text>
+      }
+
+      <ion-button
+        expand="block"
+        class="ion-margin-top"
+        [disabled]="submitting() || otpCode.length !== 6"
+        (click)="confirm()">
+        @if (submitting()) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+        }
+        Confirmer et créer le compte
+      </ion-button>
+    </div>
+
+  } @else {
+
+    <!-- ─── Step 2: Recovery codes ─── -->
+    <div class="recovery-container">
+      <div class="recovery-header">
+        <ion-icon name="shield-checkmark-outline" color="success" class="shield-icon"></ion-icon>
+        <h2>Compte créé !</h2>
+        <p>Sauvegardez vos <strong>codes de récupération</strong>. Ils vous permettront d'accéder à votre compte si vous perdez accès à votre application authenticator. <strong>Chaque code ne peut être utilisé qu'une seule fois.</strong></p>
+      </div>
+
+      <ion-list class="recovery-list">
+        @for (code of recoveryCodes(); track code) {
+          <ion-item lines="none" style="--background: transparent">
+            <ion-label class="recovery-code">{{ code }}</ion-label>
+          </ion-item>
+        }
+      </ion-list>
+
+      <ion-button expand="block" fill="outline" (click)="copyRecoveryCodes()">
+        <ion-icon slot="start" name="clipboard-outline"></ion-icon>
+        Copier tous les codes
+      </ion-button>
+
+      <ion-item lines="none" class="ion-margin-top">
+        <ion-checkbox [(ngModel)]="savedConfirmed" justify="start">
+          <ion-label class="ion-text-wrap">
+            J'ai sauvegardé mes codes de récupération en lieu sûr.
+          </ion-label>
+        </ion-checkbox>
+      </ion-item>
+
+      <ion-button
+        expand="block"
+        class="ion-margin-top"
+        [disabled]="!savedConfirmed"
+        (click)="finish()">
+        Terminer l'inscription
+      </ion-button>
+    </div>
+
+  }
+</ion-content>

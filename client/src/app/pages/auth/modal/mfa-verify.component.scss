@@ -1,0 +1,26 @@
+.verify-container {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.intro-text {
+  font-size: 0.9rem;
+  color: var(--ion-color-medium);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.otp-item {
+  --border-radius: 8px;
+  --background: var(--ion-color-light);
+}
+
+.remember-item {
+  --background: transparent;
+}
+
+.toggle-mode {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}

@@ -10,6 +10,7 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
+  IonCardSubtitle,
   IonCol,
   IonContent,
   IonGrid,
@@ -22,7 +23,7 @@ import {
   IonRow,
   IonText,
   IonToggle,
-  ModalController
+  ModalController,
 } from '@ionic/angular/standalone';
 import {PAT} from "../../shared/models/pat";
 import {PatService} from "../../core/pat";
@@ -31,7 +32,7 @@ import {AuthService} from "../../core/auth";
 import {StorageService} from "../../shared/services/storage";
 import {ToastService} from "../../shared/services/toast";
 import {addIcons} from "ionicons";
-import {trashBinOutline, trashOutline} from "ionicons/icons";
+import {clipboardOutline, trashBinOutline, trashOutline} from "ionicons/icons";
 import {Router} from "@angular/router";
 
 @Component({
@@ -39,7 +40,7 @@ import {Router} from "@angular/router";
   templateUrl: './account.page.html',
   styleUrls: ['./account.page.scss'],
   standalone: true,
-  imports: [IonContent, FormsModule, IonButton, IonList, IonLabel, IonItem, IonInput, IonBadge, IonButtons, IonText, ReactiveFormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonInputPasswordToggle, IonToggle, IonIcon, IonGrid, IonRow, IonCol]
+  imports: [IonContent, FormsModule, IonButton, IonList, IonLabel, IonItem, IonInput, IonBadge, IonButtons, IonText, ReactiveFormsModule, IonCard, IonCardTitle, IonCardSubtitle, IonCardHeader, IonCardContent, IonInputPasswordToggle, IonToggle, IonIcon, IonGrid, IonRow, IonCol]
 })
 export class AccountPage {
   private api = inject(PatService);
@@ -63,7 +64,7 @@ export class AccountPage {
   });
 
   constructor() {
-    addIcons({trashOutline, trashBinOutline});
+    addIcons({trashOutline, trashBinOutline, clipboardOutline});
   }
 
   async submit() {
@@ -143,6 +144,44 @@ export class AccountPage {
       await this.reload();
       this.toast.toastMsg('Token révoqué').then();
     }
+  }
+
+  ///// Codes de récupération MFA /////
+  newRecoveryCodes = signal<string[] | null>(null);
+
+  async regenerateCodes() {
+    const a = await this.alert.create({
+      header: 'Régénérer les codes de récupération ?',
+      message: 'Vos anciens codes seront invalidés immédiatement. Pensez à sauvegarder les nouveaux.',
+      buttons: [
+        { text: 'Annuler', role: 'cancel' },
+        {
+          text: 'Régénérer', role: 'destructive', handler: async () => {
+            try {
+              const codes = await this.auth.regenerateRecoveryCodes();
+              this.newRecoveryCodes.set(codes);
+            } catch {
+              this.toast.toastMsg('Échec de la régénération des codes').then();
+            }
+          },
+        },
+      ],
+    });
+    await a.present();
+  }
+
+  async copyNewCodes() {
+    const codes = this.newRecoveryCodes();
+    if (codes) {
+      try {
+        await navigator.clipboard.writeText(codes.join('\n'));
+        this.toast.toastMsg('Codes copiés').then();
+      } catch { /* silent */ }
+    }
+  }
+
+  dismissNewCodes() {
+    this.newRecoveryCodes.set(null);
   }
 
   ///// purge du compte, donc supprimer les liens inactifs et les api keys révoqués /////

@@ -16,13 +16,16 @@ import {
   IonLabel,
   IonSegment,
   IonSegmentButton,
-  IonText
+  IonText,
+  ModalController,
 } from '@ionic/angular/standalone';
 import {AuthService} from "../../core/auth";
 import {Router, RouterLink} from '@angular/router';
 import {addIcons} from 'ionicons';
 import {lockClosedOutline, personAddOutline} from 'ionicons/icons';
 import {SegmentValue} from "@ionic/angular";
+import {MfaSetupComponent} from './modal/mfa-setup.component';
+import {MfaVerifyComponent} from './modal/mfa-verify.component';
 
 type Mode = 'login' | 'signup';
 
@@ -49,13 +52,14 @@ type Mode = 'login' | 'signup';
     IonSegment,
     IonSegmentButton,
     IonCheckbox,
-    RouterLink
+    RouterLink,
 ]
 })
 export class AuthPage {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private modalController = inject(ModalController);
 
   mode = signal<Mode>('login');
   loading = signal(false);
@@ -73,6 +77,7 @@ export class AuthPage {
     { code: 'UNAUTHORIZED', message: "Mot de passe incorrect." },
     { code: 'VALIDATION_ERROR', message: "Une erreur a eu lieu, vérifiez le format du mail." },
     { code: 'CONFLICT', message: "Un compte avec cet email existe déjà." },
+    { code: 'PRE_AUTH_EXPIRED', message: "Session expirée. Veuillez vous reconnecter." },
   ];
 
   form = this.fb.group({
@@ -182,13 +187,46 @@ export class AuthPage {
     const { email, password } = this.form.value as any;
 
     try {
-      if (this.mode() === 'login') {
-        await this.auth.login(email, password);
+      if (this.mode() === 'signup') {
+        // Open MFA setup modal — signup happens inside the modal
+        const modal = await this.modalController.create({
+          component: MfaSetupComponent,
+          componentProps: { email, password },
+          backdropDismiss: false,
+        });
+        await modal.present();
+        const { data } = await modal.onWillDismiss();
+        if (data?.success) {
+          // Account created, redirect to login
+          this.form.reset();
+          this.error.set(null);
+          this.switchMode('login');
+        }
       } else {
-        await this.auth.signup(email, password);
+        // Login step 1: email + password
+        const result = await this.auth.login(email, password);
+
+        if (!result.mfa_required) {
+          // Trusted device — session already issued by service
+          await this.router.navigateByUrl('/dashboard');
+          this.form.reset();
+        } else {
+          // Open MFA verify modal
+          const modal = await this.modalController.create({
+            component: MfaVerifyComponent,
+            componentProps: { preAuthToken: result.pre_auth_token },
+            backdropDismiss: false,
+          });
+          await modal.present();
+          const { data } = await modal.onWillDismiss();
+          if (data?.success) {
+            await this.router.navigateByUrl('/dashboard');
+            this.form.reset();
+          } else if (data?.expired) {
+            this.error.set('Session expirée. Veuillez vous reconnecter.');
+          }
+        }
       }
-      await this.router.navigateByUrl('/dashboard');
-      this.form.reset();
     } catch (e: any) {
       const code = e?.error?.error?.code || e?.code || e?.message;
       const known = this.backendError.find(x => x.code === code);

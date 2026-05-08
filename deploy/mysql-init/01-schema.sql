@@ -9,10 +9,46 @@ CREATE TABLE `users` (
   `password_hash` varbinary(255) DEFAULT NULL,
   `password_changed_at` datetime DEFAULT NULL,
   `email_verified_at` datetime DEFAULT NULL,
+  `totp_secret_cipher` varbinary(64) DEFAULT NULL,
+  `totp_secret_nonce` varbinary(12) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Table structure for table `trusted_devices`
+--
+
+DROP TABLE IF EXISTS `trusted_devices`;
+CREATE TABLE `trusted_devices` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL,
+  `device_token_hash` char(64) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_device_token` (`device_token_hash`),
+  KEY `ix_td_user` (`user_id`),
+  KEY `ix_td_expires` (`expires_at`),
+  CONSTRAINT `fk_td_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Table structure for table `recovery_codes`
+--
+
+DROP TABLE IF EXISTS `recovery_codes`;
+CREATE TABLE `recovery_codes` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL,
+  `code_hash` char(64) NOT NULL,
+  `used_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `ix_rc_user` (`user_id`),
+  CONSTRAINT `fk_rc_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --

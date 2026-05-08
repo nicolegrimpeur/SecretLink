@@ -4,9 +4,11 @@ import { userService } from './user.service.js';
 import {
   SignupReqSchema,
   LoginReqSchema,
+  MfaGenerateReqSchema,
+  MfaVerifyReqSchema,
   ChangePasswordReqSchema,
 } from './user.schema.js';
-import { issueSession, clearSession } from '../../middleware/session.js';
+import { clearSession } from '../../middleware/session.js';
 import { ValidationError } from '../../shared/types.js';
 
 function formatZodErrors(error: any): string {
@@ -24,11 +26,11 @@ export const signup = asyncHandler(async (req: Request, res: Response): Promise<
     throw new ValidationError(formatZodErrors(parsed.error));
   }
 
-  const { email, password } = parsed.data;
-  const user = await userService.signup(email, password);
+  const { email, password, totp_secret, totp_code } = parsed.data;
+  const result = await userService.signup(email, password, totp_secret, totp_code);
 
-  issueSession(res, { userId: user.id });
-  res.status(201).json(user);
+  // Session is not issued here - the client navigates to login after signup
+  res.status(201).json(result);
 });
 
 export const login = asyncHandler(async (req: Request, res: Response): Promise<void> => {
@@ -38,10 +40,43 @@ export const login = asyncHandler(async (req: Request, res: Response): Promise<v
   }
 
   const { email, password } = parsed.data;
-  const user = await userService.login(email, password);
+  const result = await userService.login(email, password, req, res);
 
-  issueSession(res, { userId: user.id });
+  res.status(200).json(result);
+});
+
+export const generateMfa = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const parsed = MfaGenerateReqSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new ValidationError(formatZodErrors(parsed.error));
+  }
+
+  const { email } = parsed.data;
+  const setup = userService.generateMfaSetup(email);
+  res.status(200).json(setup);
+});
+
+export const verifyMfa = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const parsed = MfaVerifyReqSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new ValidationError(formatZodErrors(parsed.error));
+  }
+
+  const { pre_auth_token, totp_code, recovery_code, remember_device } = parsed.data;
+  const user = await userService.verifyMfa(
+    pre_auth_token,
+    totp_code,
+    recovery_code,
+    remember_device ?? false,
+    res,
+  );
   res.status(200).json(user);
+});
+
+export const regenerateRecoveryCodes = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const userId = (req as any).session?.userId;
+  const codes = await userService.regenerateRecoveryCodes(userId);
+  res.status(200).json({ recovery_codes: codes });
 });
 
 export const logout = asyncHandler(async (req: Request, res: Response): Promise<void> => {
