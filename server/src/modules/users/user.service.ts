@@ -4,7 +4,7 @@ import { generateSecret, generateURI, verify as totpVerify } from 'otplib';
 import { Request, Response } from 'express';
 import { userStore } from './user.store.js';
 import { withTx } from '../../config/database.js';
-import { ValidationError, UnauthorizedError, NotFoundError } from '../../shared/types.js';
+import { ValidationError, UnauthorizedError, NotFoundError, ConflictError } from '../../shared/types.js';
 import { encryptTotpSecret, decryptTotpSecret } from '../../shared/crypto.js';
 import { issueSession, issuePreAuthToken, verifyPreAuthToken } from '../../middleware/session.js';
 import config from '../../config/env.js';
@@ -43,9 +43,14 @@ function publicUser(row: any): PublicUser {
 export class UserService {
   // ─── MFA setup (stateless — no DB write, just generates secret + URI) ────────
 
-  generateMfaSetup(email: string): { provisioning_uri: string; secret: string } {
+  async generateMfaSetup(email: string): Promise<{ provisioning_uri: string; secret: string }> {
+    const existing = await userStore.findByEmail(email);
+    if (existing) {
+      throw new ConflictError('Email already in use');
+    }
     const secret = generateSecret();
-    const provisioning_uri = generateURI({ issuer: 'SecretLink', label: email, secret });
+    const issuer = config.NODE_ENV === 'production' ? 'SecretLink' : 'SecretLink Dev';
+    const provisioning_uri = generateURI({ issuer, label: email, secret });
     return { provisioning_uri, secret };
   }
 
@@ -63,7 +68,7 @@ export class UserService {
 
     const existing = await userStore.findByEmail(email);
     if (existing) {
-      throw new ValidationError('Email already in use');
+      throw new ConflictError('Email already in use');
     }
 
     // Verify the TOTP code before creating anything

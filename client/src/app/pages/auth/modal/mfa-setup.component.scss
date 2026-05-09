@@ -36,28 +36,16 @@
   text-align: center;
 }
 
-.secret-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.secret-text {
+  font-family: monospace;
+  font-size: 0.85rem;
+  text-align: center;
+  word-break: break-all;
   background: var(--ion-color-light);
+  padding: 8px 12px;
   border-radius: 6px;
   margin: 0 0 12px;
-  padding-right: 4px;
-
-  .secret-text {
-    flex: 1;
-    font-family: monospace;
-    font-size: 0.85rem;
-    word-break: break-all;
-    padding: 8px 4px 8px 12px;
-    margin: 0;
-    user-select: all;
-  }
-
-  .copy-secret-btn {
-    flex-shrink: 0;
-  }
+  user-select: all;
 }
 
 .otp-item {

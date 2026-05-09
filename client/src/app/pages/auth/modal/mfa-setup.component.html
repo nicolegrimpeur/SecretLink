@@ -28,12 +28,7 @@
       </div>
 
       <p class="secret-label">Clé manuelle :</p>
-      <div class="secret-row">
-        <p class="secret-text">{{ secret() }}</p>
-        <ion-button fill="clear" size="small" class="copy-secret-btn" (click)="copySecret()">
-          <ion-icon slot="icon-only" name="clipboard-outline"></ion-icon>
-        </ion-button>
-      </div>
+      <p class="secret-text">{{ secret() }}</p>
 
       <ion-item lines="none" class="otp-item">
         <ion-input

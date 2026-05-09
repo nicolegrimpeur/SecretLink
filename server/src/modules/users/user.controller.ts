@@ -52,7 +52,7 @@ export const generateMfa = asyncHandler(async (req: Request, res: Response): Pro
   }
 
   const { email } = parsed.data;
-  const setup = userService.generateMfaSetup(email);
+  const setup = await userService.generateMfaSetup(email);
   res.status(200).json(setup);
 });
 

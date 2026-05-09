@@ -188,10 +188,21 @@ export class AuthPage {
 
     try {
       if (this.mode() === 'signup') {
+        // Check email availability and generate MFA setup before opening modal
+        let mfaSetup: { provisioning_uri: string; secret: string };
+        try {
+          mfaSetup = await this.auth.generateMfaSetup(email);
+        } catch (e: any) {
+          const code = e?.error?.error?.code || '';
+          const known = this.backendError.find(x => x.code === code);
+          this.error.set(known?.message ?? 'Une erreur est survenue.');
+          return;
+        }
+
         // Open MFA setup modal — signup happens inside the modal
         const modal = await this.modalController.create({
           component: MfaSetupComponent,
-          componentProps: { email, password },
+          componentProps: { email, password, provisioningUriInput: mfaSetup.provisioning_uri, secretInput: mfaSetup.secret },
           backdropDismiss: false,
         });
         await modal.present();

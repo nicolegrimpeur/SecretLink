@@ -50,13 +50,15 @@ import {clipboardOutline, shieldCheckmarkOutline} from 'ionicons/icons';
 export class MfaSetupComponent implements OnInit {
   @Input() email!: string;
   @Input() password!: string;
+  @Input() provisioningUriInput!: string;
+  @Input() secretInput!: string;
 
   @ViewChild('qrCanvas', { static: false }) qrCanvasRef!: ElementRef<HTMLCanvasElement>;
 
   private auth = inject(AuthService);
   private modalController = inject(ModalController);
 
-  loading = signal(true);
+  loading = signal(false);
   submitting = signal(false);
   error = signal<string | null>(null);
 
@@ -74,15 +76,8 @@ export class MfaSetupComponent implements OnInit {
   }
 
   async ngOnInit() {
-    try {
-      const setup = await this.auth.generateMfaSetup(this.email);
-      this.secret.set(setup.secret);
-      this.provisioningUri.set(setup.provisioning_uri);
-    } catch {
-      this.error.set('Impossible de générer la configuration MFA.');
-    } finally {
-      this.loading.set(false);
-    }
+    this.secret.set(this.secretInput);
+    this.provisioningUri.set(this.provisioningUriInput);
   }
 
   async ionViewDidEnter() {
@@ -137,12 +132,6 @@ export class MfaSetupComponent implements OnInit {
   async copyRecoveryCodes() {
     try {
       await navigator.clipboard.writeText(this.recoveryCodes().join('\n'));
-    } catch { /* silent */ }
-  }
-
-  async copySecret() {
-    try {
-      await navigator.clipboard.writeText(this.secret());
     } catch { /* silent */ }
   }
 

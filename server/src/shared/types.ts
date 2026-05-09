@@ -144,6 +144,13 @@ export class ForbiddenError extends AppError {
   }
 }
 
+export class ConflictError extends AppError {
+  constructor(message: string) {
+    super(409, 'CONFLICT', message);
+    this.name = 'ConflictError';
+  }
+}
+
 export class NotFoundError extends AppError {
   constructor(message: string = 'Not found') {
     super(404, 'NOT_FOUND', message);
