@@ -140,6 +140,12 @@ export class MfaSetupComponent implements OnInit {
     } catch { /* silent */ }
   }
 
+  async copySecret() {
+    try {
+      await navigator.clipboard.writeText(this.secret());
+    } catch { /* silent */ }
+  }
+
   finish() {
     this.modalController.dismiss({ success: true });
   }
