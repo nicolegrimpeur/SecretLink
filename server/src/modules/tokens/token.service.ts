@@ -21,8 +21,8 @@ export class TokenService {
     const token = generateLinkToken();
     const tokenHash = hashToken(token);
 
-    // Scopes should be a comma-separated string in the DB
-    const scopesStr = scopes.join(',');
+    // Scopes are stored as a JSON array in the DB
+    const scopesStr = JSON.stringify(scopes);
 
     // Insert into database
     const result = await tokenStore.createToken(userId, tokenHash, label, scopesStr);
@@ -45,7 +45,7 @@ export class TokenService {
     return tokens.map((t) => ({
       id: t.id,
       label: t.label,
-      scopes: t.scopes.split(',').filter(Boolean),
+      scopes: Array.isArray(t.scopes) ? t.scopes : JSON.parse(t.scopes),
       created_at: t.created_at,
       revoked_at: t.revoked_at,
     }));
