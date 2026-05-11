@@ -44,9 +44,6 @@ const envSchema = z.object({
 
   // Features
   MAINTENANCE_MODE: z.coerce.number().default(0),
-  RATE_LIMIT_ENABLED: z.coerce.number().default(0),
-  RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60000),
-  RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
 });
 
 export type Config = z.infer<typeof envSchema>;
