@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { sessionAuth } from '../../middleware/session.js';
+import { authLimiter, signupLimiter } from '../../middleware/rateLimit.js';
 import {
   signup,
   login,
@@ -16,12 +17,12 @@ import * as tokenController from '../tokens/token.controller.js';
 
 export const userRouter = Router();
 
-userRouter.post('/signup', signup);
-userRouter.post('/login', login);
+userRouter.post('/signup', signupLimiter, signup);
+userRouter.post('/login', authLimiter, login);
 userRouter.post('/logout', sessionAuth, logout);
 
-userRouter.post('/mfa/generate', generateMfa);
-userRouter.post('/mfa/verify', verifyMfa);
+userRouter.post('/mfa/generate', signupLimiter, generateMfa);
+userRouter.post('/mfa/verify', authLimiter, verifyMfa);
 userRouter.post('/mfa/recovery-codes', sessionAuth, regenerateRecoveryCodes);
 
 userRouter.get('/me', sessionAuth, me);

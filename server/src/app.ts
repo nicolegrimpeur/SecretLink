@@ -7,6 +7,7 @@ import bodyParser from 'body-parser';
 import config from './config/env.js';
 import { httpLogger, getLogger } from './shared/logger.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { globalLimiter } from './middleware/rateLimit.js';
 import { userRouter } from './modules/users/user.routes.js';
 import { linkRouter } from './modules/links/link.routes.js';
 
@@ -65,6 +66,9 @@ export function createApp(): Express {
     }
     next();
   });
+
+  // Rate limiting
+  app.use(globalLimiter);
 
   // Mount routes
   app.use('/users', userRouter);
