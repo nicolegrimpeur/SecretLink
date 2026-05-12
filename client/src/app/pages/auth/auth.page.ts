@@ -78,6 +78,7 @@ export class AuthPage {
     { code: 'VALIDATION_ERROR', message: "Une erreur a eu lieu, vérifiez le format du mail." },
     { code: 'CONFLICT', message: "Un compte avec cet email existe déjà." },
     { code: 'PRE_AUTH_EXPIRED', message: "Session expirée. Veuillez vous reconnecter." },
+    { code: 'RATE_LIMITED', message: "Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer." },
   ];
 
   form = this.fb.group({

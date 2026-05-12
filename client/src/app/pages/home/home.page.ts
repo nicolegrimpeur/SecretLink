@@ -85,6 +85,7 @@ export class HomePage implements OnInit {
 
   private readonly errorCreationHelpText = [
     {code: 'VALIDATION_ERROR', text: 'Les informations fournies ne sont pas valides. Veuillez vérifier les champs et réessayer.'},
+    {code: 'RATE_LIMITED', text: 'Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.'},
     {code: 'SERVER_ERROR', text: 'Une erreur serveur est survenue. Veuillez réessayer plus tard.'},
   ]
   statusHelp: { [key: string]: string } = {
