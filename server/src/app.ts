@@ -16,8 +16,8 @@ const logger = getLogger('App');
 export function createApp(): Express {
   const app = express();
 
-  // Trust proxy
-  app.enable('trust proxy');
+  // Trust proxy - 1 seul proxy de confiance (Traefik)
+  app.set('trust proxy', 1);
 
   // Health check
   app.get('/health', (_req, res) => {
