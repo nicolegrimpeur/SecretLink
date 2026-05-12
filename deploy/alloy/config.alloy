@@ -1,0 +1,63 @@
+// Discover SecretLink containers via Docker socket
+discovery.docker "secretlink_containers" {
+  host = "unix:///var/run/docker.sock"
+
+  filter {
+    name   = "name"
+    values = ["secretlink-server", "secretlink-client"]
+  }
+}
+
+// Relabel discovered targets to extract container name and service
+discovery.relabel "secretlink_containers" {
+  targets = discovery.docker.secretlink_containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.+)"
+    target_label  = "container"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+}
+
+// Collect logs from discovered containers
+loki.source.docker "secretlink" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.secretlink_containers.output
+  forward_to = [loki.process.parse_pino.receiver]
+}
+
+// Parse Pino JSON logs and extract labels
+loki.process "parse_pino" {
+  stage.json {
+    expressions = {
+      level   = "level",
+      context = "context",
+      msg     = "msg",
+    }
+  }
+
+  stage.labels {
+    values = {
+      level   = null,
+      context = null,
+    }
+  }
+
+  stage.output {
+    source = "msg"
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+
+// Send logs to Loki
+loki.write "default" {
+  endpoint {
+    url = "http://host.docker.internal:3100/loki/api/v1/push"
+  }
+}
