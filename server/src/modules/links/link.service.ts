@@ -223,11 +223,17 @@ export class LinkService {
       }
 
       // Check if link is expired, deleted, or already used
-      if (
-        link.deleted_at ||
-        link.used_at ||
-        (link.expires_at && new Date(link.expires_at) <= new Date())
-      ) {
+      if (link.deleted_at || link.used_at) {
+        const err = new Error('Link expired, deleted, or already used');
+        (err as any).statusCode = 410;
+        (err as any).code = 'LINK_GONE';
+        throw err;
+      }
+
+      if (link.expires_at && new Date(link.expires_at) <= new Date()) {
+        // Purge cipher_text and release item lock before surfacing the error
+        await linkStore.purgeExpiredLink(cx, link.id);
+        await linkStore.deleteItemLock(cx, link.owner_user_id, link.item_id);
         const err = new Error('Link expired, deleted, or already used');
         (err as any).statusCode = 410;
         (err as any).code = 'LINK_GONE';
@@ -321,6 +327,7 @@ export class LinkService {
     since?: Date,
     until?: Date,
   ): Promise<any[]> {
+    await linkStore.purgeExpiredLinksForUser(uid);
     const results = await linkStore.statusByOwner(uid, since, until);
     return results.map((r) => ({
       link_token: r.link_token,

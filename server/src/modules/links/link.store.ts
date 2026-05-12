@@ -77,6 +77,54 @@ class LinkStore {
     );
   }
 
+  async purgeExpiredLink(cx: PoolConnection, id: number): Promise<void> {
+    await cx.execute(
+      `UPDATE links SET cipher_text = '', passphrase_hash = NULL WHERE id = ?`,
+      [id],
+    );
+  }
+
+  async purgeExpiredLinksForUser(uid: number): Promise<void> {
+    const pool = getPool();
+    await pool.execute(
+      `UPDATE links SET cipher_text = '', passphrase_hash = NULL
+       WHERE owner_user_id = ? AND (cipher_text != '' OR passphrase_hash IS NOT NULL)
+       AND (deleted_at IS NOT NULL OR used_at IS NOT NULL
+            OR (expires_at IS NOT NULL AND expires_at <= NOW()))`,
+      [uid],
+    );
+    await pool.execute(
+      `DELETE i FROM items i
+       LEFT JOIN links l
+         ON l.owner_user_id = i.owner_user_id
+        AND l.item_id = i.item_id
+        AND l.deleted_at IS NULL AND l.used_at IS NULL
+        AND (l.expires_at IS NULL OR l.expires_at > NOW())
+       WHERE i.owner_user_id = ? AND l.id IS NULL`,
+      [uid],
+    );
+  }
+
+  async purgeAllExpiredLinks(): Promise<{ ciphertextPurged: number; locksReleased: number }> {
+    const pool = getPool();
+    const [r1] = await pool.execute<any>(
+      `UPDATE links SET cipher_text = '', passphrase_hash = NULL
+       WHERE (cipher_text != '' OR passphrase_hash IS NOT NULL)
+       AND (deleted_at IS NOT NULL OR used_at IS NOT NULL
+            OR (expires_at IS NOT NULL AND expires_at <= NOW()))`,
+    );
+    const [r2] = await pool.execute<any>(
+      `DELETE i FROM items i
+       LEFT JOIN links l
+         ON l.owner_user_id = i.owner_user_id
+        AND l.item_id = i.item_id
+        AND l.deleted_at IS NULL AND l.used_at IS NULL
+        AND (l.expires_at IS NULL OR l.expires_at > NOW())
+       WHERE l.id IS NULL`,
+    );
+    return { ciphertextPurged: r1.affectedRows as number, locksReleased: r2.affectedRows as number };
+  }
+
   async deleteItemLock(
     cx: PoolConnection,
     uid: number,

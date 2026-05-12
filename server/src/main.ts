@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { createApp } from './app.js';
 import config from './config/env.js';
+import { startExpiredLinksCleaner } from './jobs/expiredLinksCleaner.js';
 import { getLogger, getLogger as logger } from './shared/logger.js';
 
 const log = getLogger('main');
@@ -15,6 +16,7 @@ async function start() {
         { port: config.PORT, environment: config.NODE_ENV },
         `🚀 Server listening on port ${config.PORT}`,
       );
+      startExpiredLinksCleaner();
     });
   } catch (err) {
     log.error(err, 'Failed to start server');
