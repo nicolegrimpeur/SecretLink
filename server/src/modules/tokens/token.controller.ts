@@ -3,6 +3,9 @@ import { asyncHandler } from '../../middleware/errorHandler.js';
 import { tokenService } from './token.service.js';
 import { CreateTokenReqSchema } from './token.schema.js';
 import { ValidationError } from '../../shared/types.js';
+import { getLogger } from '../../shared/logger.js';
+
+const logger = getLogger('TokenController');
 
 function formatZodErrors(error: any): string {
   if (error.issues) {
@@ -29,6 +32,10 @@ export const createPAT = asyncHandler(async (req: Request, res: Response): Promi
   const { label, scopes } = parsed.data;
 
   const result = await tokenService.createToken(userId, label || null, scopes);
+  logger.info(
+    { event: 'PAT_CREATED', user_id: userId, token_id: result.pat.id, label: result.pat.label, scopes },
+    'PAT created',
+  );
   res.status(201).json(result);
 });
 
@@ -37,5 +44,9 @@ export const revokePAT = asyncHandler(async (req: Request, res: Response): Promi
   const tokenId = Number(req.params.id);
 
   await tokenService.revokeToken(userId, tokenId);
+  logger.info(
+    { event: 'PAT_REVOKED', user_id: userId, token_id: tokenId },
+    'PAT revoked',
+  );
   res.status(204).end();
 });

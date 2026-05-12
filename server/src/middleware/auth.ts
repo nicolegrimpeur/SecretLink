@@ -46,7 +46,7 @@ export async function authEither(
         };
         return next();
       } catch (err) {
-        logger.debug('Session validation failed, trying PAT');
+        logger.debug({ event: 'AUTH_SESSION_FAILED' }, 'Session validation failed, trying PAT');
       }
     }
 
@@ -76,7 +76,7 @@ export async function authEither(
         return next();
       } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
-        logger.debug('PAT validation failed');
+        logger.debug({ event: 'AUTH_PAT_FAILED' }, 'PAT validation failed');
       }
     }
 

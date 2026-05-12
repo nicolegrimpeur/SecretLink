@@ -155,3 +155,11 @@ export function hashToken(token: string): string {
 export function hashPassphrase(passphrase: string): string {
   return crypto.createHash('sha256').update(passphrase).digest('hex');
 }
+
+/**
+ * Hash an IP address (SHA-256) for privacy-preserving logging
+ */
+export function hashIp(ip: string | undefined): string | null {
+  if (!ip) return null;
+  return crypto.createHash('sha256').update(ip).digest('hex');
+}

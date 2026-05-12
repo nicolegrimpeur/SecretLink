@@ -113,25 +113,3 @@ CREATE TABLE `api_tokens` (
   KEY `ix_api_tokens_revoked` (`revoked_at`),
   CONSTRAINT `fk_api_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Table structure for table `audits`
---
-
-DROP TABLE IF EXISTS `audits`;
-CREATE TABLE `audits` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `owner_user_id` bigint NOT NULL,
-  `item_id` varchar(320) NOT NULL,
-  `link_id` bigint DEFAULT NULL,
-  `event_type` enum('LINK_CREATED','LINK_REDEEMED','LINK_DELETED','LINK_EXPIRED') NOT NULL,
-  `ip_hash` char(64) DEFAULT NULL,
-  `user_agent` varchar(512) DEFAULT NULL,
-  `at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `ix_audits_owner_item` (`owner_user_id`,`item_id`,`at`),
-  KEY `ix_audits_link` (`link_id`),
-  KEY `ix_audits_type_time` (`event_type`,`at`),
-  CONSTRAINT `fk_audits_link` FOREIGN KEY (`link_id`) REFERENCES `links` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_audits_owner` FOREIGN KEY (`owner_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

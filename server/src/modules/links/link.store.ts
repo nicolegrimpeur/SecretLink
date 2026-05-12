@@ -136,21 +136,6 @@ class LinkStore {
     );
   }
 
-  async insertAudit(
-    cx: PoolConnection,
-    uid: number,
-    itemId: string,
-    linkId: number,
-    eventType: string,
-    ipHash?: string | null,
-    userAgent?: string | null,
-  ): Promise<void> {
-    await cx.execute(
-      `INSERT INTO audits (owner_user_id, item_id, link_id, event_type, ip_hash, user_agent)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [uid, itemId, linkId, eventType, ipHash || null, userAgent || null],
-    );
-  }
 
   async statusByOwner(
     uid: number,

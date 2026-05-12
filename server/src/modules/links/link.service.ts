@@ -1,6 +1,6 @@
 import config from '../../config/env.js';
 import { linkStore, tx } from './link.store.js';
-import { encrypt, decrypt, generateLinkToken, hashPassphrase } from '../../shared/crypto.js';
+import { encrypt, decrypt, generateLinkToken, hashPassphrase, hashIp } from '../../shared/crypto.js';
 import { NotFoundError, ValidationError } from '../../shared/types.js';
 import { getLogger } from '../../shared/logger.js';
 
@@ -19,7 +19,7 @@ export class LinkService {
   /**
    * Create a single public link (anonymous, uid=0)
    */
-  async createLink(secret: string): Promise<CreateLinkResult> {
+  async createLink(secret: string, ip?: string, userAgent?: string): Promise<CreateLinkResult> {
     if (!secret) {
       return {
         item_id: '',
@@ -56,14 +56,13 @@ export class LinkService {
       const result = await linkStore.insertLink(cx, linkInData);
       const linkId = result.insertId;
 
-      await linkStore.insertAudit(cx, uid, itemId, linkId, 'LINK_CREATED');
-
       logger.info(
         {
           event: 'LINK_CREATED',
           owner_user_id: uid,
-          item_id: itemId,
           link_id: linkId,
+          ip_hash: hashIp(ip),
+          user_agent: userAgent ?? null,
         },
         'Link created',
       );
@@ -90,6 +89,8 @@ export class LinkService {
       passphrase_hash?: string;
       ttl_days?: number;
     }>,
+    ip?: string,
+    userAgent?: string,
   ): Promise<CreateLinkResult[]> {
     if (!items || !items.length) {
       throw new ValidationError('Array required');
@@ -182,8 +183,6 @@ export class LinkService {
         const result = await linkStore.insertLink(cx, linkInData);
         const linkId = result.insertId;
 
-        await linkStore.insertAudit(cx, uid, itemId, linkId, 'LINK_CREATED');
-
         results.push({
           item_id: itemId,
           status: 'created',
@@ -199,6 +198,8 @@ export class LinkService {
             owner_user_id: uid,
             item_id: itemId,
             link_id: linkId,
+            ip_hash: hashIp(ip),
+            user_agent: userAgent ?? null,
           },
           'Link created',
         );
@@ -214,6 +215,8 @@ export class LinkService {
   async redeemLink(
     token: string,
     passphraseHash?: string,
+    ip?: string,
+    userAgent?: string,
   ): Promise<{ item_id: string; secret: string; redeemed_at: string }> {
     return tx(async (cx) => {
       const link = await linkStore.linkByTokenForUpdate(cx, token);
@@ -268,19 +271,14 @@ export class LinkService {
       // Mark as used and purge ciphertext
       await linkStore.setUsedAndPurge(cx, link.id);
       await linkStore.deleteItemLock(cx, link.owner_user_id, link.item_id);
-      await linkStore.insertAudit(
-        cx,
-        link.owner_user_id,
-        link.item_id,
-        link.id,
-        'LINK_REDEEMED',
-      );
 
       logger.info(
         {
           event: 'LINK_REDEEMED',
           owner_user_id: link.owner_user_id,
           item_id: link.item_id,
+          ip_hash: hashIp(ip),
+          user_agent: userAgent ?? null,
         },
         'Link redeemed',
       );
@@ -296,7 +294,7 @@ export class LinkService {
   /**
    * Delete a link (soft delete)
    */
-  async deleteLink(uid: number, token: string): Promise<void> {
+  async deleteLink(uid: number, token: string, ip?: string, userAgent?: string): Promise<void> {
     return tx(async (cx) => {
       const link = await linkStore.linkOwnerItemForUpdate(cx, token);
 
@@ -306,13 +304,14 @@ export class LinkService {
 
       await linkStore.setDeletedAndPurge(cx, link.id);
       await linkStore.deleteItemLock(cx, uid, link.item_id);
-      await linkStore.insertAudit(cx, uid, link.item_id, link.id, 'LINK_DELETED');
 
       logger.info(
         {
           event: 'LINK_DELETED',
           owner_user_id: uid,
           item_id: link.item_id,
+          ip_hash: hashIp(ip),
+          user_agent: userAgent ?? null,
         },
         'Link deleted',
       );

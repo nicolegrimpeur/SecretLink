@@ -23,7 +23,7 @@ export const createLink = asyncHandler(async (req: Request, res: Response): Prom
   }
 
   const { secret } = parsed.data;
-  const result = await linkService.createLink(secret);
+  const result = await linkService.createLink(secret, req.ip, req.get('user-agent'));
 
   res.status(201).json({ result });
 });
@@ -37,7 +37,7 @@ export const createLinks = asyncHandler(async (req: Request, res: Response): Pro
   const userId = (req as any).auth?.userId;
   const items = parsed.data;
 
-  const results = await linkService.createLinks(userId, items);
+  const results = await linkService.createLinks(userId, items, req.ip, req.get('user-agent'));
   res.status(201).json({ results });
 });
 
@@ -46,7 +46,7 @@ export const redeemLink = asyncHandler(async (req: Request, res: Response): Prom
   const passphraseHash = req.query.pass ? String(req.query.pass) : undefined;
 
   try {
-    const result = await linkService.redeemLink(token, passphraseHash);
+    const result = await linkService.redeemLink(token, passphraseHash, req.ip, req.get('user-agent'));
     res.status(200).json(result);
   } catch (err: any) {
     if (err.statusCode === 403) {
@@ -75,7 +75,7 @@ export const deleteLink = asyncHandler(async (req: Request, res: Response): Prom
   const token = req.params.token;
   const userId = (req as any).auth?.userId;
 
-  await linkService.deleteLink(userId, token);
+  await linkService.deleteLink(userId, token, req.ip, req.get('user-agent'));
   res.status(204).end();
 });
 
