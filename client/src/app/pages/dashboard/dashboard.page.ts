@@ -24,6 +24,7 @@ import {addIcons} from 'ionicons';
 
 import {
   addOutline,
+  hourglassOutline,
   keyOutline,
   linkOutline,
   refreshOutline,
@@ -52,7 +53,7 @@ export class DashboardPage {
   tokens = signal<PAT[]>([]);
 
   constructor() {
-    addIcons({ statsChartOutline, linkOutline, keyOutline, refreshOutline, addOutline, trashOutline, trashBinOutline });
+    addIcons({ hourglassOutline, statsChartOutline, linkOutline, keyOutline, refreshOutline, addOutline, trashOutline, trashBinOutline });
   }
 
   async ionViewWillEnter() {
