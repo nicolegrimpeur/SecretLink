@@ -220,6 +220,7 @@ export class AuthPage {
 
         if (!result.mfa_required) {
           // Trusted device - session already issued by service
+          (document.activeElement as HTMLElement)?.blur();
           await this.router.navigateByUrl('/dashboard');
           this.form.reset();
         } else {
@@ -232,6 +233,7 @@ export class AuthPage {
           await modal.present();
           const { data } = await modal.onWillDismiss();
           if (data?.success) {
+            (document.activeElement as HTMLElement)?.blur();
             await this.router.navigateByUrl('/dashboard');
             this.form.reset();
           } else if (data?.expired) {

@@ -12,6 +12,7 @@ import {
   IonTitle,
   IonToolbar,
   NavController,
+  PopoverController,
   ToastController
 } from "@ionic/angular/standalone";
 import {Router, RouterLink} from "@angular/router";
@@ -59,6 +60,7 @@ export class LayoutComponent implements OnInit {
   private nav = inject(NavController);
   private storage = inject(StorageService);
   private toastController = inject(ToastController);
+  private popoverController = inject(PopoverController);
   user: User = null;
   isManagementPage = false;
   tabManagementPages = ['/account', '/dashboard', '/links'];
@@ -99,6 +101,7 @@ export class LayoutComponent implements OnInit {
 
   async handleLogout() {
     this.popoverOpen = false;
+    await this.popoverController.dismiss().catch(() => {});
 
     await this.auth.logout();
     await this.router.navigateByUrl('/auth');
