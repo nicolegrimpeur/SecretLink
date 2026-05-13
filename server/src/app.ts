@@ -28,7 +28,13 @@ export function createApp(): Express {
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'same-site' },
-      contentSecurityPolicy: false,
+      crossOriginOpenerPolicy: { policy: 'same-origin' },
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'none'"],
+          frameAncestors: ["'none'"],
+        },
+      },
       referrerPolicy: { policy: 'no-referrer' },
     }),
   );
