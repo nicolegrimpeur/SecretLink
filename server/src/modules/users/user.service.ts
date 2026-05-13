@@ -41,7 +41,7 @@ function publicUser(row: any): PublicUser {
 }
 
 export class UserService {
-  // ─── MFA setup (stateless — no DB write, just generates secret + URI) ────────
+  // ─── MFA setup (stateless - no DB write, just generates secret + URI) ────────
 
   async generateMfaSetup(email: string): Promise<{ provisioning_uri: string; secret: string }> {
     const existing = await userStore.findByEmail(email);
@@ -127,7 +127,7 @@ export class UserService {
       const tokenHash = crypto.createHash('sha256').update(rawDeviceToken).digest('hex');
       const trusted = await userStore.findTrustedDevice(tokenHash);
       if (trusted && trusted.user_id === user.id) {
-        // Skip MFA — issue session directly
+        // Skip MFA - issue session directly
         issueSession(res, { userId: user.id });
         return { mfa_required: false, user: publicUser(user) };
       }

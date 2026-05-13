@@ -37,7 +37,8 @@ loki.process "parse_pino" {
     expressions = {
       level   = "level",
       context = "context",
-      msg     = "msg",
+      event   = "event",
+      req     = "req",
     }
   }
 
@@ -45,12 +46,23 @@ loki.process "parse_pino" {
     values = {
       level   = null,
       context = null,
+      event   = null,
     }
   }
 
-  stage.output {
-    source = "msg"
+  // Distinguish HTTP request logs (pino-http) from application event logs (pino)
+  stage.template {
+    source   = "req"
+    template = "{{ if .Value }}http{{ else }}app{{ end }}"
   }
+
+  stage.labels {
+    values = {
+      log_type = "req",
+    }
+  }
+
+  // No stage.output - the full JSON is preserved as the log line content
 
   forward_to = [loki.write.default.receiver]
 }

@@ -16,7 +16,7 @@
           <ion-item (click)="toggleScope(s.key)">
             <ion-checkbox slot="start" [checked]="(form.value.scopes || []).includes(s.key)"></ion-checkbox>
             <ion-label>
-              <b>{{ s.key }}</b> — {{ s.label }}
+              <b>{{ s.key }}</b> - {{ s.label }}
               <p class="dim">{{ s.help }}</p>
             </ion-label>
           </ion-item>

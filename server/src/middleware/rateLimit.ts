@@ -9,7 +9,7 @@ const rateLimitHandler = (_req: any, res: any) => {
   });
 };
 
-/** Global fallback — all routes: 100 req / min */
+/** Global fallback - all routes: 100 req / min */
 export const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
@@ -18,7 +18,7 @@ export const globalLimiter = rateLimit({
   handler: rateLimitHandler,
 });
 
-/** Login & MFA verify — brute-force protection: 10 req / 15 min */
+/** Login & MFA verify - brute-force protection: 10 req / 15 min */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -27,7 +27,7 @@ export const authLimiter = rateLimit({
   handler: rateLimitHandler,
 });
 
-/** Signup & MFA generate — account creation: 5 req / hour */
+/** Signup & MFA generate - account creation: 5 req / hour */
 export const signupLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 5,
@@ -36,7 +36,7 @@ export const signupLimiter = rateLimit({
   handler: rateLimitHandler,
 });
 
-/** Public link creation & redeem — anonymous abuse: 20 req / 15 min */
+/** Public link creation & redeem - anonymous abuse: 20 req / 15 min */
 export const publicLinkLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,

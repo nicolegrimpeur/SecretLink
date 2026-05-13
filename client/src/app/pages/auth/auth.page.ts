@@ -200,7 +200,7 @@ export class AuthPage {
           return;
         }
 
-        // Open MFA setup modal — signup happens inside the modal
+        // Open MFA setup modal - signup happens inside the modal
         const modal = await this.modalController.create({
           component: MfaSetupComponent,
           componentProps: { email, password, provisioningUriInput: mfaSetup.provisioning_uri, secretInput: mfaSetup.secret },
@@ -219,7 +219,7 @@ export class AuthPage {
         const result = await this.auth.login(email, password);
 
         if (!result.mfa_required) {
-          // Trusted device — session already issued by service
+          // Trusted device - session already issued by service
           await this.router.navigateByUrl('/dashboard');
           this.form.reset();
         } else {

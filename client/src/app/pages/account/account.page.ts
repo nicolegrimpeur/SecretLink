@@ -129,7 +129,7 @@ export class AccountPage {
   async confirmRevoke(t: PAT) {
     const a = await this.alert.create({
       header: 'Révoquer ce token ?',
-      message: `Label: ${t?.label || '—'}`,
+      message: `Label: ${t?.label || '-'}`,
       buttons: [
         {text: 'Annuler', role: 'cancel'},
         {text: 'Révoquer', role: 'destructive', handler: () => this.revoke(t)}

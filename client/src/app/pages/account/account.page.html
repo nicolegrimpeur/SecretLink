@@ -68,13 +68,13 @@
                 <ion-item>
                   <ion-label>
                     <h2>
-                      {{ t?.label || '—' }}
+                      {{ t?.label || '-' }}
                       @if (t?.revoked_at) {
                         <ion-badge color="medium">révoqué</ion-badge>
                       }
                     </h2>
                     <p>Scopes: {{ (t?.scopes || []).join(', ') }}</p>
-                    <p>Créé: {{ t?.created_at }} — Révoqué: {{ t?.revoked_at || 'non' }}</p>
+                    <p>Créé: {{ t?.created_at }} - Révoqué: {{ t?.revoked_at || 'non' }}</p>
                   </ion-label>
                   <ion-buttons slot="end">
                     <ion-button color="danger" [disabled]="!!t?.revoked_at" (click)="confirmRevoke(t)">Révoquer</ion-button>
