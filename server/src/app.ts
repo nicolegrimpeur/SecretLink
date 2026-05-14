@@ -81,9 +81,9 @@ export function createApp(): Express {
   app.use('/users', userRouter);
   app.use('/links', linkRouter);
 
-  // Redirect root to base URL
-  app.get(['/*path', '/'], (req, res) => {
-    res.redirect(config.BASE_URL + '/cv/');
+  // Redirect all other routes to the frontend
+  app.get('/*path', (_req, res) => {
+    res.redirect(config.BASE_URL);
   });
 
   // Global error handler (must be last)

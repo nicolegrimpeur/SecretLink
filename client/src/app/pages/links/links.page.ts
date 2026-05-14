@@ -171,7 +171,6 @@ export class LinksPage {
       }];
 
       this.lastQuickResults = await this.api.createBulk(payload);
-      console.log('Quick create results:', this.lastQuickResults);
       if (this.lastQuickResults?.length) {
         this.quickSecret = '';
         await this.reload();

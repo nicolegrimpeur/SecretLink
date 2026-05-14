@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <!-- ── Vue Chargement ── -->
+  <div id="view-loading" class="view">
+    <div class="loading-content">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- ── Vue Non connecté ── -->
+  <div id="view-not-connected" class="view hidden">
+    <div class="header">
+      <div class="header-logo">
+        <img src="icons/icon.svg" class="header-icon" alt="">
+        <span class="logo-text">SecretLink</span>
+      </div>
+      <button class="btn-open-settings icon-btn" title="Paramètres">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="content nc-content">
+      <div class="nc-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <p class="nc-title">Non connecté</p>
+      <p id="not-connected-hint" class="nc-hint">Connectez-vous sur le site web SecretLink pour utiliser l'extension.</p>
+      <button id="btn-open-site" class="btn-primary">Ouvrir SecretLink</button>
+      <button id="btn-retry" class="btn-outline">Réessayer</button>
+    </div>
+  </div>
+
+  <!-- ── Vue Génération ── -->
+  <div id="view-generate" class="view hidden">
+    <div class="header">
+      <div class="header-logo">
+        <img src="icons/icon.svg" class="header-icon" alt="">
+        <span class="logo-text">SecretLink</span>
+      </div>
+      <button class="btn-open-settings icon-btn" title="Paramètres">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="content">
+      <label for="secret">Secret</label>
+      <textarea id="secret" placeholder="Contenu à transmettre de manière sécurisée…" rows="4"></textarea>
+
+      <div class="field-row">
+        <label for="ttl">Expiration (jours)</label>
+        <span class="field-hint">0 = aucune expiration</span>
+      </div>
+      <input id="ttl" type="number" min="0" max="365" value="7">
+
+      <button id="btn-generate" class="btn-primary">Générer le lien</button>
+
+      <div id="result" class="result hidden">
+        <div class="result-label">Lien généré</div>
+        <div id="result-url" class="result-url"></div>
+      </div>
+
+      <div id="error" class="feedback error hidden"></div>
+    </div>
+  </div>
+
+  <!-- ── Vue Paramètres ── -->
+  <div id="view-settings" class="view hidden">
+    <div class="header">
+      <button id="btn-back" class="icon-btn" title="Retour">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <div class="header-logo">
+        <span class="logo-text">Paramètres</span>
+      </div>
+      <span style="width:28px;"></span>
+    </div>
+
+    <div class="content">
+      <label for="api-url">URL de l'API</label>
+      <input id="api-url" type="url" placeholder="https://api.secret.nicob.ovh" autocomplete="off">
+
+      <label for="front-url">URL du site web</label>
+      <input id="front-url" type="url" placeholder="https://secret.nicob.ovh" autocomplete="off">
+      <p class="hint">URL de l'interface web SecretLink, utilisée pour ouvrir le site et construire les liens de partage.</p>
+
+      <button id="btn-save" class="btn-primary">Enregistrer</button>
+
+      <div id="settings-feedback" class="feedback hidden"></div>
+    </div>
+  </div>
+
+  <!-- Toast global -->
+  <div id="toast" class="toast">✓ Lien copié dans le presse-papier !</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
