@@ -50,6 +50,7 @@ export function createApp(): Express {
     origin(origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) {
       if (!origin) return cb(null, true); // postman, curl, etc.
       if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+      if (origin.startsWith('chrome-extension://')) return cb(null, true); // extension SecretLink
       return cb(new Error('Not allowed by CORS'));
     },
     credentials: true,
