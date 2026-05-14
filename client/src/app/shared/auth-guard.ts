@@ -8,3 +8,10 @@ export const authGuard: CanActivateFn = () => {
   if (!auth.user) { router.navigateByUrl('/auth').then(); return false; }
   return true;
 };
+
+export const guestGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (auth.user) { router.navigateByUrl('/dashboard').then(); return false; }
+  return true;
+};

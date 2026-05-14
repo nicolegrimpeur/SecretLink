@@ -1,5 +1,5 @@
 import {Routes} from '@angular/router';
-import {authGuard} from "./shared/auth-guard";
+import {authGuard, guestGuard} from "./shared/auth-guard";
 
 export const routes: Routes = [
   {
@@ -24,6 +24,7 @@ export const routes: Routes = [
       },
       {
         path: 'auth',
+        canActivate: [guestGuard],
         loadComponent: () => import('./pages/auth/auth.page').then(m => m.AuthPage)
       },
       {
