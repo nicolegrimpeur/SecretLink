@@ -1,6 +1,6 @@
 'use strict';
 
-const DEFAULT_API_URL   = 'https://api.secret.nicob.ovh';
+const DEFAULT_API_URL   = 'https://api-secret.nicob.ovh';
 const DEFAULT_FRONT_URL = 'https://secret.nicob.ovh';
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
