@@ -71,7 +71,7 @@ export class LinkService {
         item_id: itemId,
         status: 'created' as const,
         link_token: linkToken,
-        link_url: `${config.BASE_URL}/links/${encodeURIComponent(linkToken)}/redeem`,
+        link_url: `${config.API_BASE_URL}/links/${encodeURIComponent(linkToken)}/redeem`,
         expires_at: expiresAt.toISOString(),
         error: null,
       };
@@ -187,7 +187,7 @@ export class LinkService {
           item_id: itemId,
           status: 'created',
           link_token: linkToken,
-          link_url: `${config.BASE_URL}/links/${encodeURIComponent(linkToken)}/redeem`,
+          link_url: `${config.API_BASE_URL}/links/${encodeURIComponent(linkToken)}/redeem`,
           expires_at: expiresAt ? expiresAt.toISOString() : null,
           error: null,
         });

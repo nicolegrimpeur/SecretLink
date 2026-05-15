@@ -157,7 +157,8 @@ npm run test
 ```bash
 # Create .env file with production values
 echo "NODE_ENV=production" > .env
-echo "BASE_URL=https://your-domain.com" >> .env
+echo "API_BASE_URL=https://your-domain.com" >> .env
+echo "FRONT_BASE_URL=https://your-front-domain.com" >> .env
 # ... add other required vars
 
 # Start services

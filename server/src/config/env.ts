@@ -13,7 +13,8 @@ const envSchema = z.object({
   // Server
   PORT: z.coerce.number().default(3000),
   NODE_ENV: z.enum(['development', 'production']).default('development'),
-  BASE_URL: z.string().url(),
+  API_BASE_URL: z.string().url(),
+  FRONT_BASE_URL: z.string().url(),
 
   // Database
   MYSQL_HOST: z.string(),

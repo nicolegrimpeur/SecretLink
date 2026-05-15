@@ -83,7 +83,7 @@ export function createApp(): Express {
 
   // Redirect all other routes to the frontend
   app.get('/*path', (_req, res) => {
-    res.redirect(config.BASE_URL);
+    res.redirect(config.FRONT_BASE_URL);
   });
 
   // Global error handler (must be last)
