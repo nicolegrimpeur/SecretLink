@@ -13,6 +13,6 @@
     "default_icon":  "icons/icon-128.png",
     "default_title": "SecretLink"
   },
-  "permissions": ["storage", "tabs"],
+  "permissions": ["storage"],
   "host_permissions": ["<all_urls>"]
 }
