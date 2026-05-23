@@ -53,31 +53,29 @@ export async function authEither(
     // Try PAT next
     const token = extractPatFromHeader(req);
     if (token) {
-      try {
-        const tokenHash = hashToken(token);
-        const pool = getPool();
-        const [rows] = await pool.execute<any[]>(
-          `SELECT id, user_id, scopes FROM api_tokens WHERE token_hash = ? AND revoked_at IS NULL`,
-          [tokenHash],
-        );
+      const tokenHash = hashToken(token);
+      const pool = getPool();
+      const [rows] = await pool.execute<any[]>(
+        `SELECT id, user_id, scopes FROM api_tokens WHERE token_hash = ? AND revoked_at IS NULL`,
+        [tokenHash],
+      );
 
-        if (rows.length === 0) {
-          throw new UnauthorizedError('Invalid or revoked API token');
-        }
-
-        const tokenRecord = rows[0];
-        const scopes = (tokenRecord.scopes || '').split(',').filter(Boolean);
-
-        req.auth = {
-          method: 'pat',
-          userId: Number(tokenRecord.user_id),
-          scopes,
-        };
-        return next();
-      } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
-        logger.debug({ event: 'AUTH_PAT_FAILED' }, 'PAT validation failed');
+      if (rows.length === 0) {
+        throw new UnauthorizedError('Invalid or revoked API token');
       }
+
+      const tokenRecord = rows[0];
+      const rawScopes = tokenRecord.scopes || '[]';
+      const scopes: string[] = Array.isArray(rawScopes)
+        ? rawScopes
+        : JSON.parse(rawScopes);
+
+      req.auth = {
+        method: 'pat',
+        userId: Number(tokenRecord.user_id),
+        scopes,
+      };
+      return next();
     }
 
     // Neither auth method worked, but we allow unauthenticated access

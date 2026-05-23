@@ -85,7 +85,7 @@ export function sessionAuth(
  */
 export function extractPatFromHeader(req: Request): string | null {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
     return null;
   }
   return authHeader.slice(7); // Remove 'Bearer ' prefix
