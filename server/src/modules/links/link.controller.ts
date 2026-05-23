@@ -42,7 +42,7 @@ export const createLinks = asyncHandler(async (req: Request, res: Response): Pro
 });
 
 export const redeemLink = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const token = req.params.token;
+  const token = req.params.token as string;
   const passphraseHash = req.query.pass ? String(req.query.pass) : undefined;
 
   try {
@@ -72,7 +72,7 @@ export const redeemLink = asyncHandler(async (req: Request, res: Response): Prom
 });
 
 export const deleteLink = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const token = req.params.token;
+  const token = req.params.token as string;
   const userId = (req as any).auth?.userId;
 
   await linkService.deleteLink(userId, token, req.ip, req.get('user-agent'));
