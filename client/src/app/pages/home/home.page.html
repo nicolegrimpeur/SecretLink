@@ -99,7 +99,7 @@
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              Le lien est à usage unique et s’autodétruit après lecture ou à expiration.
+              Le lien est à usage unique et s'autodétruit après lecture ou à expiration.
             </ion-card-content>
           </ion-card>
         </ion-col>
@@ -160,7 +160,7 @@
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              Automatisez vos partages de secrets grâce aux tokens personnels et à l’API REST. Collection Postman
+              Automatisez vos partages de secrets grâce aux tokens personnels et à l'API REST. Collection Postman
               <a href="https://github.com/nicolegrimpeur/SecretLink/blob/master/api/SecretLink%20API.json" target="_blank">disponible</a>.
             </ion-card-content>
           </ion-card>
@@ -372,7 +372,7 @@
           <ion-accordion-group expand="inset" [multiple]="true" class="ion-no-margin">
             <ion-accordion value="q1">
               <ion-item slot="header">
-                <ion-label>Qu’est-ce que SecretLink ?</ion-label>
+                <ion-label>Qu'est-ce que SecretLink ?</ion-label>
               </ion-item>
               <div class="ion-padding" slot="content">
                 SecretLink est un service permettant de partager en toute sécurité un mot de passe, une clé API ou toute donnée sensible
@@ -386,17 +386,17 @@
               </ion-item>
               <div class="ion-padding" slot="content">
                 Non. Les secrets sont <b>chiffrés avant stockage</b> et automatiquement supprimés dès leur première lecture
-                ou à expiration. Aucun mot de passe n’est enregistré en clair.
+                ou à expiration. Aucun mot de passe n'est enregistré en clair.
               </div>
             </ion-accordion>
 
             <ion-accordion value="q3">
               <ion-item slot="header">
-                <ion-label>Comment fonctionne la lecture d’un lien ?</ion-label>
+                <ion-label>Comment fonctionne la lecture d'un lien ?</ion-label>
               </ion-item>
               <div class="ion-padding" slot="content">
                 Le destinataire clique sur le lien unique, affiche le secret une seule fois, puis celui-ci est immédiatement supprimé.
-                Si le lien est rouvert ensuite, il renverra un message d’expiration ou d’utilisation.
+                Si le lien est rouvert ensuite, il renverra un message d'expiration ou d'utilisation.
               </div>
             </ion-accordion>
 
@@ -405,7 +405,7 @@
                 <ion-label>Puis-je utiliser SecretLink sans compte ?</ion-label>
               </ion-item>
               <div class="ion-padding" slot="content">
-                Oui, il est possible de créer des liens anonymes sans s’inscrire.
+                Oui, il est possible de créer des liens anonymes sans s'inscrire.
                 Cependant, certaines fonctionnalités avancées (durée personnalisée, secrets plus longs, gestion des secrets)
                 nécessitent un compte.
               </div>
@@ -426,7 +426,7 @@
                 <ion-label>Les secrets sont-ils chiffrés ?</ion-label>
               </ion-item>
               <div class="ion-padding" slot="content">
-                Oui, tous les secrets sont chiffrés côté serveur avant d’être stockés.
+                Oui, tous les secrets sont chiffrés côté serveur avant d'être stockés.
                 Pour les comptes, l'utilisation de passphrase permet le chiffrement <b>de bout en bout</b> : le secret est alors chiffré côté client avant envoi.
               </div>
             </ion-accordion>
@@ -447,7 +447,7 @@
                 <ion-label>Puis-je automatiser la création de liens ?</ion-label>
               </ion-item>
               <div class="ion-padding" slot="content">
-                Oui ! En utilisant l’<b>API REST</b> de SecretLink.
+                Oui ! En utilisant l'<b>API REST</b> de SecretLink.
                 Créez un <b>token personnel (PAT)</b> depuis votre compte, puis utilisez-le dans vos scripts ou outils (ex. CI/CD)
                 pour générer automatiquement des liens à usage unique.
               </div>
@@ -462,8 +462,8 @@
                 <a href="https://github.com/nicolegrimpeur/SecretLink/blob/master/api/SecretLink%20API.json" target="_blank">
                   GitHub du projet
                 </a>.
-                Elle contient tous les endpoints avec exemples de requêtes pour tester ou intégrer facilement l’API.
-                De plus, la documentation complète de l’API est disponible
+                Elle contient tous les endpoints avec exemples de requêtes pour tester ou intégrer facilement l'API.
+                De plus, la documentation complète de l'API est disponible
                 <a href="https://github.com/nicolegrimpeur/SecretLink/wiki/api" target="_blank">
                   ici
                 </a>.
@@ -475,7 +475,7 @@
                 <ion-label>Puis-je supprimer un lien avant son expiration ?</ion-label>
               </ion-item>
               <div class="ion-padding" slot="content">
-                Si vous possédez un compte oui, vous pouvez révoquer un lien depuis le tableau de bord ou via l’API.
+                Si vous possédez un compte oui, vous pouvez révoquer un lien depuis le tableau de bord ou via l'API.
                 Le secret est immédiatement supprimé de la base de données, et le lien devient invalide.
               </div>
             </ion-accordion>

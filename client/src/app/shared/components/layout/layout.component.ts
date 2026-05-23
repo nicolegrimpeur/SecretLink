@@ -127,7 +127,7 @@ export class LayoutComponent implements OnInit {
     ];
 
     const toast = await this.toastController.create({
-      message: 'Ce site utilise uniquement des cookies essentiels à son bon fonctionnement. Aucun cookie de suivi n’est utilisé.',
+      message: 'Ce site utilise uniquement des cookies essentiels à son bon fonctionnement. Aucun cookie de suivi n\'est utilisé.',
       duration: 10000,
       position: 'bottom',
       buttons: toastButton,

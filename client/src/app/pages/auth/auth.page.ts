@@ -113,7 +113,7 @@ export class AuthPage {
 
     effect(() => {
       const m = this.mode();
-      this.submitted.set(false); // reset affichage erreurs quand on change d’onglet
+      this.submitted.set(false); // reset affichage erreurs quand on change d'onglet
 
       const passwordConfirmForm = this.form.get('passwordConfirm')!;
       const termsCtrl = this.form.get('termsAccepted')!;

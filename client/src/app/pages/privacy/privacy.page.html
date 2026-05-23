@@ -17,14 +17,15 @@
         <li><strong>Compte utilisateur</strong> : e-mail, mot de passe (haché).</li>
         <li><strong>Authentification</strong> : cookie de <strong>session</strong> strictement nécessaire (voir § cookies).</li>
         <li><strong>Tokens personnels (PAT)</strong> : <strong>empreinte</strong> (hash) du token, libellé, scopes, dates (jamais affiché en clair après création).</li>
-        <li><strong>Liens/“items”</strong> : identifiant, jeton de lien, <strong>secret chiffré</strong> jusqu’à sa lecture/expiration, dates (création, expiration, usage, suppression).</li>
-        <li><strong>Passphrase (optionnelle)</strong> : lors de la création d’un lien, l’utilisateur peut définir une passphrase utilisée pour chiffrer le secret <strong>localement</strong> (dans son navigateur). Seul le <strong>hachage</strong> de la passphrase est transmis au serveur à des fins de vérification lors de la consultation.
+        <li><strong>Authentification multi-facteurs (MFA)</strong> : secret TOTP (chiffré au repos) et codes de récupération (hachés) — le MFA est obligatoire à la création de tout compte.</li>
+        <li><strong>Liens/“items”</strong> : identifiant, jeton de lien, <strong>secret chiffré</strong> jusqu'à sa lecture/expiration, dates (création, expiration, usage, suppression).</li>
+        <li><strong>Passphrase (optionnelle)</strong> : lors de la création d'un lien, l'utilisateur peut définir une passphrase utilisée pour chiffrer le secret <strong>localement</strong> (dans son navigateur). Seul le <strong>hachage</strong> de la passphrase est transmis au serveur à des fins de vérification lors de la consultation.
           <ul>
             <li>Dans ce mode, le <strong>secret est chiffré côté client</strong> avant envoi, puis à nouveau chiffré côté serveur pour stockage. Le serveur ne peut donc pas connaître le secret en clair (<strong>chiffrement de bout en bout</strong>).</li>
           </ul>
         </li>
-        <li><strong>Journaux techniques</strong> : logs serveurs (accès/erreurs) pour sécurité, diagnostic et audit.</li>
-        <li><strong>Aucune donnée du destinataire n’est collectée par obligation</strong> : il peut consulter un lien sans compte.</li>
+        <li><strong>Journaux techniques</strong> : logs serveurs (accès/erreurs) pour sécurité, diagnostic et audit, incluant l'adresse IP (pseudonymisée par hachage) et le type de navigateur (User-Agent).</li>
+        <li><strong>Aucune donnée du destinataire n'est collectée par obligation</strong> : il peut consulter un lien sans compte.</li>
       </ul>
     </ion-card-content>
 
@@ -32,13 +33,13 @@
       <ion-card-subtitle>4) Bases juridiques (RGPD art. 6)</ion-card-subtitle>
       <ul>
         <li><strong>Exécution du contrat</strong> : création et gestion du compte ; génération et gestion des liens et PAT.</li>
-        <li><strong>Intérêt légitime</strong> : sécurité du service (journalisation technique, détection d’abus), amélioration du service, suivi des usages.</li>
+        <li><strong>Intérêt légitime</strong> : sécurité du service (journalisation technique, détection d'abus), amélioration du service, suivi des usages.</li>
         <li><strong>Obligation légale</strong> : réponse à une réquisition ou injonction des autorités.</li>
       </ul>
     </ion-card-content>
     <ion-card-content>
       <ion-card-subtitle>5) Destinataires / sous-traitants</ion-card-subtitle>
-      Les données sont traitées par l’éditeur. Pas de transfert à des tiers hors UE. Les secrets ne sont <strong>jamais</strong> transmis à des tiers.
+      Les données sont traitées par l'éditeur. Pas de transfert à des tiers hors UE. Les secrets ne sont <strong>jamais</strong> transmis à des tiers.
     </ion-card-content>
     <ion-card-content>
       <ion-card-subtitle>6) Localisation des traitements</ion-card-subtitle>
@@ -47,12 +48,14 @@
     <ion-card-content>
       <ion-card-subtitle>7) Durées de conservation</ion-card-subtitle>
       <ul>
-        <li><strong>Compte</strong> : jusqu’à suppression du compte par l’utilisateur.</li>
-        <li><strong>Secrets</strong> : chiffrés, <strong>supprimés immédiatement</strong> après première lecture ; sinon jusqu’à la <strong>date d’expiration</strong> configurée ou suppression manuelle.</li>
+        <li><strong>Compte</strong> : jusqu'à suppression du compte par l'utilisateur.</li>
+        <li><strong>Secrets</strong> : chiffrés, <strong>supprimés immédiatement</strong> après première lecture ; sinon jusqu'à la <strong>date d'expiration</strong> configurée ou suppression manuelle.</li>
         <li><strong>Passphrases</strong> : non conservées (seule une empreinte temporaire peut être utilisée pour vérification technique, supprimée en même temps que le secret).</li>
         <li><strong>Métadonnées de liens</strong> (sans secret) : tant que le compte existe ; suppression lors de la suppression du compte.</li>
-        <li><strong>PAT</strong> : actifs jusqu’à révocation ; <strong>hash + métadonnées</strong> conservés pour preuve d’audit jusqu’à la suppression du compte.</li>
+        <li><strong>PAT</strong> : actifs jusqu'à révocation ; <strong>hash + métadonnées</strong> conservés pour preuve d'audit jusqu'à la suppression du compte.</li>
         <li><strong>Logs techniques</strong> : 90 jours.</li>
+        <li><strong>Données MFA</strong> (secret TOTP, codes de récupération) : jusqu'à la suppression du compte.</li>
+        <li><strong>Appareils de confiance</strong> : 30 jours ou révocation manuelle.</li>
       </ul>
       Les durées sont limitées au strict nécessaire (principe de minimisation).
     </ion-card-content>
@@ -62,39 +65,48 @@
         <li>Hachage des mots de passe.</li>
         <li>Secrets chiffrés <strong>au repos</strong> ; suppression immédiate après usage.</li>
         <li>Jetons PAT <strong>non stockés en clair</strong> (uniquement leur empreinte).</li>
-        <li>Chiffrement TLS en transit ; contrôle d’accès ; journalisation sécurité.</li>
-        <li>Chiffrement <strong>de bout en bout</strong> pour les secrets protégés par passphrase : le secret est chiffré avant envoi et déchiffré uniquement côté client ; le serveur n’a jamais accès au secret en clair.</li>
+        <li>Secret TOTP chiffré <strong>au repos</strong> ; codes de récupération stockés uniquement sous forme de hachages.</li>
+        <li>Chiffrement TLS en transit ; contrôle d'accès ; journalisation sécurité.</li>
+        <li>Chiffrement <strong>de bout en bout</strong> pour les secrets protégés par passphrase : le secret est chiffré avant envoi et déchiffré uniquement côté client ; le serveur n'a jamais accès au secret en clair.</li>
         <li>Hachage des passphrases (non stockées en clair).</li>
       </ul>
     </ion-card-content>
     <ion-card-content>
       <ion-card-subtitle>9) Vos droits (RGPD)</ion-card-subtitle>
-      Vous disposez des droits d’<strong>accès</strong>, <strong>rectification</strong>, <strong>effacement</strong>, <strong>limitation</strong>, <strong>opposition</strong> et <strong>portabilité</strong> (si applicable).
+      Vous disposez des droits d'<strong>accès</strong>, <strong>rectification</strong>, <strong>effacement</strong>, <strong>limitation</strong>, <strong>opposition</strong> et <strong>portabilité</strong> (si applicable).
+      Pour exercer ces droits, contactez-nous à l'adresse indiquée au §1. Vous pouvez également introduire une réclamation auprès de la <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL</a>.
     </ion-card-content>
     <ion-card-content>
       <ion-card-subtitle>10) Cookies</ion-card-subtitle>
-      Le Service n’utilise qu’un <strong>cookie de session</strong> strictement nécessaire au fonctionnement technique (authentification et maintien de session).
+      Le Service utilise uniquement des cookies strictement nécessaires au fonctionnement technique.
       <ul>
-        <li><strong>Nom :</strong> <code>sid</code></li>
+        <li><strong>Nom : </strong> <code>sid</code></li>
         <li><strong>Finalité :</strong> authentification, maintien de session, sécurité (CSRF/anti-fraude)</li>
         <li><strong>Durée :</strong> 7 jours</li>
         <li><strong>Provenance :</strong> interne (1st-party)</li>
-        <li><strong>Propriétés :</strong> HTTP-Only, Secure, SameSite=Lax/Strict</li>
+        <li><strong>Propriétés :</strong> HTTP-Only, Secure, SameSite=Lax</li>
       </ul>
-      Aucun cookie publicitaire, de profilage ou de mesure d’audience non essentielle n’est déposé.
+      <ul>
+        <li><strong>Nom : </strong> <code>tdc</code></li>
+        <li><strong>Finalité :</strong> mémorisation de l'appareil après vérification MFA (option « se souvenir de cet appareil »)</li>
+        <li><strong>Durée :</strong> 30 jours</li>
+        <li><strong>Provenance :</strong> interne (1st-party)</li>
+        <li><strong>Propriétés :</strong> HTTP-Only, Secure, SameSite=Lax</li>
+      </ul>
+      Aucun cookie publicitaire, de profilage ou de mesure d'audience non essentielle n'est déposé.
       <br>
-      Conformément aux lignes directrices CNIL, pas de bannière de consentement pour ce cookie strictement nécessaire.
+      Conformément aux lignes directrices CNIL, pas de bannière de consentement pour ces cookies strictement nécessaires.
     </ion-card-content>
     <ion-card-content>
       <ion-card-subtitle>11) Mineurs</ion-card-subtitle>
-      Le Service n’est pas destiné aux mineurs. Si une collecte devait avoir lieu par erreur, merci de nous contacter pour suppression.
+      Le Service n'est pas destiné aux mineurs. Si une collecte devait avoir lieu par erreur, merci de nous contacter pour suppression.
     </ion-card-content>
     <ion-card-content>
       <ion-card-subtitle>12) Modifications</ion-card-subtitle>
       La présente politique peut être mise à jour.
     </ion-card-content>
     <ion-card-content>
-      <strong>Dernière mise à jour :</strong> 10 novembre 2025
+      <strong>Dernière mise à jour :</strong> 23 mai 2026
     </ion-card-content>
   </ion-card>
 </ion-content>

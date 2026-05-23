@@ -237,10 +237,10 @@ export class AccountPage {
                 .catch(() => {
                   this.toast.toastMsg('Échec de la suppression du compte');
                 });
-              return true; // permet la fermeture de l’alerte
+              return true; // permet la fermeture de l'alerte
             } else {
               this.toast.toastMsg('Texte de confirmation invalide');
-              return false; // empêche la fermeture de l’alerte
+              return false; // empêche la fermeture de l'alerte
             }
           }
         }
