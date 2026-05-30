@@ -1,49 +1,36 @@
 'use strict';
 
-const DEFAULT_API_URL   = 'https://api-secret.nicob.ovh';
-const DEFAULT_FRONT_URL = 'https://secret.nicob.ovh';
+// ── Configuration ─────────────────────────────────────────────────────────────
+// Pour une instance auto-hébergée, modifiez ces deux constantes.
+const API_URL   = 'https://api-secret.nicob.ovh';
+const FRONT_URL = 'https://secret.nicob.ovh';
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const viewLoading        = document.getElementById('view-loading');
 const viewNotConnected   = document.getElementById('view-not-connected');
 const viewGenerate       = document.getElementById('view-generate');
-const viewSettings       = document.getElementById('view-settings');
 
-const btnBack            = document.getElementById('btn-back');
 const btnGenerate        = document.getElementById('btn-generate');
-const btnSave            = document.getElementById('btn-save');
 const btnOpenSite        = document.getElementById('btn-open-site');
 const btnRetry           = document.getElementById('btn-retry');
 
 const secretEl           = document.getElementById('secret');
 const ttlEl              = document.getElementById('ttl');
-const apiUrlEl           = document.getElementById('api-url');
-const frontUrlEl         = document.getElementById('front-url');
 
 const resultEl           = document.getElementById('result');
 const resultUrlEl        = document.getElementById('result-url');
 const errorEl            = document.getElementById('error');
-const settingsFeedbackEl = document.getElementById('settings-feedback');
 const notConnectedHint   = document.getElementById('not-connected-hint');
 const toastEl            = document.getElementById('toast');
 
-// ── State ─────────────────────────────────────────────────────────────────────
-let currentApiUrl   = DEFAULT_API_URL;
-let currentFrontUrl = DEFAULT_FRONT_URL;
-
 // ── Init ──────────────────────────────────────────────────────────────────────
-chrome.storage.local.get(['apiUrl', 'frontUrl'], ({ apiUrl, frontUrl }) => {
-  currentApiUrl   = apiUrl   || DEFAULT_API_URL;
-  currentFrontUrl = frontUrl || DEFAULT_FRONT_URL;
-
-  checkAuth();
-});
+checkAuth();
 
 // ── Auth check ────────────────────────────────────────────────────────────────
 async function checkAuth() {
   showView(viewLoading);
   try {
-    const response = await fetch(`${currentApiUrl}/users/me`, {
+    const response = await fetch(`${API_URL}/users/me`, {
       credentials: 'include',
     });
     if (response.ok) {
@@ -57,65 +44,23 @@ async function checkAuth() {
     }
   } catch {
     notConnectedHint.textContent =
-      "Impossible de joindre le serveur. Vérifiez l'URL de l'API dans les paramètres.";
+      "Impossible de joindre le serveur.";
     showView(viewNotConnected);
   }
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 function showView(el) {
-  [viewLoading, viewNotConnected, viewGenerate, viewSettings].forEach(v => {
+  [viewLoading, viewNotConnected, viewGenerate].forEach(v => {
     v.classList.add('hidden');
   });
   el.classList.remove('hidden');
 }
 
-// Boutons ⚙ présents sur plusieurs vues (classe partagée)
-document.querySelectorAll('.btn-open-settings').forEach(btn => {
-  btn.addEventListener('click', () => {
-    apiUrlEl.value   = currentApiUrl;
-    frontUrlEl.value = currentFrontUrl;
-    hideSettingsFeedback();
-    showView(viewSettings);
-  });
-});
-
-btnBack.addEventListener('click', () => checkAuth());
 btnRetry.addEventListener('click', () => checkAuth());
 
 btnOpenSite.addEventListener('click', () => {
-  chrome.tabs.create({ url: currentFrontUrl });
-});
-
-// ── Sauvegarde paramètres ────────────────────────────────────────────────────
-btnSave.addEventListener('click', async () => {
-  const apiUrl   = apiUrlEl.value.trim()   || DEFAULT_API_URL;
-  const frontUrl = frontUrlEl.value.trim() || DEFAULT_FRONT_URL;
-
-  try { new URL(apiUrl); } catch {
-    showSettingsFeedback("URL de l'API invalide.", 'error');
-    return;
-  }
-  try { new URL(frontUrl); } catch {
-    showSettingsFeedback('URL du site invalide.', 'error');
-    return;
-  }
-
-  btnSave.disabled    = true;
-  btnSave.textContent = 'Enregistrement…';
-
-  try {
-    await chrome.storage.local.set({ apiUrl, frontUrl });
-    currentApiUrl   = apiUrl;
-    currentFrontUrl = frontUrl;
-    showSettingsFeedback('Paramètres enregistrés !', 'success');
-    setTimeout(() => checkAuth(), 900);
-  } catch {
-    showSettingsFeedback('Erreur lors de la sauvegarde.', 'error');
-  } finally {
-    btnSave.disabled    = false;
-    btnSave.textContent = 'Enregistrer';
-  }
+  window.open(FRONT_URL, '_blank');
 });
 
 // ── Génération du lien ────────────────────────────────────────────────────────
@@ -139,7 +84,7 @@ btnGenerate.addEventListener('click', async () => {
   setLoading(true);
 
   try {
-    const response = await fetch(`${currentApiUrl}/links/bulk`, {
+    const response = await fetch(`${API_URL}/links/bulk`, {
       method:      'POST',
       credentials: 'include',
       headers:     { 'Content-Type': 'application/json' },
@@ -183,7 +128,7 @@ btnGenerate.addEventListener('click', async () => {
 
     // Reconstruire l'URL comme le fait le front Angular :
     // frontBaseUrl + '/redeem/' + encodeURIComponent(link_token)
-    const linkUrl = `${currentFrontUrl}/redeem/${encodeURIComponent(result.link_token)}`;
+    const linkUrl = `${FRONT_URL}/redeem/${encodeURIComponent(result.link_token)}`;
 
     // Succès : copie automatique + toast
     try {
@@ -247,12 +192,7 @@ function hideError() {
   errorEl.textContent = '';
 }
 
-function showSettingsFeedback(msg, type) {
+function hideSettingsFeedback() {
   settingsFeedbackEl.textContent = msg;
   settingsFeedbackEl.className   = `feedback ${type}`;
-}
-
-function hideSettingsFeedback() {
-  settingsFeedbackEl.className = 'feedback hidden';
-  settingsFeedbackEl.textContent = '';
 }

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SecretLink",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Générez des liens à usage unique pour transmettre des informations sensibles.",
   "icons": {
     "16":  "icons/icon-16.png",
@@ -13,6 +13,9 @@
     "default_icon":  "icons/icon-128.png",
     "default_title": "SecretLink"
   },
-  "permissions": ["storage"],
-  "host_permissions": ["<all_urls>"]
+  "permissions": [],
+  "host_permissions": [
+    "https://api-secret.nicob.ovh/*",
+    "https://secret.nicob.ovh/*"
+  ]
 }
