@@ -22,12 +22,14 @@ import {CommonModule} from '@angular/common';
 import {RouterLink} from '@angular/router';
 import {addIcons} from 'ionicons';
 import {
+  browsersOutline,
   bulbOutline,
   checkmarkCircleOutline,
   closeCircleOutline,
   cloudOutline,
   linkOutline,
   lockClosedOutline,
+  extensionPuzzleOutline,
   shareSocialOutline,
   textOutline,
   timeOutline
@@ -76,6 +78,7 @@ export class HomePage implements OnInit {
   private toast = inject(ToastService);
   user: User = null;
   version = this.appVersion.version;
+  chromeExtensionUrl = environment.chromeExtensionUrl;
 
   loading = false;
   form = inject(FormBuilder).group({
@@ -103,7 +106,9 @@ export class HomePage implements OnInit {
       textOutline,
       timeOutline,
       closeCircleOutline,
-      checkmarkCircleOutline
+      checkmarkCircleOutline,
+      extensionPuzzleOutline,
+      browsersOutline
     });
   }
 

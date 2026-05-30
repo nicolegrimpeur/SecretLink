@@ -80,6 +80,36 @@ ion-card {
   }
 }
 
+#extension {
+  .extension-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    text-align: left;
+
+    p {
+      flex: 1;
+      margin: 0;
+      min-width: 180px;
+    }
+
+    ion-button {
+      flex-shrink: 0;
+    }
+  }
+
+  .extension-icon {
+    font-size: 3rem;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 767px) {
+    display: none;
+  }
+}
+
 .cmp-grid {
   display: grid;
   grid-template-columns: 1.2fr 1fr 1fr;

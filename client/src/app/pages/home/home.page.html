@@ -357,6 +357,31 @@
   </section>
 
 
+  <section id="extension">
+    <h2>Disponible en extension Chrome</h2>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" size-md="8" offset-md="2">
+          <ion-card>
+            <ion-card-content class="extension-banner">
+              <ion-icon name="browsers-outline" class="extension-icon"></ion-icon>
+              <p>Générez vos liens secrets directement depuis votre navigateur, sans quitter la page en cours.</p>
+              <ion-button
+                fill="outline"
+                [href]="chromeExtensionUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ion-icon name="extension-puzzle-outline" slot="start"></ion-icon>
+                Installer l'extension
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </section>
+
   <section class="cta-bottom">
     <h2>Prêt à simplifier le partage de vos secrets ?</h2>
     <ion-button size="large" color="primary" [routerLink]="user ? '/dashboard' : '/auth'">

@@ -6,6 +6,7 @@ export const environment = {
   production: false,
   apiBaseUrl: 'http://localhost:3000',
   frontBaseUrl: 'http://localhost:8100',
+  chromeExtensionUrl: 'https://chromewebstore.google.com/detail/dbneilgepekkiaabbjdmhmakojcenpel',
 };
 
 /*
