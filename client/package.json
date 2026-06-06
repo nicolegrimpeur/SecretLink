@@ -1,11 +1,12 @@
 {
   "name": "secret_link",
-  "version": "0.13.2",
-  "author": "Nicolas Barrat",
-  "homepage": "https://nicob.ovh/",
+  "version": "0.14.0",
+  "author": "Nicolas BARRAT",
+  "homepage": "https://secret.nicob.ovh/",
   "scripts": {
     "start": "ionic serve",
-    "build": "ng run app:build:production"
+    "build": "ng run app:build:production",
+    "version:sync": "node ../scripts/sync-version.mjs"
   },
   "dependencies": {
     "@angular/animations": "^21.2.10",

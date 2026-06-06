@@ -1,13 +1,14 @@
 {
   "name": "secretlink-server",
-  "version": "3.1.0",
+  "version": "0.14.0",
   "author": "Nicolas BARRAT",
   "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node dist/main.js",
     "dev": "node --watch dist/main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "version:sync": "node ../scripts/sync-version.mjs"
   },
   "dependencies": {
     "argon2": "^0.44.0",
