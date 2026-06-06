@@ -40,6 +40,7 @@ Remplir les valeurs dans `.env` :
 | `MYSQL_PASSWORD` | Mot de passe MySQL | *(chaîne aléatoire)* |
 | `MASTER_KEY_V1` | Clé de chiffrement AES-256 (64 caractères hex) | `openssl rand -hex 32` |
 | `SESSION_SECRET` | Secret de session (32 car. min.) | `openssl rand -base64 32` |
+| `IP_HMAC_SECRET` | Secret HMAC pour pseudonymiser IP/email dans les logs (32 car. min.) | `openssl rand -base64 32` |
 | `API_BASE_URL` | URL publique de l'API | `http://localhost:3000` |
 | `FRONT_BASE_URL` | URL publique du front | `http://localhost` |
 

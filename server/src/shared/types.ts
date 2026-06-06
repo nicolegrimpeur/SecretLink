@@ -36,7 +36,7 @@ export interface Link {
   id: number;
   owner_user_id: number;
   item_id: string;
-  link_token: string;
+  link_token_hash: string;
   cipher_text: Buffer;
   nonce: Buffer;
   key_version: number;
@@ -97,7 +97,6 @@ export interface PaginationOptions {
 }
 
 export interface LinkStatus {
-  link_token: string;
   item_id: string;
   expires_at: Date | null;
   used_at: Date | null;

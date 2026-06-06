@@ -308,9 +308,9 @@ export class LinksPage {
 
   /////////// Status ///////////
   exportCsv() {
-    const header = 'item_id;link_token;created_at;expires_at;used_at;deleted_at';
+    const header = 'item_id;created_at;expires_at;used_at;deleted_at';
     const lines = this.filteredRows().map(r => [
-      r.item_id, r.link_token, r.created_at, r.expires_at ?? '', r.used_at ?? '', r.deleted_at ?? ''
+      r.item_id, r.created_at, r.expires_at ?? '', r.used_at ?? '', r.deleted_at ?? ''
     ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(';'));
     const blob = new Blob([header + '\n' + lines.join('\n')], {type: 'text/csv;charset=utf-8;'});
     const url = URL.createObjectURL(blob);
@@ -405,20 +405,20 @@ export class LinksPage {
     return this.sortDirection() === 'asc' ? 'arrow-up-outline' : 'arrow-down-outline';
   }
 
-  askBeforeDelete(token: string) {
+  askBeforeDelete(itemId: string) {
     this.alert.create({
       header: 'Supprimer ce lien ?',
       message: `Cette action est irréversible.`,
       buttons: [
         {text: 'Annuler', role: 'cancel'},
-        {text: 'Supprimer', role: 'destructive', handler: () => this.delete(token)}
+        {text: 'Supprimer', role: 'destructive', handler: () => this.delete(itemId)}
       ]
     }).then(a => a.present());
   }
 
-  private async delete(token: string) {
+  private async delete(itemId: string) {
     try {
-      await this.api.deleteLink(token);
+      await this.api.deleteLink(itemId);
       await this.reload();
     } catch (e: any) {
       this.toast.toastMsg(e?.error?.error?.message || 'Suppression échouée').then();

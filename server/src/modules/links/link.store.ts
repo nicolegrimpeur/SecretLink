@@ -1,5 +1,6 @@
 import { PoolConnection } from 'mysql2/promise';
 import { getPool, withTx } from '../../config/database.js';
+import { hashToken } from '../../shared/crypto.js';
 import { Link, LinkStatus } from '../../shared/types.js';
 
 class LinkStore {
@@ -24,12 +25,12 @@ class LinkStore {
     },
   ): Promise<{ insertId: number }> {
     const [result] = await cx.execute<any>(
-      `INSERT INTO links (owner_user_id, item_id, link_token, cipher_text, nonce, key_version, expires_at, passphrase_hash)
+      `INSERT INTO links (owner_user_id, item_id, link_token_hash, cipher_text, nonce, key_version, expires_at, passphrase_hash)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         data.uid,
         data.iid,
-        data.lt,
+        hashToken(data.lt),
         data.ct,
         data.iv,
         data.kv,
@@ -46,19 +47,23 @@ class LinkStore {
   ): Promise<Link | null> {
     const [rows] = await cx.execute<any[]>(
       `SELECT id, owner_user_id, item_id, cipher_text, nonce, key_version, expires_at, used_at, deleted_at, passphrase_hash
-       FROM links WHERE link_token = ? FOR UPDATE`,
-      [token],
+       FROM links WHERE link_token_hash = ? FOR UPDATE`,
+      [hashToken(token)],
     );
     return rows[0] || null;
   }
 
-  async linkOwnerItemForUpdate(
+  async linkByItemForUpdate(
     cx: PoolConnection,
-    token: string,
+    uid: number,
+    itemId: string,
   ): Promise<{ id: number; owner_user_id: number; item_id: string } | null> {
     const [rows] = await cx.execute<any[]>(
-      `SELECT id, owner_user_id, item_id FROM links WHERE link_token = ? FOR UPDATE`,
-      [token],
+      `SELECT id, owner_user_id, item_id FROM links
+       WHERE owner_user_id = ? AND item_id = ?
+         AND deleted_at IS NULL AND used_at IS NULL
+       FOR UPDATE`,
+      [uid, itemId],
     );
     return rows[0] || null;
   }
@@ -142,7 +147,7 @@ class LinkStore {
     since?: Date | null,
     until?: Date | null,
   ): Promise<LinkStatus[]> {
-    let query = `SELECT item_id, link_token, created_at, expires_at, used_at, deleted_at
+    let query = `SELECT item_id, created_at, expires_at, used_at, deleted_at
                  FROM links WHERE owner_user_id = ?`;
     const params: any[] = [uid];
 

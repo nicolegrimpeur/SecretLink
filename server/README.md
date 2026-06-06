@@ -88,7 +88,7 @@ docker-compose up --build
 - `POST /links` - Create anonymous link (public)
 - `POST /links/bulk` - Create multiple links (auth required, scope: `links:write`)
 - `GET /links/redeem/:token` - Redeem/decrypt link (public)
-- `DELETE /links/:token` - Delete link (auth required, scope: `links:delete`)
+- `DELETE /links/by-item/:item_id` - Delete link by item id (auth required, scope: `links:delete`)
 - `GET /links/status` - List links (auth required, scope: `links:read`)
 
 ## Authentication Methods
@@ -131,6 +131,11 @@ Secret links use AES-256-GCM encryption with:
 - 12-byte random IV (nonce)
 - Additional Authenticated Data (AAD) for tampering detection
 - Ciphertext is purged after first access
+
+Additional privacy/security measures:
+- Link tokens are stored hashed (SHA-256, `link_token_hash`) - the clear token is never persisted nor recoverable after creation
+- Optional passphrases are stored hashed with **Argon2id** (`passphrase_hash`)
+- IPs and emails are pseudonymized with **HMAC-SHA256** (keyed with `IP_HMAC_SECRET`) before being logged
 
 ## Development
 
@@ -206,14 +211,14 @@ CREATE TABLE links (
   id INT PRIMARY KEY AUTO_INCREMENT,
   owner_user_id INT NOT NULL,
   item_id VARCHAR(320),
-  link_token VARCHAR(44) UNIQUE NOT NULL,
+  link_token_hash CHAR(64) UNIQUE NOT NULL,
   cipher_text LONGBLOB,
   nonce BINARY(12),
   key_version INT,
   expires_at TIMESTAMP NULL,
   used_at TIMESTAMP NULL,
   deleted_at TIMESTAMP NULL,
-  passphrase_hash VARCHAR(64),
+  passphrase_hash VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (owner_user_id) REFERENCES users(id)
 );

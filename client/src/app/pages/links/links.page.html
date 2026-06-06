@@ -338,7 +338,7 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                   <ion-col size="4" size-md="1"><b>Actions</b></ion-col>
                 </ion-item>
 
-                @for (row of filteredRows(); track row.link_token) {
+                @for (row of filteredRows(); track row.item_id) {
                   <ion-item class="grid-item ion-no-padding" lines="none">
                     <!-- Identifiant + Badges -->
                     <ion-col size="8" size-md="3" class="grid-col ion-text-center">
@@ -382,17 +382,9 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                     <ion-col size="4" size-md="1" class="ion-display-flex ion-justify-content-center">
                       <ion-buttons class="separate-buttons">
                         <ion-button
-                          fill="clear"
-                          shape="round"
-                          (click)="copy(linkUrl(row.link_token))"
-                          [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">
-                          <ion-icon name="copy-outline"></ion-icon>
-                        </ion-button>
-
-                        <ion-button
                           color="danger"
                           shape="round"
-                          (click)="askBeforeDelete(row.link_token)"
+                          (click)="askBeforeDelete(row.item_id)"
                           [disabled]="!!row.deleted_at || !!row.used_at || isLinkExpired(row)">
                           <ion-icon name="trash-outline"></ion-icon>
                         </ion-button>

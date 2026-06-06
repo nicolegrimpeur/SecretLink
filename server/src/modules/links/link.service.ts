@@ -1,6 +1,6 @@
 import config from '../../config/env.js';
 import { linkStore, tx } from './link.store.js';
-import { encrypt, decrypt, generateLinkToken, hashPassphrase, hashIp } from '../../shared/crypto.js';
+import { encrypt, decrypt, generateLinkToken, hashPassphrase, verifyPassphrase, hashIp } from '../../shared/crypto.js';
 import { NotFoundError, ValidationError } from '../../shared/types.js';
 import { getLogger } from '../../shared/logger.js';
 
@@ -177,7 +177,7 @@ export class LinkService {
           iv: Buffer.from(encrypted.nonce, 'base64url'),
           kv: config.KEY_VERSION,
           exp: expiresAt,
-          ph: passphraseHash ? hashPassphrase(passphraseHash) : null,
+          ph: passphraseHash ? await hashPassphrase(passphraseHash) : null,
         };
 
         const result = await linkStore.insertLink(cx, linkInData);
@@ -252,8 +252,8 @@ export class LinkService {
           throw err;
         }
 
-        const hashedInput = hashPassphrase(passphraseHash);
-        if (hashedInput !== link.passphrase_hash) {
+        const passphraseValid = await verifyPassphrase(passphraseHash, link.passphrase_hash);
+        if (!passphraseValid) {
           const err = new Error('Passphrase required or invalid');
           (err as any).statusCode = 403;
           (err as any).code = 'INVALID_PASSPHRASE';
@@ -294,9 +294,9 @@ export class LinkService {
   /**
    * Delete a link (soft delete)
    */
-  async deleteLink(uid: number, token: string, ip?: string, userAgent?: string): Promise<void> {
+  async deleteLink(uid: number, itemId: string, ip?: string, userAgent?: string): Promise<void> {
     return tx(async (cx) => {
-      const link = await linkStore.linkOwnerItemForUpdate(cx, token);
+      const link = await linkStore.linkByItemForUpdate(cx, uid, itemId);
 
       if (!link || Number(link.owner_user_id) !== uid) {
         throw new NotFoundError('Link not found');
@@ -329,7 +329,6 @@ export class LinkService {
     await linkStore.purgeExpiredLinksForUser(uid);
     const results = await linkStore.statusByOwner(uid, since, until);
     return results.map((r) => ({
-      link_token: r.link_token,
       item_id: r.item_id,
       created_at: r.created_at,
       expires_at: r.expires_at,

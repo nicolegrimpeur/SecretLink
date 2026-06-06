@@ -11,7 +11,7 @@ import {
 import { clearSession } from '../../middleware/session.js';
 import { ValidationError } from '../../shared/types.js';
 import { getLogger } from '../../shared/logger.js';
-import { hashIp } from '../../shared/crypto.js';
+import { hashIp, hashEmail } from '../../shared/crypto.js';
 
 const logger = getLogger('UserController');
 
@@ -34,7 +34,7 @@ export const signup = asyncHandler(async (req: Request, res: Response): Promise<
   const result = await userService.signup(email, password, totp_secret, totp_code);
 
   logger.info(
-    { event: 'USER_SIGNUP', email, ip_hash: hashIp(req.ip), user_agent: req.get('user-agent') ?? null },
+    { event: 'USER_SIGNUP', email_hash: hashEmail(email), ip_hash: hashIp(req.ip), user_agent: req.get('user-agent') ?? null },
     'User signed up',
   );
 
@@ -52,7 +52,7 @@ export const login = asyncHandler(async (req: Request, res: Response): Promise<v
   const result = await userService.login(email, password, req, res);
 
   logger.info(
-    { event: 'USER_LOGIN', email, mfa_required: (result as any).mfa_required, ip_hash: hashIp(req.ip), user_agent: req.get('user-agent') ?? null },
+    { event: 'USER_LOGIN', email_hash: hashEmail(email), mfa_required: (result as any).mfa_required, ip_hash: hashIp(req.ip), user_agent: req.get('user-agent') ?? null },
     'User login step 1',
   );
 

@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import argon2 from 'argon2';
 import config from '../config/env.js';
 
 /**
@@ -150,16 +151,47 @@ export function hashToken(token: string): string {
 }
 
 /**
- * Hash a passphrase (Argon2 should be used in the user service, but SHA256 for compatibility)
+ * Hash a passphrase with Argon2id before storing it.
+ * The client already sends a SHA-256 hex digest of the passphrase;
+ * we re-hash it server-side so a database leak does not expose a
+ * cheaply brute-forceable value.
  */
-export function hashPassphrase(passphrase: string): string {
-  return crypto.createHash('sha256').update(passphrase).digest('hex');
+export async function hashPassphrase(passphrase: string): Promise<string> {
+  return argon2.hash(passphrase, { type: argon2.argon2id });
 }
 
 /**
- * Hash an IP address (SHA-256) for privacy-preserving logging
+ * Verify a passphrase against a stored Argon2id hash (constant-time).
+ */
+export async function verifyPassphrase(
+  passphrase: string,
+  storedHash: string,
+): Promise<boolean> {
+  try {
+    return await argon2.verify(storedHash, passphrase);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Hash an IP address (HMAC-SHA256) for privacy-preserving logging.
+ * Uses a server-side secret so the pseudonym cannot be brute-forced
+ * from the (small) IPv4 address space.
  */
 export function hashIp(ip: string | undefined): string | null {
   if (!ip) return null;
-  return crypto.createHash('sha256').update(ip).digest('hex');
+  return crypto.createHmac('sha256', config.IP_HMAC_SECRET).update(ip).digest('hex');
+}
+
+/**
+ * Hash an email address (HMAC-SHA256) for privacy-preserving logging.
+ * Lets us correlate events without storing personal data in clear.
+ */
+export function hashEmail(email: string | undefined): string | null {
+  if (!email) return null;
+  return crypto
+    .createHmac('sha256', config.IP_HMAC_SECRET)
+    .update(email.trim().toLowerCase())
+    .digest('hex');
 }

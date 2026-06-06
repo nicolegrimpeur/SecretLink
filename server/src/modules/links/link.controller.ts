@@ -72,10 +72,10 @@ export const redeemLink = asyncHandler(async (req: Request, res: Response): Prom
 });
 
 export const deleteLink = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const token = req.params.token as string;
+  const itemId = req.params.item_id as string;
   const userId = (req as any).auth?.userId;
 
-  await linkService.deleteLink(userId, token, req.ip, req.get('user-agent'));
+  await linkService.deleteLink(userId, itemId, req.ip, req.get('user-agent'));
   res.status(204).end();
 });
 

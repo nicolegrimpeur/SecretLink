@@ -45,10 +45,10 @@ export class LinksService {
     );
   }
 
-  async deleteLink(linkToken: string, opts?: { pat?: string }) {
+  async deleteLink(itemId: string, opts?: { pat?: string }) {
     let headers = new HttpHeaders();
     if (opts?.pat) headers = headers.set('Authorization', `Bearer ${opts.pat}`);
-    const url = `${environment.apiBaseUrl}/links/${encodeURIComponent(linkToken)}`;
+    const url = `${environment.apiBaseUrl}/links/by-item/${encodeURIComponent(itemId)}`;
     await firstValueFrom(this.http.delete(url, { withCredentials: true, headers }));
   }
 

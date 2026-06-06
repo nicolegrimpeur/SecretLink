@@ -29,6 +29,9 @@ const envSchema = z.object({
     .regex(/^[0-9a-f]{64}$/i, 'MASTER_KEY_V1 must be 64 hex characters (256-bit)'),
   KEY_VERSION: z.coerce.number().int().positive(),
 
+  // Privacy - HMAC secret for pseudonymizing IPs / emails in logs
+  IP_HMAC_SECRET: z.string().min(32),
+
   // Session
   SESSION_SECRET: z.string().min(32),
   SESSION_COOKIE_NAME: z.string().default('sid'),
@@ -58,6 +61,9 @@ if (process.env.NODE_ENV === 'production') {
   }
   if (!config.MASTER_KEY_V1) {
     throw new Error('MASTER_KEY_V1 is required in production');
+  }
+  if (!config.IP_HMAC_SECRET) {
+    throw new Error('IP_HMAC_SECRET is required in production');
   }
 }
 
