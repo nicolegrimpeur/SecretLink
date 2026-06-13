@@ -33,6 +33,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "robots.txt",
+                "input": "src",
+                "output": ""
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
@@ -76,9 +81,7 @@
               "sourceMap": true,
               "namedChunks": true
             },
-            "ci": {
-              "progress": false
-            }
+            "ci": {}
           },
           "defaultConfiguration": "production"
         },
@@ -91,9 +94,7 @@
             "development": {
               "buildTarget": "app:build:development"
             },
-            "ci": {
-              "progress": false
-            }
+            "ci": {}
           },
           "defaultConfiguration": "development"
         },
@@ -107,7 +108,7 @@
           "builder": "@angular/build:karma",
           "options": {
             "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
             "inlineStyleLanguage": "scss",
@@ -123,7 +124,6 @@
           },
           "configurations": {
             "ci": {
-              "progress": false,
               "watch": false
             }
           }

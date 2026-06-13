@@ -24,6 +24,11 @@ export function createApp(): Express {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
+  // Block all crawlers on the API
+  app.get('/robots.txt', (_req, res) => {
+    res.type('text/plain').send('User-agent: *\nDisallow: /\n');
+  });
+
   // Security headers
   app.use(
     helmet({
