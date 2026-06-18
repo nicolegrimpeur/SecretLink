@@ -54,12 +54,12 @@ section {
 ion-card {
   text-align: center;
   ion-card-title {
-    display: flex;
-    align-items: center;
+    font-size: 1rem;
   }
   ion-icon {
     color: var(--ion-color-primary);
-    margin-right: 1rem;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
   }
   ion-card-header {
     display: flex;
