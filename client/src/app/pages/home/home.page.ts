@@ -1,4 +1,5 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, DestroyRef, inject, OnInit} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {
   IonAccordion,
   IonAccordionGroup,
@@ -76,6 +77,7 @@ export class HomePage implements OnInit {
   private appVersion = inject(AppVersionService);
   private linksService = inject(LinksService);
   private toast = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
   user: User = null;
   version = this.appVersion.version;
   chromeExtensionUrl = environment.chromeExtensionUrl;
@@ -113,7 +115,7 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
-    this.auth.user$.subscribe(u => this.user = u);
+    this.auth.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(u => this.user = u);
   }
 
   async createSecret() {

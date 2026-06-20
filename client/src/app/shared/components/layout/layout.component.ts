@@ -1,4 +1,5 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, DestroyRef, inject, OnInit} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {
   IonButton,
   IonButtons,
@@ -61,6 +62,7 @@ export class LayoutComponent implements OnInit {
   private storage = inject(StorageService);
   private toastController = inject(ToastController);
   private popoverController = inject(PopoverController);
+  private destroyRef = inject(DestroyRef);
   user: User = null;
   isManagementPage = false;
   tabManagementPages = ['/account', '/dashboard', '/links'];
@@ -81,9 +83,9 @@ export class LayoutComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.auth.user$.subscribe(u => this.user = u);
+    this.auth.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(u => this.user = u);
 
-    this.router.events.subscribe(() => {
+    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.isManagementPage = this.tabManagementPages.some(path => this.router.url.startsWith(path));
     });
 
