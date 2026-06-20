@@ -1,4 +1,5 @@
 import {Component, computed, inject, signal} from '@angular/core';
+import {HttpErrorResponse} from '@angular/common/http';
 
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
@@ -79,8 +80,8 @@ export class AccountPage {
     try {
       await this.auth.changePassword(current_password, new_password);
       await this.toast.toastMsg('Mot de passe mis à jour', 1400);
-    } catch (e: any) {
-      this.error = e?.error?.error?.message || 'Échec de la mise à jour';
+    } catch (e) {
+      this.error = (e as HttpErrorResponse).error?.error?.message || 'Échec de la mise à jour';
     } finally {
       this.loading = false;
     }

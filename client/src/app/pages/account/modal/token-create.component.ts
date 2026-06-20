@@ -1,4 +1,5 @@
 import {Component, inject} from '@angular/core';
+import {HttpErrorResponse} from '@angular/common/http';
 import {
   IonButton,
   IonButtons,
@@ -86,8 +87,8 @@ export class TokenCreateComponent {
       const res = await this.api.create(label || null, scopes && scopes.length ? scopes : ['links:read','links:write']);
       this.createdToken = res.token;
       await this.toast.toastMsg('Token généré');
-    } catch (e: any) {
-      await this.toast.toastMsg(e?.error?.error?.message || 'Création échouée');
+    } catch (e) {
+      await this.toast.toastMsg((e as HttpErrorResponse).error?.error?.message || 'Création échouée');
     } finally { this.loading = false; }
   }
 

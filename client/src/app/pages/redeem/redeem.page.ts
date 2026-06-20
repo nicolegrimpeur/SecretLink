@@ -1,4 +1,5 @@
 import {Component, inject, OnInit} from '@angular/core';
+import {HttpErrorResponse} from '@angular/common/http';
 
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
@@ -77,22 +78,23 @@ export class RedeemPage implements OnInit {
       this.itemId = redeemResponse.item_id;
       this.secret = await this.crypto.decryptIfNeeded(redeemResponse.secret, pass);
       this.state = 'success';
-    } catch (e: any) {
-      if (e?.status === 403) {
-        if (e?.error?.error?.code === 'PASSPHRASE_REQUIRED') {
+    } catch (e) {
+      const err = e as HttpErrorResponse;
+      if (err.status === 403) {
+        if (err.error?.error?.code === 'PASSPHRASE_REQUIRED') {
           this.state = 'passphrase_required';
-        } else if (e?.error?.error?.code === 'INVALID_PASSPHRASE') {
+        } else if (err.error?.error?.code === 'INVALID_PASSPHRASE') {
           this.state = 'passphrase_required';
           this.isPassphraseInvalid = true;
         }
       } else {
-        const status = e?.status;
+        const status = err.status;
         const msg =
           status === 404 ? 'Lien introuvable.' :
             status === 410 ? 'Lien déjà utilisé ou expiré.' :
               status === 429 ? 'Trop de tentatives. Réessayez dans un instant.' :
                 status === 403 ? 'Passphrase incorrecte.' :
-                  e?.error?.error?.message || 'Impossible de révéler le secret.';
+                  err.error?.error?.message || 'Impossible de révéler le secret.';
         this.fail(msg);
       }
     } finally {

@@ -1,4 +1,5 @@
 import {Component, inject, Input, signal} from '@angular/core';
+import {HttpErrorResponse} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import {
   IonButton,
@@ -81,8 +82,8 @@ export class MfaVerifyComponent {
         await this.auth.verifyMfa(this.preAuthToken, this.otpCode, undefined, this.rememberDevice);
       }
       this.modalController.dismiss({ success: true });
-    } catch (e: any) {
-      const code = e?.error?.error?.code || '';
+    } catch (e) {
+      const code = (e as HttpErrorResponse).error?.error?.code || '';
       if (code === 'PRE_AUTH_EXPIRED') {
         this.modalController.dismiss({ expired: true });
       } else if (code === 'UNAUTHORIZED') {

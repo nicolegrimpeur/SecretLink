@@ -1,5 +1,6 @@
 import {Component, DestroyRef, inject, OnInit} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {HttpErrorResponse} from '@angular/common/http';
 import {
   IonAccordion,
   IonAccordionGroup,
@@ -126,8 +127,9 @@ export class HomePage implements OnInit {
         secret: this.form.value.secret!,
       };
       this.creationResult = await this.linksService.createSingle(payload);
-    } catch (e: any) {
-      const errorCode = e?.error?.error?.code || 'SERVER_ERROR';
+    } catch (e) {
+      const err = e as HttpErrorResponse;
+      const errorCode = err.error?.error?.code || 'SERVER_ERROR';
       const helpEntry = this.errorCreationHelpText.find(entry => entry.code === errorCode);
       const helpMessage = helpEntry ? helpEntry.text : 'Création échouée.';
 

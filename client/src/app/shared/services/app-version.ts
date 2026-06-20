@@ -5,5 +5,5 @@ import packageJson from '../../../../package.json';
   providedIn: 'root'
 })
 export class AppVersionService {
-  public readonly version: any = packageJson.version as string;
+  public readonly version: string = packageJson.version;
 }

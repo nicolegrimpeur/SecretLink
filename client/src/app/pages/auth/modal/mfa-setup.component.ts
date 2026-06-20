@@ -1,4 +1,5 @@
 import {Component, ElementRef, inject, Input, OnInit, signal, ViewChild} from '@angular/core';
+import {HttpErrorResponse} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import QRCode from 'qrcode';
 import {
@@ -115,10 +116,11 @@ export class MfaSetupComponent implements OnInit {
       const result = await this.auth.signup(this.email, this.password, this.secret(), this.otpCode);
       this.recoveryCodes.set(result.recovery_codes);
       this.showRecoveryCodes.set(true);
-    } catch (e: any) {
-      const code = e?.error?.error?.code || '';
+    } catch (e) {
+      const err = e as HttpErrorResponse;
+      const code = err.error?.error?.code || '';
       if (code === 'VALIDATION_ERROR') {
-        this.error.set(e?.error?.error?.message?.includes('MFA') ? 'Code MFA invalide.' : 'Données invalides.');
+        this.error.set(err.error?.error?.message?.includes('MFA') ? 'Code MFA invalide.' : 'Données invalides.');
       } else if (code === 'CONFLICT') {
         this.error.set('Un compte avec cet email existe déjà.');
       } else {

@@ -1,5 +1,6 @@
 import {Component, computed, ElementRef, inject, signal, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
+import {HttpErrorResponse} from '@angular/common/http';
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   AlertController,
@@ -175,8 +176,9 @@ export class LinksPage {
         this.quickSecret = '';
         await this.reload();
       }
-    } catch (e: any) {
-      const errorCode = e?.error?.error?.code || 'SERVER_ERROR';
+    } catch (e) {
+      const err = e as HttpErrorResponse;
+      const errorCode = err.error?.error?.code || 'SERVER_ERROR';
       const helpEntry = this.errorCreationHelpText.find(entry => entry.code === errorCode);
       const helpMessage = helpEntry ? helpEntry.text : 'Création échouée.';
       this.toast.toastMsg(helpMessage, 3000).then();
@@ -205,8 +207,9 @@ export class LinksPage {
 
       this.lastResults = await this.api.createBulk(payload);
       if (this.lastResults?.length) await this.reload();
-    } catch (e: any) {
-      const errorCode = e?.error?.error?.code || 'SERVER_ERROR';
+    } catch (e) {
+      const err = e as HttpErrorResponse;
+      const errorCode = err.error?.error?.code || 'SERVER_ERROR';
       const helpEntry = this.errorCreationHelpText.find(entry => entry.code === errorCode);
       const helpMessage = helpEntry ? helpEntry.text : 'Création échouée.';
 
@@ -246,8 +249,8 @@ export class LinksPage {
         idempotencyKey: await this.generateIdempotencyKey(items)
       });
       if (this.lastResults?.length) await this.reload();
-    } catch (e: any) {
-      this.toast.toastMsg(e?.error?.error?.message || 'Bulk échoué').then();
+    } catch (e) {
+      this.toast.toastMsg((e as HttpErrorResponse).error?.error?.message || 'Bulk échoué').then();
     } finally {
       this.loading = false;
     }
@@ -287,7 +290,7 @@ export class LinksPage {
         {since: this.since || undefined, until: this.until || undefined}
       ));
       this.forceRefresh();
-    } catch (e: any) {
+    } catch (_e) {
     } finally {
       setTimeout(() => {
         this.loading = false;
@@ -420,8 +423,8 @@ export class LinksPage {
     try {
       await this.api.deleteLink(itemId);
       await this.reload();
-    } catch (e: any) {
-      this.toast.toastMsg(e?.error?.error?.message || 'Suppression échouée').then();
+    } catch (e) {
+      this.toast.toastMsg((e as HttpErrorResponse).error?.error?.message || 'Suppression échouée').then();
     }
   }
 }

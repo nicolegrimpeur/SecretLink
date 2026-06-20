@@ -1,4 +1,5 @@
 import {Component, computed, effect, inject, signal} from '@angular/core';
+import {HttpErrorResponse} from '@angular/common/http';
 
 import {FormBuilder, FormsModule, ReactiveFormsModule, ValidatorFn, Validators} from '@angular/forms';
 import {
@@ -193,8 +194,8 @@ export class AuthPage {
         let mfaSetup: { provisioning_uri: string; secret: string };
         try {
           mfaSetup = await this.auth.generateMfaSetup(email);
-        } catch (e: any) {
-          const code = e?.error?.error?.code || '';
+        } catch (e) {
+          const code = (e as HttpErrorResponse).error?.error?.code || '';
           const known = this.backendError.find(x => x.code === code);
           this.error.set(known?.message ?? 'Une erreur est survenue.');
           return;
@@ -241,8 +242,9 @@ export class AuthPage {
           }
         }
       }
-    } catch (e: any) {
-      const code = e?.error?.error?.code || e?.code || e?.message;
+    } catch (e) {
+      const err = e as HttpErrorResponse;
+      const code = err.error?.error?.code || err.message;
       const known = this.backendError.find(x => x.code === code);
       this.error.set(known?.message ?? 'Une erreur est survenue.');
     } finally {
