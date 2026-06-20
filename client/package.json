@@ -6,6 +6,7 @@
   "scripts": {
     "start": "ionic serve",
     "build": "ng run app:build:production",
+    "test": "ng test --watch=false --browsers=ChromeHeadless",
     "version:sync": "node ../scripts/sync-version.mjs"
   },
   "dependencies": {
