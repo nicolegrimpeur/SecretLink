@@ -1,8 +1,8 @@
-import { TestBed } from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 
-import { AppVersionService } from './app-version.service';
+import {AppVersionService} from './app-version';
 
-describe('AppVersion', () => {
+describe('AppVersionService', () => {
   let service: AppVersionService;
 
   beforeEach(() => {
@@ -12,5 +12,14 @@ describe('AppVersion', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('exposes a non-empty version string', () => {
+    expect(service.version).toBeTruthy();
+    expect(typeof service.version).toBe('string');
+  });
+
+  it('version matches semver format (x.y.z)', () => {
+    expect(service.version).toMatch(/^\d+\.\d+\.\d+/);
   });
 });
