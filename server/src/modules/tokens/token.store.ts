@@ -28,13 +28,15 @@ class TokenStore {
     return { insertId: result.insertId as number };
   }
 
-  async revokeToken(userId: number, tokenId: number): Promise<void> {
+  /** Returns the number of rows affected - 0 means unknown id or not owned by this user. */
+  async revokeToken(userId: number, tokenId: number): Promise<number> {
     const pool = getPool();
-    await pool.execute(
+    const [result] = await pool.execute<any>(
       `UPDATE api_tokens SET revoked_at = NOW()
        WHERE id = ? AND user_id = ?`,
       [tokenId, userId],
     );
+    return result.affectedRows as number;
   }
 }
 

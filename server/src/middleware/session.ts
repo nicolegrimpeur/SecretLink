@@ -70,13 +70,15 @@ export function sessionAuth(
     throw new UnauthorizedError('No session cookie found');
   }
 
+  let decoded: SessionPayload;
   try {
-    const decoded = jwt.verify(token, config.SESSION_SECRET) as SessionPayload;
-    (req as any).session = { userId: Number(decoded.userId) };
-    next();
+    decoded = jwt.verify(token, config.SESSION_SECRET) as SessionPayload;
   } catch (err) {
     throw new UnauthorizedError('Invalid or expired session');
   }
+
+  (req as any).session = { userId: Number(decoded.userId) };
+  next();
 }
 
 /**

@@ -1,5 +1,6 @@
 import { tokenStore } from './token.store.js';
 import { generateLinkToken, hashToken } from '../../shared/crypto.js';
+import { NotFoundError } from '../../shared/types.js';
 
 export class TokenService {
   async createToken(
@@ -52,7 +53,10 @@ export class TokenService {
   }
 
   async revokeToken(userId: number, tokenId: number): Promise<void> {
-    await tokenStore.revokeToken(userId, tokenId);
+    const affectedRows = await tokenStore.revokeToken(userId, tokenId);
+    if (affectedRows === 0) {
+      throw new NotFoundError('Token not found');
+    }
   }
 }
 

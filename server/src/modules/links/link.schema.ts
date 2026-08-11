@@ -17,6 +17,12 @@ export const LinkCreateBulkItemSchema = z.object({
 
 export const LinkCreateBulkRequestSchema = z.array(LinkCreateBulkItemSchema).min(1).max(1000);
 
+export const LinkStatusQuerySchema = z.object({
+  since: z.iso.datetime({ offset: true }).optional(),
+  until: z.iso.datetime({ offset: true }).optional(),
+});
+
 export type LinkCreateItem = z.infer<typeof LinkCreateItemSchema>;
 export type LinkCreateBulkItem = z.infer<typeof LinkCreateBulkItemSchema>;
 export type LinkCreateBulkRequest = z.infer<typeof LinkCreateBulkRequestSchema>;
+export type LinkStatusQuery = z.infer<typeof LinkStatusQuerySchema>;

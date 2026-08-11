@@ -12,7 +12,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 const envSchema = z.object({
   // Server
   PORT: z.coerce.number().default(3000),
-  NODE_ENV: z.enum(['development', 'production']).default('development'),
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   API_BASE_URL: z.string().url(),
   FRONT_BASE_URL: z.string().url(),
 
@@ -46,6 +46,9 @@ const envSchema = z.object({
   TRUSTED_DEVICE_COOKIE_NAME: z.string().default('tdc'),
   TRUSTED_DEVICE_TTL_DAYS: z.coerce.number().int().positive().default(30),
 
+  // CORS - comma-separated origin list, falls back to the built-in defaults when unset
+  ALLOWED_ORIGINS: z.string().optional(),
+
   // Features
   MAINTENANCE_MODE: z.coerce.number().default(0),
 });
@@ -53,18 +56,5 @@ const envSchema = z.object({
 export type Config = z.infer<typeof envSchema>;
 
 export const config = envSchema.parse(process.env);
-
-// Validate critical configs
-if (process.env.NODE_ENV === 'production') {
-  if (!config.SESSION_SECRET) {
-    throw new Error('SESSION_SECRET is required in production');
-  }
-  if (!config.MASTER_KEY_V1) {
-    throw new Error('MASTER_KEY_V1 is required in production');
-  }
-  if (!config.IP_HMAC_SECRET) {
-    throw new Error('IP_HMAC_SECRET is required in production');
-  }
-}
 
 export default config;

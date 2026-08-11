@@ -1,7 +1,7 @@
 import config from '../../config/env.js';
 import { linkStore, tx } from './link.store.js';
 import { encrypt, decrypt, generateLinkToken, hashPassphrase, verifyPassphrase, hashIp } from '../../shared/crypto.js';
-import { NotFoundError, ValidationError } from '../../shared/types.js';
+import { AppError, GoneError, NotFoundError, ValidationError } from '../../shared/types.js';
 import { getLogger } from '../../shared/logger.js';
 
 const logger = getLogger('LinkService');
@@ -71,7 +71,7 @@ export class LinkService {
         item_id: itemId,
         status: 'created' as const,
         link_token: linkToken,
-        link_url: `${config.API_BASE_URL}/links/${encodeURIComponent(linkToken)}/redeem`,
+        link_url: `${config.API_BASE_URL}/links/redeem/${encodeURIComponent(linkToken)}`,
         expires_at: expiresAt.toISOString(),
         error: null,
       };
@@ -187,7 +187,7 @@ export class LinkService {
           item_id: itemId,
           status: 'created',
           link_token: linkToken,
-          link_url: `${config.API_BASE_URL}/links/${encodeURIComponent(linkToken)}/redeem`,
+          link_url: `${config.API_BASE_URL}/links/redeem/${encodeURIComponent(linkToken)}`,
           expires_at: expiresAt ? expiresAt.toISOString() : null,
           error: null,
         });
@@ -227,37 +227,26 @@ export class LinkService {
 
       // Check if link is expired, deleted, or already used
       if (link.deleted_at || link.used_at) {
-        const err = new Error('Link expired, deleted, or already used');
-        (err as any).statusCode = 410;
-        (err as any).code = 'LINK_GONE';
-        throw err;
+        throw new GoneError('Link expired, deleted, or already used');
       }
 
       if (link.expires_at && new Date(link.expires_at) <= new Date()) {
         // Purge cipher_text and release item lock before surfacing the error
         await linkStore.purgeExpiredLink(cx, link.id);
         await linkStore.deleteItemLock(cx, link.owner_user_id, link.item_id);
-        const err = new Error('Link expired, deleted, or already used');
-        (err as any).statusCode = 410;
-        (err as any).code = 'LINK_GONE';
-        throw err;
+        throw new GoneError('Link expired, deleted, or already used');
       }
 
       // Verify passphrase if required
+      // Both 403s keep a dedicated code - the client discriminates on them
       if (link.passphrase_hash) {
         if (!passphraseHash) {
-          const err = new Error('Passphrase required or invalid');
-          (err as any).statusCode = 403;
-          (err as any).code = 'PASSPHRASE_REQUIRED';
-          throw err;
+          throw new AppError(403, 'PASSPHRASE_REQUIRED', 'Passphrase required or invalid');
         }
 
         const passphraseValid = await verifyPassphrase(passphraseHash, link.passphrase_hash);
         if (!passphraseValid) {
-          const err = new Error('Passphrase required or invalid');
-          (err as any).statusCode = 403;
-          (err as any).code = 'INVALID_PASSPHRASE';
-          throw err;
+          throw new AppError(403, 'INVALID_PASSPHRASE', 'Passphrase required or invalid');
         }
       }
 

@@ -8,4 +8,9 @@ export const CreateTokenReqSchema = z.object({
     .default(['links:read', 'links:write', 'links:delete']),
 });
 
+export const TokenIdParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
 export type CreateTokenRequest = z.infer<typeof CreateTokenReqSchema>;
+export type TokenIdParam = z.infer<typeof TokenIdParamSchema>;

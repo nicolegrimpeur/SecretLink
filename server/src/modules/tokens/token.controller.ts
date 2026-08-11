@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../../middleware/errorHandler.js';
 import { tokenService } from './token.service.js';
-import { CreateTokenReqSchema } from './token.schema.js';
+import { CreateTokenReqSchema, TokenIdParamSchema } from './token.schema.js';
 import { ValidationError } from '../../shared/types.js';
 import { getLogger } from '../../shared/logger.js';
 
@@ -40,8 +40,13 @@ export const createPAT = asyncHandler(async (req: Request, res: Response): Promi
 });
 
 export const revokePAT = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const parsed = TokenIdParamSchema.safeParse(req.params);
+  if (!parsed.success) {
+    throw new ValidationError(formatZodErrors(parsed.error));
+  }
+
   const userId = (req as any).session?.userId;
-  const tokenId = Number(req.params.id);
+  const tokenId = parsed.data.id;
 
   await tokenService.revokeToken(userId, tokenId);
   logger.info(

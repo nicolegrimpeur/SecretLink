@@ -4,6 +4,7 @@ import { linkService } from './link.service.js';
 import {
   LinkCreateItemSchema,
   LinkCreateBulkRequestSchema,
+  LinkStatusQuerySchema,
 } from './link.schema.js';
 import { ValidationError } from '../../shared/types.js';
 
@@ -45,30 +46,8 @@ export const redeemLink = asyncHandler(async (req: Request, res: Response): Prom
   const token = req.params.token as string;
   const passphraseHash = req.query.pass ? String(req.query.pass) : undefined;
 
-  try {
-    const result = await linkService.redeemLink(token, passphraseHash, req.ip, req.get('user-agent'));
-    res.status(200).json(result);
-  } catch (err: any) {
-    if (err.statusCode === 403) {
-      res.status(403).json({
-        error: { code: err.code, message: err.message },
-      });
-      return;
-    }
-    if (err.statusCode === 404) {
-      res.status(404).json({
-        error: { code: 'NOT_FOUND', message: 'Link not found' },
-      });
-      return;
-    }
-    if (err.statusCode === 410) {
-      res.status(410).json({
-        error: { code: 'LINK_GONE', message: err.message },
-      });
-      return;
-    }
-    throw err;
-  }
+  const result = await linkService.redeemLink(token, passphraseHash, req.ip, req.get('user-agent'));
+  res.status(200).json(result);
 });
 
 export const deleteLink = asyncHandler(async (req: Request, res: Response): Promise<void> => {
@@ -80,10 +59,18 @@ export const deleteLink = asyncHandler(async (req: Request, res: Response): Prom
 });
 
 export const statusList = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).auth?.userId;
-  const since = req.query.since ? new Date(String(req.query.since)) : undefined;
-  const until = req.query.until ? new Date(String(req.query.until)) : undefined;
+  const parsed = LinkStatusQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw new ValidationError(formatZodErrors(parsed.error));
+  }
 
-  const results = await linkService.listLinks(userId, since, until);
+  const userId = (req as any).auth?.userId;
+  const { since, until } = parsed.data;
+
+  const results = await linkService.listLinks(
+    userId,
+    since ? new Date(since) : undefined,
+    until ? new Date(until) : undefined,
+  );
   res.json(results);
 });

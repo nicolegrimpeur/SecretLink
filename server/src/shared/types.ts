@@ -156,3 +156,10 @@ export class NotFoundError extends AppError {
     this.name = 'NotFoundError';
   }
 }
+
+export class GoneError extends AppError {
+  constructor(message: string = 'Gone') {
+    super(410, 'LINK_GONE', message);
+    this.name = 'GoneError';
+  }
+}
