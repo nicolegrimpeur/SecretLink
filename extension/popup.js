@@ -12,6 +12,7 @@ const viewGenerate       = document.getElementById('view-generate');
 
 const btnGenerate        = document.getElementById('btn-generate');
 const btnOpenSite        = document.getElementById('btn-open-site');
+const btnOpenSiteHeader  = document.getElementById('btn-open-site-header');
 const btnRetry           = document.getElementById('btn-retry');
 
 const secretEl           = document.getElementById('secret');
@@ -59,8 +60,10 @@ function showView(el) {
 
 btnRetry.addEventListener('click', () => checkAuth());
 
-btnOpenSite.addEventListener('click', () => {
-  window.open(FRONT_URL, '_blank');
+[btnOpenSite, btnOpenSiteHeader].forEach(btn => {
+  btn.addEventListener('click', () => {
+    window.open(FRONT_URL, '_blank');
+  });
 });
 
 // ── Génération du lien ────────────────────────────────────────────────────────
@@ -190,9 +193,4 @@ function showError(msg) {
 function hideError() {
   errorEl.classList.add('hidden');
   errorEl.textContent = '';
-}
-
-function hideSettingsFeedback() {
-  settingsFeedbackEl.textContent = msg;
-  settingsFeedbackEl.className   = `feedback ${type}`;
 }
