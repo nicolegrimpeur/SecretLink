@@ -100,74 +100,118 @@ export class LinkService {
 
     // Snapshot the owner's existing links once, before opening the transaction.
     const existingLinks = await linkStore.statusByOwner(uid);
-    const existingByItemId = new Map<string, (typeof existingLinks)[number]>();
+
+    // A link only blocks re-creation while it is still redeemable. Once redeemed or
+    // deleted it releases its `items` lock, so the database would accept a new link
+    // for that item_id - the snapshot must not be stricter than the database.
+    const isBlocking = (link: (typeof existingLinks)[number]) =>
+      !link.used_at &&
+      !link.deleted_at &&
+      (!link.expires_at || new Date(link.expires_at) > now);
+
+    const blockingByItemId = new Map<string, (typeof existingLinks)[number]>();
+    const knownItemIds = new Set<string>();
     for (const link of existingLinks) {
-      if (!existingByItemId.has(link.item_id)) {
-        existingByItemId.set(link.item_id, link);
+      knownItemIds.add(link.item_id);
+      if (isBlocking(link) && !blockingByItemId.has(link.item_id)) {
+        blockingByItemId.set(link.item_id, link);
       }
     }
 
-    return tx(async (cx) => {
-      const results: CreateLinkResult[] = [];
+    // Results are indexed by input position so the response keeps the request order.
+    const results: CreateLinkResult[] = new Array(items.length);
+    const pending: Array<{
+      index: number;
+      itemId: string;
+      secret: string;
+      passphraseHash: string;
+      ttlDays: number;
+    }> = [];
 
-      for (const row of items) {
-        const itemId = String(row.item_id || '').trim();
-        const secret = String(row.secret || '');
-        const passphraseHash = String(row.passphrase_hash || '');
-        const ttlDays = Number(row.ttl_days ?? 0);
+    // Phase 1 - validation and duplicate resolution
+    items.forEach((row, index) => {
+      const itemId = String(row.item_id || '').trim();
+      const secret = String(row.secret || '');
+      const passphraseHash = String(row.passphrase_hash || '');
+      const ttlDays = Number(row.ttl_days ?? 0);
 
-        // Validate
-        if (
-          !itemId ||
-          !secret ||
-          !Number.isFinite(ttlDays) ||
-          ttlDays < 0 ||
-          ttlDays > 365
-        ) {
-          results.push({
-            item_id: itemId,
-            status: 'invalid_item_id',
-            link_token: null,
-            link_url: null,
-            expires_at: null,
-            error: 'Bad payload',
-          });
-          continue;
-        }
+      if (
+        !itemId ||
+        !secret ||
+        !Number.isFinite(ttlDays) ||
+        ttlDays < 0 ||
+        ttlDays > 365
+      ) {
+        results[index] = {
+          item_id: itemId,
+          status: 'invalid_item_id',
+          link_token: null,
+          link_url: null,
+          expires_at: null,
+          error: 'Bad payload',
+        };
+        return;
+      }
 
-        // Check for existing non-expired link
-        const existingLink = existingByItemId.get(itemId);
+      const blocking = blockingByItemId.get(itemId);
+      if (blocking) {
+        results[index] = {
+          item_id: itemId,
+          status: 'duplicate_item_id',
+          link_token: null,
+          link_url: null,
+          expires_at: blocking.expires_at ? new Date(blocking.expires_at).toISOString() : null,
+          error: null,
+        };
+        return;
+      }
 
-        if (
-          existingLink &&
-          (!existingLink.expires_at ||
-            new Date(existingLink.expires_at) > now)
-        ) {
-          results.push({
-            item_id: itemId,
-            status: 'duplicate_item_id',
-            link_token: null,
-            link_url: null,
-            expires_at: existingLink.expires_at ? new Date(existingLink.expires_at).toISOString() : null,
-            error: null,
-          });
-          continue;
-        } else if (existingLink?.expires_at && new Date(existingLink.expires_at) <= now) {
+      pending.push({ index, itemId, secret, passphraseHash, ttlDays });
+    });
+
+    // Phase 2 - argon2 is deliberately slow (~60 ms per hash). Hashing here rather than
+    // inside the transaction keeps InnoDB locks and the pooled connection out of what is
+    // pure CPU work: a 50-item batch would otherwise hold them for several seconds.
+    const hashedPassphrases: Array<string | null> = [];
+    for (const item of pending) {
+      hashedPassphrases.push(item.passphraseHash ? await hashPassphrase(item.passphraseHash) : null);
+    }
+
+    // Audit entries are buffered and only emitted once the transaction has committed:
+    // an aborted batch must not leave LINK_CREATED entries behind for links that were
+    // rolled back and no longer exist.
+    const createdEvents: Array<Record<string, unknown>> = [];
+
+    // Phase 3 - transaction, purely SQL.
+    await tx(async (cx) => {
+      for (const [position, item] of pending.entries()) {
+        const { index, itemId, secret, ttlDays } = item;
+
+        // A consumed, deleted or expired link may have left its lock behind
+        // (expired ones are only released lazily).
+        if (knownItemIds.has(itemId)) {
           await linkStore.deleteItemLock(cx, uid, itemId);
         }
 
-        // Insert item for tracking
+        // Insert item for tracking - the unique key is what catches duplicates inside
+        // the payload itself.
         try {
           await linkStore.insertItem(cx, uid, itemId);
         } catch (err) {
-          results.push({
+          // Anything else (deadlock, lock wait timeout, lost connection) must abort the
+          // whole batch: swallowing it would report success on a rolled back transaction.
+          if ((err as { code?: string }).code !== 'ER_DUP_ENTRY') {
+            throw err;
+          }
+
+          results[index] = {
             item_id: itemId,
             status: 'duplicate_item_id',
             link_token: null,
             link_url: null,
             expires_at: null,
             error: null,
-          });
+          };
           continue;
         }
 
@@ -185,36 +229,37 @@ export class LinkService {
           iv: Buffer.from(encrypted.nonce, 'base64url'),
           kv: config.KEY_VERSION,
           exp: expiresAt,
-          ph: passphraseHash ? await hashPassphrase(passphraseHash) : null,
+          ph: hashedPassphrases[position],
         };
 
         const result = await linkStore.insertLink(cx, linkInData);
         const linkId = result.insertId;
 
-        results.push({
+        results[index] = {
           item_id: itemId,
           status: 'created',
           link_token: linkToken,
           link_url: `${config.API_BASE_URL}/links/redeem/${encodeURIComponent(linkToken)}`,
           expires_at: expiresAt ? expiresAt.toISOString() : null,
           error: null,
+        };
+
+        createdEvents.push({
+          event: 'LINK_CREATED',
+          owner_user_id: uid,
+          item_id: itemId,
+          link_id: linkId,
+          ip_hash: hashIp(ip),
+          user_agent: userAgent ?? null,
         });
-
-        logger.info(
-          {
-            event: 'LINK_CREATED',
-            owner_user_id: uid,
-            item_id: itemId,
-            link_id: linkId,
-            ip_hash: hashIp(ip),
-            user_agent: userAgent ?? null,
-          },
-          'Link created',
-        );
       }
-
-      return results;
     });
+
+    for (const event of createdEvents) {
+      logger.info(event, 'Link created');
+    }
+
+    return results;
   }
 
   /**

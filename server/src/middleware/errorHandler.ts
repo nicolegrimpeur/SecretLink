@@ -69,6 +69,8 @@ export function errorHandler(
     status?: unknown;
     statusCode?: unknown;
     type?: unknown;
+    code?: unknown;
+    errno?: unknown;
   };
   const tagged =
     typeof raw.type === 'string' ? BODY_PARSER_ERRORS[raw.type] : undefined;
@@ -104,11 +106,14 @@ export function errorHandler(
     return;
   }
 
-  // Unexpected errors
+  // Unexpected errors - `code` and `errno` are what driver-level failures (mysql2,
+  // node) carry, and they are the fastest way to identify the class of failure.
   logger.error(
     {
       path: req.path,
       method: req.method,
+      code: raw.code,
+      errno: raw.errno,
       stack: err.stack,
     },
     'Unexpected error',
