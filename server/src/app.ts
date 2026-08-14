@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+import express, { Express, Request } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -6,6 +6,7 @@ import bodyParser from 'body-parser';
 
 import config from './config/env.js';
 import { httpLogger, getLogger } from './shared/logger.js';
+import { generateRequestId, runWithRequestId } from './shared/requestContext.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { AppError, NotFoundError } from './shared/types.js';
 import { globalLimiter } from './middleware/rateLimit.js';
@@ -48,6 +49,17 @@ export function createApp(): Express {
     res.type('text/plain').send('User-agent: *\nDisallow: /\n');
   });
 
+  // Request correlation - registered before body parsing and logging so that every
+  // log line of a request, including parsing failures, carries the same request_id.
+  app.use((req, _res, next) => {
+    const requestId = generateRequestId();
+    (req as Request & { id?: string }).id = requestId;
+    runWithRequestId(requestId, next);
+  });
+
+  // HTTP logging
+  app.use(httpLogger);
+
   // Security headers
   app.use(
     helmet({
@@ -83,9 +95,6 @@ export function createApp(): Express {
 
   app.use(cors(corsOptions));
   app.options('/*path', cors(corsOptions));
-
-  // HTTP logging
-  app.use(httpLogger);
 
   // Maintenance mode middleware
   app.use((req, res, next): void => {

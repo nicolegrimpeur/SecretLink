@@ -247,7 +247,6 @@ export class LinkService {
         createdEvents.push({
           event: 'LINK_CREATED',
           owner_user_id: uid,
-          item_id: itemId,
           link_id: linkId,
           ip_hash: hashIp(ip),
           user_agent: userAgent ?? null,
@@ -318,7 +317,7 @@ export class LinkService {
         {
           event: 'LINK_REDEEMED',
           owner_user_id: link.owner_user_id,
-          item_id: link.item_id,
+          link_id: link.id,
           ip_hash: hashIp(ip),
           user_agent: userAgent ?? null,
         },
@@ -351,7 +350,7 @@ export class LinkService {
         {
           event: 'LINK_DELETED',
           owner_user_id: uid,
-          item_id: link.item_id,
+          link_id: link.id,
           ip_hash: hashIp(ip),
           user_agent: userAgent ?? null,
         },

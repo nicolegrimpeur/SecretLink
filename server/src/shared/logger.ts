@@ -1,6 +1,7 @@
 import pino from 'pino';
 import pinoHttp from 'pino-http';
 import config from '../config/env.js';
+import { generateRequestId, getRequestId } from './requestContext.js';
 
 // Redact token-like path segments (base64url, 20+ chars)
 const TOKEN_SEGMENT_RE = /\/[A-Za-z0-9_-]{20,}/g;
@@ -14,6 +15,12 @@ function sanitizeUrl(url: string | undefined): string {
 
 const logger = pino({
   level: config.LOG_LEVEL,
+  // Stamps request_id on every line written while handling a request - application
+  // logs included, without any service having to pass a logger around.
+  mixin() {
+    const requestId = getRequestId();
+    return requestId ? { request_id: requestId } : {};
+  },
   transport:
     config.NODE_ENV === 'development'
       ? {
@@ -33,6 +40,10 @@ const logger = pino({
 export const httpLogger = pinoHttp(
   {
     logger,
+    // The id is set by the requestId middleware in app.ts, which runs first so that
+    // errors raised before this point (body parsing, for instance) are correlated too.
+    genReqId: (req) => (req as { id?: string }).id ?? generateRequestId(),
+    customProps: (req) => ({ request_id: (req as { id?: string }).id }),
     serializers: {
       req(req) {
         return {
