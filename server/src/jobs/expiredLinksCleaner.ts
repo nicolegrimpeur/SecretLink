@@ -5,7 +5,11 @@ const logger = getLogger('ExpiredLinksCleaner');
 
 const INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 
-export function startExpiredLinksCleaner(): void {
+/**
+ * Starts the periodic cleanup and returns a function stopping it.
+ * The timer is unref'd so it never keeps the process (or a test runner) alive on its own.
+ */
+export function startExpiredLinksCleaner(): () => void {
   const run = async () => {
     try {
       const { ciphertextPurged, locksReleased } = await linkStore.purgeAllExpiredLinks();
@@ -21,5 +25,8 @@ export function startExpiredLinksCleaner(): void {
   };
 
   run();
-  setInterval(run, INTERVAL_MS);
+  const timer = setInterval(run, INTERVAL_MS);
+  timer.unref();
+
+  return () => clearInterval(timer);
 }

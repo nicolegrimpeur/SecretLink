@@ -4,17 +4,9 @@ import { tokenService } from './token.service.js';
 import { CreateTokenReqSchema, TokenIdParamSchema } from './token.schema.js';
 import { ValidationError } from '../../shared/types.js';
 import { getLogger } from '../../shared/logger.js';
+import { formatZodErrors } from '../../shared/validation.js';
 
 const logger = getLogger('TokenController');
-
-function formatZodErrors(error: any): string {
-  if (error.issues) {
-    return error.issues
-      .map((issue: any) => `${issue.path.join('.')}: ${issue.message}`)
-      .join('; ');
-  }
-  return 'Invalid request';
-}
 
 export const listPAT = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).session?.userId;

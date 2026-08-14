@@ -242,7 +242,12 @@ export class UserService {
     return publicUser(user);
   }
 
-  async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    userId: number,
+    currentPassword: string,
+    newPassword: string,
+    res: Response,
+  ): Promise<void> {
     const user = await userStore.getById(userId);
     if (!user) {
       throw new NotFoundError('User not found');
@@ -259,6 +264,10 @@ export class UserService {
 
     const hash = await argon2.hash(newPassword, { type: argon2.argon2id });
     await userStore.updatePassword(userId, Buffer.from(hash));
+
+    // Every session issued before this point is now stale. Re-issue one for the
+    // current device so the caller stays signed in while other sessions are dropped.
+    issueSession(res, { userId });
   }
 
   async purgeUserData(userId: number): Promise<void> {

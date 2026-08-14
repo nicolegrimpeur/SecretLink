@@ -12,17 +12,9 @@ import { clearSession } from '../../middleware/session.js';
 import { ValidationError } from '../../shared/types.js';
 import { getLogger } from '../../shared/logger.js';
 import { hashIp, hashEmail } from '../../shared/crypto.js';
+import { formatZodErrors } from '../../shared/validation.js';
 
 const logger = getLogger('UserController');
-
-function formatZodErrors(error: any): string {
-  if (error.issues) {
-    return error.issues
-      .map((issue: any) => `${issue.path.join('.')}: ${issue.message}`)
-      .join('; ');
-  }
-  return 'Invalid request';
-}
 
 export const signup = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const parsed = SignupReqSchema.safeParse(req.body);
@@ -123,7 +115,7 @@ export const changePassword = asyncHandler(async (req: Request, res: Response): 
 
   const userId = (req as any).session?.userId;
   const { current_password, new_password } = parsed.data;
-  await userService.changePassword(userId, current_password, new_password);
+  await userService.changePassword(userId, current_password, new_password, res);
 
   logger.info(
     { event: 'USER_PASSWORD_CHANGED', user_id: userId, ip_hash: hashIp(req.ip), user_agent: req.get('user-agent') ?? null },

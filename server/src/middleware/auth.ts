@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { extractPatFromHeader, sessionAuth } from './session.js';
+import { extractPatFromHeader, isSessionStale } from './session.js';
 import config from '../config/env.js';
 import { getPool } from '../config/database.js';
 import { hashToken } from '../shared/crypto.js';
@@ -39,9 +39,13 @@ export async function authEither(
       try {
         const token = req.cookies[config.SESSION_COOKIE_NAME];
         const decoded = jwt.verify(token, config.SESSION_SECRET) as SessionPayload;
+        const userId = Number(decoded.userId);
+        if (await isSessionStale(userId, decoded.iat)) {
+          throw new UnauthorizedError('Session invalidated by a password change');
+        }
         req.auth = {
           method: 'session',
-          userId: Number(decoded.userId),
+          userId,
           scopes: undefined, // Sessions have unlimited scopes
         };
         return next();

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import config from '../config/env.js';
 import { SessionPayload, PreAuthPayload, UnauthorizedError, PreAuthExpiredError } from '../shared/types.js';
+import { userStore } from '../modules/users/user.store.js';
 
 /**
  * Session management - using JWT in HttpOnly cookies
@@ -59,26 +60,48 @@ export function verifyPreAuthToken(token: string): { userId: number } {
 /**
  * Middleware to parse and validate session from cookie
  */
-export function sessionAuth(
+export async function sessionAuth(
   req: Request,
   res: Response,
   next: NextFunction,
-): void {
-  const token = req.cookies?.[config.SESSION_COOKIE_NAME];
-
-  if (!token) {
-    throw new UnauthorizedError('No session cookie found');
-  }
-
-  let decoded: SessionPayload;
+): Promise<void> {
   try {
-    decoded = jwt.verify(token, config.SESSION_SECRET) as SessionPayload;
-  } catch (err) {
-    throw new UnauthorizedError('Invalid or expired session');
-  }
+    const token = req.cookies?.[config.SESSION_COOKIE_NAME];
 
-  (req as any).session = { userId: Number(decoded.userId) };
-  next();
+    if (!token) {
+      throw new UnauthorizedError('No session cookie found');
+    }
+
+    let decoded: SessionPayload;
+    try {
+      decoded = jwt.verify(token, config.SESSION_SECRET) as SessionPayload;
+    } catch (err) {
+      throw new UnauthorizedError('Invalid or expired session');
+    }
+
+    const userId = Number(decoded.userId);
+    if (await isSessionStale(userId, decoded.iat)) {
+      throw new UnauthorizedError('Session invalidated by a password change');
+    }
+
+    (req as any).session = { userId };
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * A session minted before the last password change must no longer be honoured.
+ * A session carrying no `iat` (jsonwebtoken always sets one) is treated as stale
+ * rather than trusted.
+ */
+export async function isSessionStale(
+  userId: number,
+  issuedAtSeconds: number | undefined,
+): Promise<boolean> {
+  if (issuedAtSeconds === undefined) return true;
+  return userStore.isPasswordChangedAfter(userId, issuedAtSeconds);
 }
 
 /**

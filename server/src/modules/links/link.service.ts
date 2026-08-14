@@ -98,6 +98,15 @@ export class LinkService {
 
     const now = new Date();
 
+    // Snapshot the owner's existing links once, before opening the transaction.
+    const existingLinks = await linkStore.statusByOwner(uid);
+    const existingByItemId = new Map<string, (typeof existingLinks)[number]>();
+    for (const link of existingLinks) {
+      if (!existingByItemId.has(link.item_id)) {
+        existingByItemId.set(link.item_id, link);
+      }
+    }
+
     return tx(async (cx) => {
       const results: CreateLinkResult[] = [];
 
@@ -127,8 +136,7 @@ export class LinkService {
         }
 
         // Check for existing non-expired link
-        const existingLinks = await linkStore.statusByOwner(uid);
-        const existingLink = existingLinks.find((link) => link.item_id === itemId);
+        const existingLink = existingByItemId.get(itemId);
 
         if (
           existingLink &&

@@ -38,6 +38,29 @@ class UserStore {
     );
   }
 
+  /**
+   * True when the password was changed after the given JWT issue time - any session
+   * minted before that point must be rejected.
+   * The comparison is done in SQL on purpose: `password_changed_at` is written with
+   * NOW(), and the pool returns DATETIME as strings (dateStrings), which Node would
+   * parse as local time and skew the comparison whenever the two clocks differ.
+   */
+  async isPasswordChangedAfter(userId: number, issuedAtSeconds: number): Promise<boolean> {
+    const pool = getPool();
+    const [rows] = await pool.execute<any[]>(
+      `SELECT 1 FROM users
+       WHERE id = ? AND password_changed_at IS NOT NULL
+         AND password_changed_at > FROM_UNIXTIME(?)`,
+      [userId, issuedAtSeconds],
+    );
+    return rows.length > 0;
+  }
+
+  /**
+   * Purging only clears what is no longer in use: revoked tokens are dropped, active
+   * ones are kept. Mirrors purgeUserLinks, which only removes terminal links.
+   * Deleting the account is what wipes everything - see deleteUserApiTokens.
+   */
   async purgeUserApiTokens(ownerUserId: number): Promise<void> {
     const pool = getPool();
     await pool.execute(

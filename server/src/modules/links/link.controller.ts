@@ -7,15 +7,7 @@ import {
   LinkStatusQuerySchema,
 } from './link.schema.js';
 import { ValidationError } from '../../shared/types.js';
-
-function formatZodErrors(error: any): string {
-  if (error.issues) {
-    return error.issues
-      .map((issue: any) => `${issue.path.join('.')}: ${issue.message}`)
-      .join('; ');
-  }
-  return 'Invalid request';
-}
+import { formatZodErrors } from '../../shared/validation.js';
 
 export const createLink = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const parsed = LinkCreateItemSchema.safeParse(req.body);
