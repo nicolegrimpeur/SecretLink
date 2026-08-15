@@ -1,5 +1,5 @@
 import {Component, computed, inject, signal} from '@angular/core';
-import {HttpErrorResponse} from '@angular/common/http';
+import {apiErrorText} from '../../shared/services/api-error';
 
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
@@ -64,6 +64,13 @@ export class AccountPage {
     confirm: ['', [Validators.required]],
   });
 
+  // Formulations propres au changement de mot de passe, le reste des codes est
+  // couvert par les messages génériques d'apiErrorText.
+  private readonly passwordErrorOverrides = {
+    INVALID_CURRENT_PASSWORD: 'Mot de passe actuel incorrect.',
+    VALIDATION_ERROR: 'Le nouveau mot de passe ne respecte pas le format attendu (8 caractères minimum).',
+  };
+
   constructor() {
     addIcons({trashOutline, trashBinOutline, clipboardOutline});
   }
@@ -81,7 +88,10 @@ export class AccountPage {
       await this.auth.changePassword(current_password, new_password);
       await this.toast.toastMsg('Mot de passe mis à jour', 1400);
     } catch (e) {
-      this.error = (e as HttpErrorResponse).error?.error?.message || 'Échec de la mise à jour';
+      this.error = apiErrorText(e, {
+        fallback: 'Échec de la mise à jour',
+        overrides: this.passwordErrorOverrides,
+      });
     } finally {
       this.loading = false;
     }

@@ -4,7 +4,7 @@ import { generateSecret, generateURI, verify as totpVerify } from 'otplib';
 import { Request, Response } from 'express';
 import { userStore } from './user.store.js';
 import { withTx } from '../../config/database.js';
-import { ValidationError, UnauthorizedError, NotFoundError, ConflictError } from '../../shared/types.js';
+import { AppError, ValidationError, UnauthorizedError, NotFoundError, ConflictError } from '../../shared/types.js';
 import { encryptTotpSecret, decryptTotpSecret } from '../../shared/crypto.js';
 import { issueSession, issuePreAuthToken, verifyPreAuthToken } from '../../middleware/session.js';
 import config from '../../config/env.js';
@@ -259,7 +259,10 @@ export class UserService {
 
     const ok = await argon2.verify(user.password_hash.toString(), currentPassword);
     if (!ok) {
-      throw new UnauthorizedError('Invalid current password');
+      // Dedicated code: the session is perfectly valid here, only the submitted
+      // current_password is wrong. A plain UNAUTHORIZED would be indistinguishable
+      // from a dead session and would sign the caller out over a typo.
+      throw new AppError(401, 'INVALID_CURRENT_PASSWORD', 'Invalid current password');
     }
 
     const hash = await argon2.hash(newPassword, { type: argon2.argon2id });

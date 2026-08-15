@@ -1,6 +1,7 @@
 import {Component, computed, ElementRef, inject, signal, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {HttpErrorResponse} from '@angular/common/http';
+import {apiErrorText} from '../../shared/services/api-error';
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   AlertController,
@@ -62,14 +63,10 @@ export class LinksPage {
   tab: 'create' | 'status' = 'create';
   loading = false;
 
-  private readonly errorCreationHelpText = [
-    {
-      code: 'VALIDATION_ERROR',
-      text: 'Les informations fournies ne sont pas valides. Veuillez vérifier les champs et réessayer.'
-    },
-    {code: 'RATE_LIMITED', text: 'Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.'},
-    {code: 'SERVER_ERROR', text: 'Une erreur serveur est survenue. Veuillez réessayer plus tard.'},
-  ]
+  // Formulation propre à l'import en masse, plus précise que le message générique.
+  private readonly bulkErrorOverrides = {
+    PAYLOAD_TOO_LARGE: 'L\'import est trop volumineux (1 Mo maximum). Découpez-le en plusieurs lots.',
+  };
 
   // single
   form = inject(FormBuilder).group({
@@ -177,11 +174,10 @@ export class LinksPage {
         await this.reload();
       }
     } catch (e) {
-      const err = e as HttpErrorResponse;
-      const errorCode = err.error?.error?.code || 'SERVER_ERROR';
-      const helpEntry = this.errorCreationHelpText.find(entry => entry.code === errorCode);
-      const helpMessage = helpEntry ? helpEntry.text : 'Création échouée.';
-      this.toast.toastMsg(helpMessage, 3000).then();
+      this.toast.toastMsg(
+        apiErrorText(e, {fallback: 'Création échouée.', overrides: this.bulkErrorOverrides}),
+        3000,
+      ).then();
     } finally {
       this.loading = false;
     }
@@ -208,12 +204,10 @@ export class LinksPage {
       this.lastResults = await this.api.createBulk(payload);
       if (this.lastResults?.length) await this.reload();
     } catch (e) {
-      const err = e as HttpErrorResponse;
-      const errorCode = err.error?.error?.code || 'SERVER_ERROR';
-      const helpEntry = this.errorCreationHelpText.find(entry => entry.code === errorCode);
-      const helpMessage = helpEntry ? helpEntry.text : 'Création échouée.';
-
-      this.toast.toastMsg(helpMessage, 3000).then();
+      this.toast.toastMsg(
+        apiErrorText(e, {fallback: 'Création échouée.', overrides: this.bulkErrorOverrides}),
+        3000,
+      ).then();
     } finally {
       this.loading = false;
     }
@@ -250,7 +244,9 @@ export class LinksPage {
       });
       if (this.lastResults?.length) await this.reload();
     } catch (e) {
-      this.toast.toastMsg((e as HttpErrorResponse).error?.error?.message || 'Bulk échoué').then();
+      this.toast.toastMsg(
+        apiErrorText(e, {fallback: 'Bulk échoué', overrides: this.bulkErrorOverrides}),
+      ).then();
     } finally {
       this.loading = false;
     }
@@ -290,7 +286,13 @@ export class LinksPage {
         {since: this.since || undefined, until: this.until || undefined}
       ));
       this.forceRefresh();
-    } catch (_e) {
+    } catch (e) {
+      if ((e as HttpErrorResponse).status !== 401) {
+        this.toast.toastMsg(
+          apiErrorText(e, {fallback: 'Impossible de rafraîchir la liste des liens.'}),
+          3000,
+        ).then();
+      }
     } finally {
       setTimeout(() => {
         this.loading = false;
@@ -424,7 +426,7 @@ export class LinksPage {
       await this.api.deleteLink(itemId);
       await this.reload();
     } catch (e) {
-      this.toast.toastMsg((e as HttpErrorResponse).error?.error?.message || 'Suppression échouée').then();
+      this.toast.toastMsg(apiErrorText(e, {fallback: 'Suppression échouée'})).then();
     }
   }
 }

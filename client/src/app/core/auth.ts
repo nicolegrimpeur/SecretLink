@@ -82,6 +82,12 @@ export class AuthService {
     this.userSubject.next(null);
   }
 
+  // Drops the local session without calling the API - the server has already rejected
+  // it, so there is nothing left to log out from.
+  clearLocalSession(): void {
+    this.userSubject.next(null);
+  }
+
   async changePassword(current_password: string, new_password: string) {
     const url = `${environment.apiBaseUrl}/users/password`;
     await firstValueFrom(this.http.post(url, { current_password, new_password }, { withCredentials: true }));

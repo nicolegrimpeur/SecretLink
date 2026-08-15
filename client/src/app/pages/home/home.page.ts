@@ -1,6 +1,6 @@
 import {Component, DestroyRef, inject, OnInit} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {HttpErrorResponse} from '@angular/common/http';
+import {apiErrorText} from '../../shared/services/api-error';
 import {
   IonAccordion,
   IonAccordionGroup,
@@ -89,11 +89,6 @@ export class HomePage implements OnInit {
   });
   creationResult: LinkCreateResult | null = null;
 
-  private readonly errorCreationHelpText = [
-    {code: 'VALIDATION_ERROR', text: 'Les informations fournies ne sont pas valides. Veuillez vérifier les champs et réessayer.'},
-    {code: 'RATE_LIMITED', text: 'Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.'},
-    {code: 'SERVER_ERROR', text: 'Une erreur serveur est survenue. Veuillez réessayer plus tard.'},
-  ]
   statusHelp: { [key: string]: string } = {
     'created': 'Lien créé avec succès.',
     'invalid_item_id': 'Les informations fournies sont invalides. Veuillez les vérifier et réessayer.',
@@ -128,12 +123,7 @@ export class HomePage implements OnInit {
       };
       this.creationResult = await this.linksService.createSingle(payload);
     } catch (e) {
-      const err = e as HttpErrorResponse;
-      const errorCode = err.error?.error?.code || 'SERVER_ERROR';
-      const helpEntry = this.errorCreationHelpText.find(entry => entry.code === errorCode);
-      const helpMessage = helpEntry ? helpEntry.text : 'Création échouée.';
-
-      this.toast.toastMsg(helpMessage, 3000).then();
+      this.toast.toastMsg(apiErrorText(e, {fallback: 'Création échouée.'}), 3000).then();
     } finally {
       this.loading = false;
     }
