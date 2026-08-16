@@ -2,6 +2,7 @@ import pino from 'pino';
 import pinoHttp from 'pino-http';
 import config from '../config/env.js';
 import { generateRequestId, getRequestId } from './requestContext.js';
+import { hashIp } from './crypto.js';
 
 // Redact token-like path segments (base64url, 20+ chars)
 const TOKEN_SEGMENT_RE = /\/[A-Za-z0-9_-]{20,}/g;
@@ -43,7 +44,10 @@ export const httpLogger = pinoHttp(
     // The id is set by the requestId middleware in app.ts, which runs first so that
     // errors raised before this point (body parsing, for instance) are correlated too.
     genReqId: (req) => (req as { id?: string }).id ?? generateRequestId(),
-    customProps: (req) => ({ request_id: (req as { id?: string }).id }),
+    customProps: (req) => ({
+      request_id: (req as { id?: string }).id,
+      ip_hash: hashIp((req as { ip?: string }).ip),
+    }),
     serializers: {
       req(req) {
         return {
