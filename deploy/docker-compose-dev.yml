@@ -43,6 +43,9 @@ services:
       IP_HMAC_SECRET: ${IP_HMAC_SECRET}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       MAINTENANCE_MODE: ${MAINTENANCE_MODE:-0}
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      CLOUDFLARE_IPS: ${CLOUDFLARE_IPS:-}
     ports:
       - "3000:3000"
     restart: unless-stopped

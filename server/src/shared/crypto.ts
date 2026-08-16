@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import argon2 from 'argon2';
+import ipaddr from 'ipaddr.js';
 import config from '../config/env.js';
 
 /**
@@ -175,13 +176,35 @@ export async function verifyPassphrase(
 }
 
 /**
+ * A dual-stack socket reports IPv4 peers in mapped form (::ffff:1.2.3.4), so the same
+ * client would hash differently depending on how the app happens to be listening.
+ * Normalising to plain IPv4 keeps the pseudonym stable, and aligned with the rate
+ * limiter, which keys on the same normalised form.
+ */
+function normalizeIp(ip: string): string {
+  try {
+    const addr = ipaddr.parse(ip);
+    if (addr.kind() === 'ipv6') {
+      const v6 = addr as ipaddr.IPv6;
+      if (v6.isIPv4MappedAddress()) return v6.toIPv4Address().toString();
+    }
+  } catch {
+    // Not a parsable address - hash it as given rather than dropping the value
+  }
+  return ip;
+}
+
+/**
  * Hash an IP address (HMAC-SHA256) for privacy-preserving logging.
  * Uses a server-side secret so the pseudonym cannot be brute-forced
  * from the (small) IPv4 address space.
  */
 export function hashIp(ip: string | undefined): string | null {
   if (!ip) return null;
-  return crypto.createHmac('sha256', config.IP_HMAC_SECRET).update(ip).digest('hex');
+  return crypto
+    .createHmac('sha256', config.IP_HMAC_SECRET)
+    .update(normalizeIp(ip))
+    .digest('hex');
 }
 
 /**

@@ -3,6 +3,10 @@ import { NextFunction, Request, Response } from 'express';
 import ipaddr from 'ipaddr.js';
 
 import config from '../config/env.js';
+import { getLogger } from '../shared/logger.js';
+import { hashIp } from '../shared/crypto.js';
+
+const logger = getLogger('ClientIp');
 
 /**
  * Cloudflare edge ranges - https://www.cloudflare.com/ips/
@@ -87,7 +91,7 @@ export function isCloudflareIp(ip: string): boolean {
 
   if (addr.kind() === 'ipv6') {
     const v6 = addr as ipaddr.IPv6;
-    // Traefik may hand us IPv4-mapped forms such as ::ffff:162.158.23.21
+    // A dual-stack socket reports IPv4 peers in mapped form (::ffff:162.158.23.21)
     if (v6.isIPv4MappedAddress()) {
       const mapped = v6.toIPv4Address();
       return CLOUDFLARE_RANGES.v4.some((range) => mapped.match(range));
@@ -99,16 +103,20 @@ export function isCloudflareIp(ip: string): boolean {
 }
 
 /**
- * Resolve the real client IP behind the Cloudflare -> Traefik chain.
+ * Resolve the real client IP when Cloudflare sits in front of the app.
  *
- * Traefik overwrites `X-Forwarded-For` with the peer it actually saw, so with
- * `trust proxy = 1` req.ip is that peer - authentic, and not forgeable by a
- * client. When (and only when) that peer is a Cloudflare edge, `CF-Connecting-IP`
- * is the origin of the request and is promoted into XFF so that req.ip, the rate
- * limiters and the audit-log IP hashes all see the same, correct address.
+ * All visitors relayed by a same Cloudflare point of presence reach the app under
+ * that edge address, which would make them share a rate-limit counter and collapse
+ * onto a single audit-log IP hash. `CF-Connecting-IP` carries the origin address and
+ * is promoted into `X-Forwarded-For` so req.ip, the rate limiters and the log hashes
+ * all agree on it.
  *
- * A request reaching Traefik directly keeps its own IP: the forged header is
- * ignored because the peer is not Cloudflare.
+ * The promotion is conditional on the peer - resolved through TRUST_PROXY, so not
+ * forgeable - belonging to a published Cloudflare range. A client crafting the header
+ * on its own is therefore ignored.
+ *
+ * Deployments without Cloudflare are unaffected: with no header, or a peer outside
+ * those ranges, the address resolved from TRUST_PROXY is kept as-is.
  *
  * Must be registered before the HTTP logger and every rate limiter.
  */
@@ -121,7 +129,39 @@ export function resolveClientIp(req: Request, _res: Response, next: NextFunction
     if (typeof cfConnectingIp === 'string' && net.isIP(cfConnectingIp)) {
       req.headers['x-forwarded-for'] = cfConnectingIp;
     }
+  } else if (peer) {
+    const cfConnectingIp = req.headers['cf-connecting-ip'];
+    // Nothing to report when the chain already resolved to that same address: that is
+    // Cloudflare sitting directly in front of the app, with no proxy in between, where
+    // X-Forwarded-For alone already yields the right client.
+    if (typeof cfConnectingIp === 'string' && cfConnectingIp !== peer) {
+      warnUnknownCloudflarePeer(peer);
+    }
   }
 
   next();
+}
+
+/**
+ * A CF-Connecting-IP coming from a peer we do not recognise as a Cloudflare edge.
+ * Either someone is forging the header - it is ignored, as intended - or the
+ * published ranges have moved and CLOUDFLARE_IPS needs refreshing. The second case
+ * is silent otherwise: those clients would quietly fall back to being grouped by
+ * edge address for rate limiting and audit hashes.
+ *
+ * The peer is hashed, never logged in clear: when the header is forged it is an end
+ * user's address. Warning once per peer keeps a stale range list from flooding the
+ * logs at full request rate, and the cap bounds memory against a rotating scanner.
+ */
+const warnedPeers = new Set<string>();
+const MAX_WARNED_PEERS = 100;
+
+function warnUnknownCloudflarePeer(peer: string): void {
+  if (warnedPeers.has(peer) || warnedPeers.size >= MAX_WARNED_PEERS) return;
+  warnedPeers.add(peer);
+
+  logger.warn(
+    { event: 'CF_PEER_NOT_RECOGNISED', ip_hash: hashIp(peer) },
+    'CF-Connecting-IP received from a peer outside the configured Cloudflare ranges',
+  );
 }

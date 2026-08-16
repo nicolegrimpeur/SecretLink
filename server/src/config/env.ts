@@ -49,8 +49,13 @@ const envSchema = z.object({
   // CORS - comma-separated origin list, falls back to the built-in defaults when unset
   ALLOWED_ORIGINS: z.string().optional(),
 
-  // Proxy chain - comma-separated Cloudflare CIDRs, falls back to the built-in
-  // ranges when unset. Only requests coming from these edges may set CF-Connecting-IP.
+  // Proxy chain - how many trusted proxies sit in front of the app. 0 means the app
+  // is exposed directly and X-Forwarded-For must not be trusted at all: leaving it at
+  // 1 in that case lets any client forge its own IP, bypassing the rate limiters.
+  TRUST_PROXY: z.coerce.number().int().min(0).default(1),
+
+  // Comma-separated Cloudflare CIDRs, falls back to the built-in ranges when unset.
+  // Only requests coming from these edges may set CF-Connecting-IP.
   CLOUDFLARE_IPS: z.string().optional(),
 
   // Features
