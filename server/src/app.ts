@@ -35,8 +35,8 @@ function resolveAllowedOrigins(): string[] {
 export function createApp(): Express {
   const app = express();
 
-  // Trust proxy - 1 seul proxy de confiance (Traefik)
-  app.set('trust proxy', 1);
+  // Trust proxy - 2 proxys de confiance (Traefik / CloudFlare)
+  app.set('trust proxy', 2);
 
   // Health check - deliberately registered before every other layer so the liveness
   // probe stays reachable during maintenance and is never rate limited
