@@ -65,24 +65,6 @@ export function createApp(): Express {
   // HTTP logging
   app.use(httpLogger);
 
-  // TEMPORAIRE - diagnostic de la chaîne de proxy (Cloudflare -> Traefik).
-  // Logue les IP en clair : à supprimer une fois `trust proxy` corrigé.
-  app.use((req, _res, next) => {
-    logger.info(
-      {
-        xff: req.headers['x-forwarded-for'] ?? null,
-        cf_connecting_ip: req.headers['cf-connecting-ip'] ?? null,
-        // true once resolveClientIp has promoted CF-Connecting-IP: req.ip is the real client
-        cf_promoted: req.headers['x-forwarded-for'] === req.headers['cf-connecting-ip'],
-        ips: req.ips,
-        ip: req.ip,
-        socket: req.socket.remoteAddress ?? null,
-      },
-      'proxy chain',
-    );
-    next();
-  });
-
   // Security headers
   app.use(
     helmet({
