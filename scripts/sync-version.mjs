@@ -3,25 +3,35 @@ import { readFileSync, writeFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = resolve(__dirname, '..');
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const { version } = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf-8'));
+const check = process.argv.includes('--check');
 
-const rootPkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf-8'));
-const version = rootPkg.version;
-
-const targets = [
-  resolve(root, 'client', 'package.json'),
-  resolve(root, 'server', 'package.json'),
+const files = [
+  'client/package.json',
+  'client/package-lock.json',
+  'server/package.json',
+  'server/package-lock.json',
 ];
 
-for (const target of targets) {
-  const pkg = JSON.parse(readFileSync(target, 'utf-8'));
-  if (pkg.version === version) {
-    console.log(`[skip]   ${target.replace(root, '.')} already at ${version}`);
+let drift = 0;
+
+for (const file of files) {
+  const path = resolve(root, file);
+  const json = JSON.parse(readFileSync(path, 'utf-8'));
+  if (json.version === version) continue;
+
+  drift++;
+  if (check) {
+    console.error(`[drift]  ${file}  ${json.version} ≠ ${version}`);
     continue;
   }
-  const previous = pkg.version;
-  pkg.version = version;
-  writeFileSync(target, JSON.stringify(pkg, null, 2) + '\n');
-  console.log(`[synced] ${target.replace(root, '.')}  ${previous} → ${version}`);
+
+  console.log(`[synced] ${file}  ${json.version} → ${version}`);
+  json.version = version;
+  if (json.packages?.['']) json.packages[''].version = version; // lockfile : 2e emplacement
+  writeFileSync(path, JSON.stringify(json, null, 2) + '\n');
 }
+
+if (!drift) console.log(`Tout est à ${version}`);
+if (check && drift) process.exit(1);

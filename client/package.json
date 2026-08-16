@@ -1,6 +1,6 @@
 {
   "name": "secret_link",
-  "version": "0.16.8",
+  "version": "0.16.9",
   "author": "Nicolas BARRAT",
   "homepage": "https://secret.nicob.ovh/",
   "scripts": {

@@ -49,6 +49,10 @@ const envSchema = z.object({
   // CORS - comma-separated origin list, falls back to the built-in defaults when unset
   ALLOWED_ORIGINS: z.string().optional(),
 
+  // Proxy chain - comma-separated Cloudflare CIDRs, falls back to the built-in
+  // ranges when unset. Only requests coming from these edges may set CF-Connecting-IP.
+  CLOUDFLARE_IPS: z.string().optional(),
+
   // Features
   MAINTENANCE_MODE: z.coerce.number().default(0),
 });

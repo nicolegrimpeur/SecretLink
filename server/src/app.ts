@@ -9,6 +9,7 @@ import { httpLogger, getLogger } from './shared/logger.js';
 import { generateRequestId, runWithRequestId } from './shared/requestContext.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { AppError, NotFoundError } from './shared/types.js';
+import { resolveClientIp } from './middleware/clientIp.js';
 import { globalLimiter } from './middleware/rateLimit.js';
 import { userRouter } from './modules/users/user.routes.js';
 import { linkRouter } from './modules/links/link.routes.js';
@@ -57,6 +58,10 @@ export function createApp(): Express {
     runWithRequestId(requestId, next);
   });
 
+  // Real client IP behind Cloudflare - must run before the logger and the rate
+  // limiters, which all read req.ip.
+  app.use(resolveClientIp);
+
   // HTTP logging
   app.use(httpLogger);
 
@@ -67,6 +72,8 @@ export function createApp(): Express {
       {
         xff: req.headers['x-forwarded-for'] ?? null,
         cf_connecting_ip: req.headers['cf-connecting-ip'] ?? null,
+        // true once resolveClientIp has promoted CF-Connecting-IP: req.ip is the real client
+        cf_promoted: req.headers['x-forwarded-for'] === req.headers['cf-connecting-ip'],
         ips: req.ips,
         ip: req.ip,
         socket: req.socket.remoteAddress ?? null,

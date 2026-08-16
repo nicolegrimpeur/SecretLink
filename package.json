@@ -1,10 +1,12 @@
 {
   "name": "secretlink",
-  "version": "0.16.8",
+  "version": "0.16.9",
   "private": true,
   "description": "SecretLink monorepo - version source of truth",
   "author": "Nicolas BARRAT",
   "scripts": {
-    "version:sync": "node scripts/sync-version.mjs"
+    "version": "node scripts/sync-version.mjs && git add client/package.json client/package-lock.json server/package.json server/package-lock.json",
+    "version:sync": "node scripts/sync-version.mjs",
+    "version:check": "node scripts/sync-version.mjs --check"
   }
 }
