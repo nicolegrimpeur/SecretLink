@@ -1,6 +1,6 @@
 {
   "name": "secretlink",
-  "version": "0.16.14",
+  "version": "0.16.15",
   "private": true,
   "description": "SecretLink monorepo - version source of truth",
   "author": "Nicolas BARRAT",

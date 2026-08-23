@@ -15,9 +15,7 @@ interface CreateLinkResult {
   error: string | null;
 }
 
-/**
- * The URL to hand out for a freshly created link. Points at the front-end page.
- */
+/** Shareable URL for a link: the front-end page, not the API endpoint. */
 function buildLinkUrl(linkToken: string): string {
   return `${config.FRONT_BASE_URL}/redeem/${encodeURIComponent(linkToken)}`;
 }

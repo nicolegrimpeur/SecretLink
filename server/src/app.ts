@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 
 import config from './config/env.js';
-import { httpLogger, getLogger } from './shared/logger.js';
+import { httpLogger } from './shared/logger.js';
 import { generateRequestId, runWithRequestId } from './shared/requestContext.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { AppError, NotFoundError } from './shared/types.js';
@@ -14,18 +14,15 @@ import { globalLimiter } from './middleware/rateLimit.js';
 import { userRouter } from './modules/users/user.routes.js';
 import { linkRouter } from './modules/links/link.routes.js';
 
-const logger = getLogger('App');
-
 const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:8100', 'https://secret.nicob.ovh'];
 
 /**
  * CORS allowlist - driven by ALLOWED_ORIGINS (comma-separated), falling back to the
  * built-in defaults. FRONT_BASE_URL is always allowed, whichever source is used.
  *
- * The web front-end no longer needs any of this: it is served from the same origin,
- * under /api. What remains genuinely cross-origin is the browser extension, whose
- * `chrome-extension://` origin is handled separately below, plus any self-hosted or
- * native client pointing at an absolute API URL.
+ * The web front-end is served from the same origin and needs none of this; what is
+ * genuinely cross-origin is the browser extension and any client using an absolute
+ * API URL.
  */
 function resolveAllowedOrigins(): string[] {
   const stripTrailingSlash = (origin: string) => origin.replace(/\/$/, '');
@@ -43,6 +40,10 @@ export function createApp(): Express {
 
   // Trust proxy - nombre de proxys de confiance devant l'application (TRUST_PROXY).
   app.set('trust proxy', config.TRUST_PROXY);
+
+  // helmet le ferait, mais /health est monté avant lui pour rester joignable en
+  // maintenance : sans ça, cette route seule annonce encore "Express".
+  app.disable('x-powered-by');
 
   // Health check - deliberately registered before every other layer so the liveness
   // probe stays reachable during maintenance and is never rate limited

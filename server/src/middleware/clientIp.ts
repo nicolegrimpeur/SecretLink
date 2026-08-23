@@ -122,8 +122,6 @@ export function isCloudflareIp(ip: string): boolean {
  */
 export function resolveClientIp(req: Request, _res: Response, next: NextFunction): void {
   const peer = req.ip;
-  // Snapshot before the promotion below overwrites the header.
-  const forwardedForBefore = req.headers['x-forwarded-for'];
 
   if (peer && isCloudflareIp(peer)) {
     const cfConnectingIp = req.headers['cf-connecting-ip'];
