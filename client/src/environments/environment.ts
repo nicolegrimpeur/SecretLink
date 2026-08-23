@@ -4,7 +4,9 @@
 
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://localhost:3000',
+  // Relatif comme en production : `proxy.conf.json` renvoie /api vers le serveur local
+  // sur le port 3000, ce qui reproduit le même-origine de la prod dès le développement.
+  apiBaseUrl: '/api',
   frontBaseUrl: 'http://localhost:8100',
   chromeExtensionUrl: 'https://chromewebstore.google.com/detail/dbneilgepekkiaabbjdmhmakojcenpel',
 };

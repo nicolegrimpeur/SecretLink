@@ -30,8 +30,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
-      API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
-      FRONT_BASE_URL: ${FRONT_BASE_URL:-http://localhost:8100}
+      FRONT_BASE_URL: ${FRONT_BASE_URL:-http://localhost}
       MYSQL_HOST: db
       MYSQL_PORT: 3306
       MYSQL_USER: ${MYSQL_USER:-link}
@@ -43,13 +42,16 @@ services:
       IP_HMAC_SECRET: ${IP_HMAC_SECRET}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       MAINTENANCE_MODE: ${MAINTENANCE_MODE:-0}
-      TRUST_PROXY: ${TRUST_PROXY:-1}
+      # Chaîne : Cloudflare -> Traefik -> nginx (service client) -> ici.
+      # Les deux derniers sauts sont de confiance ; le troisième en partant de la fin
+      # doit rester l'edge Cloudflare pour que CF-Connecting-IP soit promu.
+      TRUST_PROXY: ${TRUST_PROXY:-2}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
       CLOUDFLARE_IPS: ${CLOUDFLARE_IPS:-}
+    # Aucun port publié : le serveur n'est joignable que par le nginx du service client,
+    # qui est le point d'entrée unique de la stack.
     expose:
       - "3000"
-    volumes:
-      - ../server/.env:/app/.env:ro
     restart: unless-stopped
 
   client:

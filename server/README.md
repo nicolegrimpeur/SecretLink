@@ -160,10 +160,12 @@ npm run test
 ### Docker Compose (Production)
 
 ```bash
-# Create .env file with production values
+# Create .env file with production values.
+# FRONT_BASE_URL is the single public origin: the SPA is served at its root and this
+# API under /api, by the front-end container's nginx. There is no separate API URL.
 echo "NODE_ENV=production" > .env
-echo "API_BASE_URL=https://your-domain.com" >> .env
-echo "FRONT_BASE_URL=https://your-front-domain.com" >> .env
+echo "FRONT_BASE_URL=https://your-domain.com" >> .env
+echo "TRUST_PROXY=2" >> .env
 # ... add other required vars
 
 # Start services

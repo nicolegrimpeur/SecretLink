@@ -352,6 +352,32 @@ it('POST /signup should create user and set session', async () => {
 
 ## Deployment Considerations
 
+### Single Entry Point
+
+The server publishes no port of its own. It sits behind the `client` container's nginx,
+which serves the Angular SPA at `/` and proxies `/api/*` here after stripping the `/api`
+prefix — so routes stay mounted at the root (`/users`, `/links`) inside the app.
+
+```
+Cloudflare → Traefik → nginx (client) ─┬─ /       → Angular SPA
+                                       └─ /api/*  → this server:3000
+```
+
+Consequences for the server:
+
+- **`FRONT_BASE_URL` is the whole deployment's public origin.** There is no separate API
+  base URL any more; `link_url` is built from it (`<FRONT_BASE_URL>/redeem/:token`).
+- **CORS is no longer on the browser's critical path.** The web front-end is same-origin.
+  The allowlist in `app.ts` only still matters for the `chrome-extension://` origin and
+  for native or self-hosted clients using an absolute URL.
+- **`TRUST_PROXY` must count nginx.** The chain is Cloudflare → Traefik → nginx → app, so
+  production runs `TRUST_PROXY=2`. `resolveClientIp` only promotes `CF-Connecting-IP`
+  when `req.ip` resolves to a published Cloudflare edge; an off-by-one here silently
+  collapses every visitor onto one rate-limit bucket and one audit `ip_hash`. See
+  `deploy/.env.example` for the value per topology.
+- **Unmatched routes return a JSON 404**, for every method. The former GET catch-all
+  redirecting to the front-end existed because the API had its own public hostname.
+
 ### Environment-Specific Config
 ```typescript
 if (NODE_ENV === 'production') {

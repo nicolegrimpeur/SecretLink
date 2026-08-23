@@ -30,8 +30,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
-      API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
-      FRONT_BASE_URL: ${FRONT_BASE_URL:-http://localhost:8100}
+      FRONT_BASE_URL: ${FRONT_BASE_URL:-http://localhost}
       MYSQL_HOST: db
       MYSQL_PORT: 3306
       MYSQL_USER: ${MYSQL_USER:-link}
@@ -43,6 +42,8 @@ services:
       IP_HMAC_SECRET: ${IP_HMAC_SECRET}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       MAINTENANCE_MODE: ${MAINTENANCE_MODE:-0}
+      # Chaîne locale : navigateur -> nginx (service client) -> ici. Un seul saut de
+      # confiance, contrairement à la prod qui en a deux (Traefik + nginx).
       TRUST_PROXY: ${TRUST_PROXY:-1}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
       CLOUDFLARE_IPS: ${CLOUDFLARE_IPS:-}

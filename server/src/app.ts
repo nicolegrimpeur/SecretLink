@@ -21,6 +21,11 @@ const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:8100', 'https://secret.nicob.
 /**
  * CORS allowlist - driven by ALLOWED_ORIGINS (comma-separated), falling back to the
  * built-in defaults. FRONT_BASE_URL is always allowed, whichever source is used.
+ *
+ * The web front-end no longer needs any of this: it is served from the same origin,
+ * under /api. What remains genuinely cross-origin is the browser extension, whose
+ * `chrome-extension://` origin is handled separately below, plus any self-hosted or
+ * native client pointing at an absolute API URL.
  */
 function resolveAllowedOrigins(): string[] {
   const stripTrailingSlash = (origin: string) => origin.replace(/\/$/, '');
@@ -43,11 +48,6 @@ export function createApp(): Express {
   // probe stays reachable during maintenance and is never rate limited
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
-
-  // Block all crawlers on the API
-  app.get('/robots.txt', (_req, res) => {
-    res.type('text/plain').send('User-agent: *\nDisallow: /\n');
   });
 
   // Request correlation - registered before body parsing and logging so that every
@@ -123,12 +123,7 @@ export function createApp(): Express {
   app.use('/users', userRouter);
   app.use('/links', linkRouter);
 
-  // Redirect all other routes to the frontend
-  app.get('/*path', (_req, res) => {
-    res.redirect(config.FRONT_BASE_URL);
-  });
-
-  // JSON 404 for anything the GET catch-all above did not handle (POST/PUT/DELETE/PATCH...)
+  // JSON 404 for every unmatched route, whatever the method.
   app.use((_req, _res, next) => {
     next(new NotFoundError('Route not found'));
   });

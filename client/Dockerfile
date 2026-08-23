@@ -13,8 +13,9 @@ RUN npm run build
 # ---------- Stage 2: serve ----------
 FROM nginx:stable-alpine
 
-# Config nginx custom
+# Config nginx custom : le vhost, plus le snippet d'en-têtes de sécurité qu'il inclut
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx/security-headers.conf /etc/nginx/security-headers.conf
 
 # Copie le build Angular dans Nginx
 COPY --from=builder /app/www /usr/share/nginx/html/

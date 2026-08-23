@@ -1,9 +1,10 @@
 'use strict';
 
 // ── Configuration ─────────────────────────────────────────────────────────────
-// Pour une instance auto-hébergée, modifiez ces deux constantes.
-const API_URL   = 'https://api-secret.nicob.ovh';
+// Pour une instance auto-hébergée, remplacez l'URL ci-dessous (et le host_permissions
+// correspondant dans manifest.json). L'API est servie sous /api de la même origine.
 const FRONT_URL = 'https://secret.nicob.ovh';
+const API_URL   = `${FRONT_URL}/api`;
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const viewLoading        = document.getElementById('view-loading');

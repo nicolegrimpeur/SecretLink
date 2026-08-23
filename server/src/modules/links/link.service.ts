@@ -15,6 +15,13 @@ interface CreateLinkResult {
   error: string | null;
 }
 
+/**
+ * The URL to hand out for a freshly created link. Points at the front-end page.
+ */
+function buildLinkUrl(linkToken: string): string {
+  return `${config.FRONT_BASE_URL}/redeem/${encodeURIComponent(linkToken)}`;
+}
+
 export class LinkService {
   /**
    * Create a single public link (anonymous, uid=0)
@@ -71,7 +78,7 @@ export class LinkService {
         item_id: itemId,
         status: 'created' as const,
         link_token: linkToken,
-        link_url: `${config.API_BASE_URL}/links/redeem/${encodeURIComponent(linkToken)}`,
+        link_url: buildLinkUrl(linkToken),
         expires_at: expiresAt.toISOString(),
         error: null,
       };
@@ -239,7 +246,7 @@ export class LinkService {
           item_id: itemId,
           status: 'created',
           link_token: linkToken,
-          link_url: `${config.API_BASE_URL}/links/redeem/${encodeURIComponent(linkToken)}`,
+          link_url: buildLinkUrl(linkToken),
           expires_at: expiresAt ? expiresAt.toISOString() : null,
           error: null,
         };
