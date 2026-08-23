@@ -36,7 +36,6 @@ import {LinkStatus} from "../../shared/models/link-status";
 import {StatusFilter} from "../../shared/models/statutsFilter";
 import {copyOutline, informationOutline, refreshOutline, syncOutline, trashOutline, arrowUpOutline, arrowDownOutline} from "ionicons/icons";
 import {addIcons} from "ionicons";
-import {environment} from "../../../environments/environment";
 import {StorageService} from "../../shared/services/storage";
 import {ToastService} from "../../shared/services/toast";
 import {ActivatedRoute} from "@angular/router";
@@ -213,22 +212,6 @@ export class LinksPage {
     }
   }
 
-  private async generateIdempotencyKey(items: LinkCreateItem[]): Promise<string> {
-    const itemsString = JSON.stringify(items.map(item => ({
-      item_id: item.item_id,
-      secret: item.secret,
-      ttl_days: item.ttl_days
-    })).sort((a, b) => a.item_id.localeCompare(b.item_id)));
-
-    const encoder = new TextEncoder();
-    const data = encoder.encode(itemsString);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-    return `bulk-${hashHex.substring(0, 12)}`;
-  }
-
   async createBulk() {
     const items = await this.parseCsv(this.csvText);
     if (!items.length) {
@@ -239,9 +222,7 @@ export class LinksPage {
     this.lastQuickResults = null;
     this.loading = true;
     try {
-      this.lastResults = await this.api.createBulk(items, {
-        idempotencyKey: await this.generateIdempotencyKey(items)
-      });
+      this.lastResults = await this.api.createBulk(items);
       if (this.lastResults?.length) await this.reload();
     } catch (e) {
       this.toast.toastMsg(
@@ -298,10 +279,6 @@ export class LinksPage {
         this.loading = false;
       }, 2000);
     }
-  }
-
-  linkUrl(token: string) {
-    return `${environment.frontBaseUrl}/redeem/${encodeURIComponent(token)}`;
   }
 
   copy(text: string) {

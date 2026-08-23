@@ -1,9 +1,8 @@
 export const environment = {
   production: true,
   // Relatif : l'API est servie sous la même origine, via le proxy /api de nginx.
+  // Les liens partageables ne sont pas construits ici : l'API les renvoie dans
+  // `link_url`, d'après son FRONT_BASE_URL. Aucun domaine n'est figé dans le bundle.
   apiBaseUrl: '/api',
-  // Absolu, contrairement à apiBaseUrl : sert à construire les liens partageables,
-  // qui doivent rester valides hors du navigateur.
-  frontBaseUrl: 'https://secret.nicob.ovh',
   chromeExtensionUrl: 'https://chromewebstore.google.com/detail/dbneilgepekkiaabbjdmhmakojcenpel',
 };

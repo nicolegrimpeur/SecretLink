@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SecretLink",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Générez des liens à usage unique pour transmettre des informations sensibles.",
   "icons": {
     "16":  "icons/icon-16.png",

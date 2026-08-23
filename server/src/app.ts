@@ -96,7 +96,7 @@ export function createApp(): Express {
     },
     credentials: true,
     methods: ['GET', 'POST', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'idempotency-key'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   };
 
   app.use(cors(corsOptions));

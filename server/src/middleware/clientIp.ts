@@ -81,7 +81,7 @@ function resolveCloudflareCidrs(): string[] {
 const CLOUDFLARE_RANGES = compileRanges(resolveCloudflareCidrs());
 
 /** True when `ip` belongs to a published Cloudflare edge range. */
-export function isCloudflareIp(ip: string): boolean {
+function isCloudflareIp(ip: string): boolean {
   let addr: ipaddr.IPv4 | ipaddr.IPv6;
   try {
     addr = ipaddr.parse(ip);

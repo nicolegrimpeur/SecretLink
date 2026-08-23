@@ -1,6 +1,6 @@
 {
   "name": "secretlink-server",
-  "version": "0.16.15",
+  "version": "0.17.0",
   "author": "Nicolas BARRAT",
   "type": "module",
   "scripts": {

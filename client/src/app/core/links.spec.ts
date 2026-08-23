@@ -58,15 +58,7 @@ describe('LinksService', () => {
       await bulkPromise;
     });
 
-    it('sets Idempotency-Key header when provided', async () => {
-      const bulkPromise = service.createBulk([], {idempotencyKey: 'my-key-123'});
-      const req = http.expectOne(`${environment.apiBaseUrl}/links/bulk`);
-      expect(req.request.headers.get('Idempotency-Key')).toBe('my-key-123');
-      req.flush({results: []});
-      await bulkPromise;
-    });
-
-    it('does not set Idempotency-Key header when not provided', async () => {
+    it('does not send an Idempotency-Key header', async () => {
       const bulkPromise = service.createBulk([]);
       const req = http.expectOne(`${environment.apiBaseUrl}/links/bulk`);
       expect(req.request.headers.has('Idempotency-Key')).toBeFalse();
@@ -108,15 +100,7 @@ describe('LinksService', () => {
       await listPromise;
     });
 
-    it('sets Authorization header when PAT provided', async () => {
-      const listPromise = service.listStatus(undefined, {pat: 'mytoken'});
-      const req = http.expectOne(r => r.url.includes('/links/status'));
-      expect(req.request.headers.get('Authorization')).toBe('Bearer mytoken');
-      req.flush([]);
-      await listPromise;
-    });
-
-    it('does not set Authorization header when no PAT', async () => {
+    it('relies on the session cookie, never on an Authorization header', async () => {
       const listPromise = service.listStatus();
       const req = http.expectOne(r => r.url.includes('/links/status'));
       expect(req.request.headers.has('Authorization')).toBeFalse();
@@ -142,13 +126,6 @@ describe('LinksService', () => {
       await deletePromise;
     });
 
-    it('sets Authorization header when PAT provided', async () => {
-      const deletePromise = service.deleteLink('item123', {pat: 'mytoken'});
-      const req = http.expectOne(r => r.url.includes('/links/by-item/'));
-      expect(req.request.headers.get('Authorization')).toBe('Bearer mytoken');
-      req.flush(null);
-      await deletePromise;
-    });
   });
 
   describe('redeemLink()', () => {

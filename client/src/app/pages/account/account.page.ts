@@ -130,7 +130,7 @@ export class AccountPage {
   async openCreate() {
     const m = await this.modal.create({component: TokenCreateComponent});
     await m.present();
-    const {data, role} = await m.onWillDismiss();
+    const {role} = await m.onWillDismiss();
     if (role === 'created') {
       await this.reload();
       await this.toast.toastMsg('Token créé. Copiez-le et stockez-le en lieu sûr.');

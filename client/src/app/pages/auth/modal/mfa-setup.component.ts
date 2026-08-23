@@ -13,8 +13,6 @@ import {
   IonItem,
   IonLabel,
   IonList,
-  IonListHeader,
-  IonNote,
   IonSpinner,
   IonText,
   IonTitle,

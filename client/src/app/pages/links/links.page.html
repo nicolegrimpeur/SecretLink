@@ -41,16 +41,16 @@
                       <ion-label>
                         <b>{{ r.item_id }}</b> - {{ statusHelp[r.status] }}
 
-                        @if (r.link_token) {
-                          <a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a>
+                        @if (r.link_url) {
+                          <a [href]="r.link_url" target="_blank">{{ r.link_url }}</a>
                         }
 
                         @if (r.expires_at) {
                           <div>Expire : {{ r.expires_at | date:'medium' }}</div>
                         }
                       </ion-label>
-                      @if (r.link_token) {
-                        <ion-button size="default" fill="clear" (click)="copy(linkUrl(r.link_token))">Copier</ion-button>
+                      @if (r.link_url) {
+                        <ion-button size="default" fill="clear" (click)="copy(r.link_url)">Copier</ion-button>
                       }
                     </ion-item>
                   }
@@ -127,16 +127,16 @@
                       <ion-label>
                         <b>{{ r.item_id }}</b> - {{ statusHelp[r.status] }}
 
-                        @if (r.link_token) {
-                          <a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a>
+                        @if (r.link_url) {
+                          <a [href]="r.link_url" target="_blank">{{ r.link_url }}</a>
                         }
 
                         @if (r.expires_at) {
                           <div>Expire : {{ r.expires_at | date:'medium' }}</div>
                         }
                       </ion-label>
-                      @if (r.link_token) {
-                        <ion-button size="default" fill="clear" (click)="copy(linkUrl(r.link_token))">Copier</ion-button>
+                      @if (r.link_url) {
+                        <ion-button size="default" fill="clear" (click)="copy(r.link_url)">Copier</ion-button>
                       }
                     </ion-item>
                   }
@@ -186,13 +186,13 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                       <ion-item>
                         <ion-label>
                           <b>{{ r.item_id }}</b> - {{ statusHelp[r.status] }}
-                          @if (r.link_token) {
-                            <div><a [href]="linkUrl(r.link_token)" target="_blank">{{ linkUrl(r.link_token) }}</a></div>
+                          @if (r.link_url) {
+                            <div><a [href]="r.link_url" target="_blank">{{ r.link_url }}</a></div>
                           }
                         </ion-label>
 
-                        @if (r.link_token) {
-                          <ion-button fill="clear" (click)="copy(linkUrl(r.link_token))">Copier</ion-button>
+                        @if (r.link_url) {
+                          <ion-button fill="clear" (click)="copy(r.link_url)">Copier</ion-button>
                         }
                       </ion-item>
                     }

@@ -125,14 +125,14 @@ btnGenerate.addEventListener('click', async () => {
       showError('Identifiant déjà utilisé. Réessayez dans un instant.');
       return;
     }
-    if (result.status !== 'created' || !result.link_token) {
+    if (result.status !== 'created' || !result.link_url) {
       showError(result.error || 'La génération a échoué.');
       return;
     }
 
-    // Reconstruire l'URL comme le fait le front Angular :
-    // frontBaseUrl + '/redeem/' + encodeURIComponent(link_token)
-    const linkUrl = `${FRONT_URL}/redeem/${encodeURIComponent(result.link_token)}`;
+    // URL partageable fournie par l'API : pas de reconstruction locale, elle suit la
+    // configuration du serveur.
+    const linkUrl = result.link_url;
 
     // Succès : copie automatique + toast
     try {

@@ -1,4 +1,3 @@
-import { PoolConnection } from 'mysql2/promise';
 import { getPool } from '../../config/database.js';
 import { ApiToken } from '../../shared/types.js';
 

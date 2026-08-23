@@ -1,6 +1,6 @@
 import { PoolConnection } from 'mysql2/promise';
 import { getPool } from '../../config/database.js';
-import { User, TrustedDevice, RecoveryCode } from '../../shared/types.js';
+import { User, TrustedDevice } from '../../shared/types.js';
 
 class UserStore {
   async findByEmail(email: string): Promise<User | null> {

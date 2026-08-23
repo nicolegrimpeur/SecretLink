@@ -7,6 +7,7 @@
     "esModuleInterop": true,
     "strict": true,
     "noImplicitOverride": true,
+    "noUnusedLocals": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,

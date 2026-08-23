@@ -129,10 +129,6 @@ export class HomePage implements OnInit {
     }
   }
 
-  linkUrl(token: string) {
-    return `${environment.frontBaseUrl}/redeem/${encodeURIComponent(token)}`;
-  }
-
   copy(text: string) {
     navigator.clipboard.writeText(text)
       .then(() => this.toast.toastMsg('Copié dans le presse-papier').then())

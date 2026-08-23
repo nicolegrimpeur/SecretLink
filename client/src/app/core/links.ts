@@ -1,5 +1,5 @@
 import {inject, Injectable} from '@angular/core';
-import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
+import {HttpClient, HttpParams} from "@angular/common/http";
 import {LinkCreateItem, LinkCreateResult, LinkCreateSingleItem} from "../shared/models/link-create";
 import {firstValueFrom} from "rxjs";
 import {environment} from "../../environments/environment";
@@ -20,36 +20,28 @@ export class LinksService {
     return res.result;
   }
 
-  async createBulk(items: LinkCreateItem[], opts?: { idempotencyKey?: string }) {
-    let headers = new HttpHeaders();
-    if (opts?.idempotencyKey) headers = headers.set('Idempotency-Key', opts.idempotencyKey);
-
+  async createBulk(items: LinkCreateItem[]) {
     const url = `${environment.apiBaseUrl}/links/bulk`;
     const res = await firstValueFrom(
-      this.http.post<{ results: LinkCreateResult[] }>(url, items, { withCredentials: true, headers })
+      this.http.post<{ results: LinkCreateResult[] }>(url, items, { withCredentials: true })
     );
     return res.results;
   }
 
-  async listStatus(params?: { since?: string; until?: string }, opts?: { pat?: string }) {
-    let headers = new HttpHeaders();
-    if (opts?.pat) headers = headers.set('Authorization', `Bearer ${opts.pat}`);
-
+  async listStatus(params?: { since?: string; until?: string }) {
     let q = new HttpParams();
     if (params?.since) q = q.set('since', params.since);
     if (params?.until) q = q.set('until', params.until);
 
     const url = `${environment.apiBaseUrl}/links/status`;
     return await firstValueFrom(
-      this.http.get<LinkStatus[]>(url, { withCredentials: true, headers, params: q })
+      this.http.get<LinkStatus[]>(url, { withCredentials: true, params: q })
     );
   }
 
-  async deleteLink(itemId: string, opts?: { pat?: string }) {
-    let headers = new HttpHeaders();
-    if (opts?.pat) headers = headers.set('Authorization', `Bearer ${opts.pat}`);
+  async deleteLink(itemId: string) {
     const url = `${environment.apiBaseUrl}/links/by-item/${encodeURIComponent(itemId)}`;
-    await firstValueFrom(this.http.delete(url, { withCredentials: true, headers }));
+    await firstValueFrom(this.http.delete(url, { withCredentials: true }));
   }
 
   async redeemLink(linkToken: string, passphraseHash?: string): Promise<RedeemResponse> {
