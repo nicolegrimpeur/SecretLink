@@ -122,6 +122,8 @@ export function isCloudflareIp(ip: string): boolean {
  */
 export function resolveClientIp(req: Request, _res: Response, next: NextFunction): void {
   const peer = req.ip;
+  // Snapshot before the promotion below overwrites the header.
+  const forwardedForBefore = req.headers['x-forwarded-for'];
 
   if (peer && isCloudflareIp(peer)) {
     const cfConnectingIp = req.headers['cf-connecting-ip'];
@@ -139,7 +141,49 @@ export function resolveClientIp(req: Request, _res: Response, next: NextFunction
     }
   }
 
+  logResolutionInClear(req, peer, forwardedForBefore);
+
   next();
+}
+
+/**
+ * TEMPORAIRE - À SUPPRIMER après vérification de la bascule vers le point d'entrée
+ * unique (cette fonction et son appel ci-dessus).
+ *
+ * Journalise la chaîne de résolution de l'IP client EN CLAIR, une ligne par requête.
+ * Contourne délibérément la pseudonymisation appliquée partout ailleurs : lire les
+ * adresses est justement l'objectif. Laissé en place, il écrit les adresses des
+ * utilisateurs en clair dans les logs.
+ *
+ * Toutes les étapes sont journalisées, pas seulement l'adresse finale, parce qu'un
+ * TRUST_PROXY erroné n'est visible que dans l'écart entre elles :
+ *   - `socket_peer` : le pair TCP, X-Forwarded-For totalement ignoré. Derrière le
+ *     nginx de la stack, c'est toujours le conteneur nginx.
+ *   - `resolved_before_cf` : ce que donne TRUST_PROXY seul. Derrière Cloudflare, doit
+ *     tomber sur un edge Cloudflare — c'est la condition de la promotion.
+ *   - `resolved_ip` : la réponse finale, celle qu'utilisent les quotas et les hash
+ *     d'audit. Doit être l'adresse du visiteur.
+ * `ip_hash` est émis à côté pour recouper une ligne avec les lignes pseudonymisées,
+ * et avec Get-IpHash.ps1.
+ */
+function logResolutionInClear(
+  req: Request,
+  resolvedBeforeCf: string | undefined,
+  forwardedForBefore: string | string[] | undefined,
+): void {
+  logger.warn(
+    {
+      event: 'CLIENT_IP_DEBUG',
+      trust_proxy: config.TRUST_PROXY,
+      socket_peer: req.socket.remoteAddress ?? null,
+      x_forwarded_for: forwardedForBefore ?? null,
+      cf_connecting_ip: req.headers['cf-connecting-ip'] ?? null,
+      resolved_before_cf: resolvedBeforeCf ?? null,
+      resolved_ip: req.ip ?? null,
+      ip_hash: hashIp(req.ip),
+    },
+    'TEMPORAIRE - IP client en clair, à retirer après vérification',
+  );
 }
 
 /**
