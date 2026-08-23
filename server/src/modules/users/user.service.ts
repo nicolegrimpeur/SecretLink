@@ -6,6 +6,7 @@ import { userStore } from './user.store.js';
 import { withTx } from '../../config/database.js';
 import { AppError, ValidationError, UnauthorizedError, NotFoundError, ConflictError } from '../../shared/types.js';
 import { encryptTotpSecret, decryptTotpSecret } from '../../shared/crypto.js';
+import { toIso } from '../../shared/dates.js';
 import { issueSession, issuePreAuthToken, verifyPreAuthToken } from '../../middleware/session.js';
 import config from '../../config/env.js';
 
@@ -35,8 +36,9 @@ function publicUser(row: any): PublicUser {
   return {
     id: Number(row.id),
     email: row.email,
-    created_at: row.created_at,
-    email_verified_at: row.email_verified_at ?? null,
+    // created_at est NOT NULL en base, contrairement à email_verified_at
+    created_at: toIso(row.created_at)!,
+    email_verified_at: toIso(row.email_verified_at),
   };
 }
 

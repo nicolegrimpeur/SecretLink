@@ -26,6 +26,11 @@ export const MfaVerifyReqSchema = z.object({
 }).refine(
   (data) => data.totp_code !== undefined || data.recovery_code !== undefined,
   { message: 'totp_code ou recovery_code requis' },
+).refine(
+  // Le service traite recovery_code en priorité : accepter les deux consommerait un
+  // code de récupération à usage unique alors qu'un TOTP valide était fourni.
+  (data) => !(data.totp_code !== undefined && data.recovery_code !== undefined),
+  { message: 'totp_code et recovery_code sont mutuellement exclusifs' },
 );
 
 export const ChangePasswordReqSchema = z.object({

@@ -15,7 +15,7 @@ export function getPool(): Pool {
       connectionLimit: 10,
       multipleStatements: false,
       namedPlaceholders: true,
-      dateStrings: true,
+      timezone: 'Z',
     });
   }
   return pool;

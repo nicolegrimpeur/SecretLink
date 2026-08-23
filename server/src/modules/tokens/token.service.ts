@@ -1,6 +1,7 @@
 import { tokenStore } from './token.store.js';
 import { generateLinkToken, hashToken } from '../../shared/crypto.js';
 import { NotFoundError } from '../../shared/types.js';
+import { toIso } from '../../shared/dates.js';
 
 export class TokenService {
   async createToken(
@@ -35,7 +36,7 @@ export class TokenService {
         id: result.insertId,
         label: label,
         scopes,
-        created_at: new Date().toISOString(),
+        created_at: toIso(result.createdAt)!,
         revoked_at: null,
       },
     };
@@ -47,8 +48,8 @@ export class TokenService {
       id: t.id,
       label: t.label,
       scopes: Array.isArray(t.scopes) ? t.scopes : JSON.parse(t.scopes),
-      created_at: t.created_at,
-      revoked_at: t.revoked_at,
+      created_at: toIso(t.created_at),
+      revoked_at: toIso(t.revoked_at),
     }));
   }
 

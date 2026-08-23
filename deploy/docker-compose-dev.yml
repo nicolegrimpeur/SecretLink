@@ -2,6 +2,8 @@ services:
   db:
     image: mysql:lts
     container_name: secretlink-db
+    # Fuseau explicite : NOW() écrit en UTC, comme le driver côté serveur.
+    command: --default-time-zone=+00:00
     environment:
       MYSQL_DATABASE: secretLink
       MYSQL_RANDOM_ROOT_PASSWORD: "true"

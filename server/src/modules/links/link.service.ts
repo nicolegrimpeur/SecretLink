@@ -3,6 +3,7 @@ import { linkStore, tx } from './link.store.js';
 import { encrypt, decrypt, generateLinkToken, hashPassphrase, verifyPassphrase, hashIp } from '../../shared/crypto.js';
 import { AppError, GoneError, NotFoundError, ValidationError } from '../../shared/types.js';
 import { getLogger } from '../../shared/logger.js';
+import { toIso, toSecondPrecision } from '../../shared/dates.js';
 
 const logger = getLogger('LinkService');
 
@@ -22,7 +23,7 @@ function buildLinkUrl(linkToken: string): string {
 
 export class LinkService {
   /**
-   * Create a single public link (anonymous, uid=0)
+   * Create a single public link, attributed to the shared anonymous account (uid=1).
    */
   async createLink(secret: string, ip?: string, userAgent?: string): Promise<CreateLinkResult> {
     if (!secret) {
@@ -42,7 +43,7 @@ export class LinkService {
     const ttlDays = 7;
 
     return tx(async (cx) => {
-      const expiresAt = new Date(now.getTime() + ttlDays * 86400 * 1000);
+      const expiresAt = toSecondPrecision(new Date(now.getTime() + ttlDays * 86400 * 1000));
       const linkToken = generateLinkToken();
 
       const encrypted = encrypt(secret, itemId, linkToken, uid);
@@ -165,7 +166,7 @@ export class LinkService {
           status: 'duplicate_item_id',
           link_token: null,
           link_url: null,
-          expires_at: blocking.expires_at ? new Date(blocking.expires_at).toISOString() : null,
+          expires_at: toIso(blocking.expires_at),
           error: null,
         };
         return;
@@ -221,7 +222,8 @@ export class LinkService {
         }
 
         // Create link
-        const expiresAt = ttlDays === 0 ? null : new Date(now.getTime() + ttlDays * 86400 * 1000);
+        const expiresAt =
+          ttlDays === 0 ? null : toSecondPrecision(new Date(now.getTime() + ttlDays * 86400 * 1000));
         const linkToken = generateLinkToken();
 
         const encrypted = encrypt(secret, itemId, linkToken, uid);
@@ -332,7 +334,7 @@ export class LinkService {
       return {
         item_id: link.item_id,
         secret: decrypted.plainText,
-        redeemed_at: new Date().toISOString(),
+        redeemed_at: toSecondPrecision(new Date()).toISOString(),
       };
     });
   }
@@ -376,10 +378,10 @@ export class LinkService {
     const results = await linkStore.statusByOwner(uid, since, until);
     return results.map((r) => ({
       item_id: r.item_id,
-      created_at: r.created_at,
-      expires_at: r.expires_at,
-      used_at: r.used_at,
-      deleted_at: r.deleted_at,
+      created_at: toIso(r.created_at),
+      expires_at: toIso(r.expires_at),
+      used_at: toIso(r.used_at),
+      deleted_at: toIso(r.deleted_at),
     }));
   }
 }
