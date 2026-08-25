@@ -1,0 +1,57 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Base éphémère pour les tests d'intégration du serveur.
+#  Même commande sur le poste de dev et sur un runner GitHub :
+#      npm run db:test:up   /   npm run db:test:down
+#
+#  Différences assumées avec docker-compose.yml :
+#   - pas de `container_name` : il entrerait en collision avec la pile de dev ;
+#   - pas de volume nommé, et un datadir en tmpfs : l'init rejoue à chaque
+#     démarrage, donc mysql-init/*.sql s'applique toujours — contrairement au
+#     volume externe de la prod, où ces scripts ne tournent qu'une seule fois ;
+#   - port 3307, pour ne pas heurter un MySQL déjà présent sur 3306.
+# ─────────────────────────────────────────────────────────────────────────────
+name: secretlink-test
+
+services:
+  db:
+    # Version figée, là où dev et prod disent `mysql:lts` : un bump amont de la
+    # LTS ne doit pas pouvoir casser la CI sur une PR qui n'y touche pas.
+    # (`mysql:lts` vaut 8.4 aujourd'hui — les deux coïncident.)
+    image: mysql:8.4
+
+    # Même fuseau explicite que dev et prod : NOW() écrit en UTC, comme le
+    # driver côté serveur (timezone: 'Z'). Tout écart ici ferait diverger les
+    # assertions de date entre les tests et la production.
+    command: --default-time-zone=+00:00
+
+    environment:
+      MYSQL_DATABASE: secretLink
+      MYSQL_RANDOM_ROOT_PASSWORD: "true"
+      MYSQL_USER: link
+      MYSQL_PASSWORD: cipass
+
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+
+    # Datadir en RAM : l'init est nettement plus rapide et ne laisse aucune
+    # trace sur le disque au teardown.
+    tmpfs:
+      - /var/lib/mysql
+
+    ports:
+      - "3307:3306"
+
+    # `mysqladmin ping` seul ne suffirait pas : l'entrypoint MySQL démarre un
+    # serveur temporaire pour jouer les scripts d'init, et un ping y répondrait
+    # déjà « up » avant que le schéma n'existe. On interroge donc une table du
+    # schéma, en TCP et avec l'utilisateur applicatif — ce qui prouve d'un coup
+    # que le serveur écoute, que l'utilisateur et la base existent, et que
+    # 01-schema.sql est passé.
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysql -h 127.0.0.1 -ulink -pcipass secretLink -e "SELECT 1 FROM users LIMIT 1" > /dev/null 2>&1
+      interval: 2s
+      timeout: 5s
+      retries: 40
+      start_period: 20s

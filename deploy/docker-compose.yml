@@ -1,6 +1,6 @@
 services:
   db:
-    image: mysql:lts
+    image: mysql:8.4
     container_name: secretlink-db
     # Fuseau explicite : NOW() et CURRENT_TIMESTAMP écrivent en UTC, comme le driver
     # côté serveur (timezone: 'Z'). Sans ça, le fuseau dépend de celui de l'hôte.

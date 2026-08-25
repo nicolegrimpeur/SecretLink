@@ -130,6 +130,65 @@ confiance).
 
 ---
 
+## Tests
+
+L'usine complète, en une commande depuis la racine :
+
+```bash
+npm run usine
+```
+
+Elle enchaîne : contrôle de cohérence des versions → démarrage d'une base MySQL éphémère →
+tests d'intégration du serveur → tests unitaires du client → arrêt de la base. Comptez
+environ 3 minutes.
+
+### Commandes séparées
+
+```bash
+npm run db:test:up        # MySQL éphémère sur le port 3307, schéma + seed appliqués
+npm run test:server       # tests d'intégration serveurs
+npm run test:client       # tests unitaires Angular
+npm run db:test:down      # arrêt et suppression du volume
+
+npm --prefix server run test:watch        # boucle de développement
+npm --prefix server run typecheck:tests   # type-check des tests, sans émission
+```
+
+Le serveur a besoin de la base ; les tests client, non. Si l'usine échoue, la base **reste
+debout** volontairement, pour pouvoir l'inspecter :
+
+```bash
+docker exec secretlink-test-db-1 mysql -ulink -pcipass secretLink -e "SELECT * FROM links"
+```
+
+### Navigateur pour les tests client
+
+Les tests Angular tournent aujourd'hui dans un Chromium headless via Karma. Si votre
+navigateur n'est pas Chrome installé à l'emplacement par défaut, indiquez son binaire :
+
+```powershell
+# Exemple avec Brave (Chromium, donc compatible)
+$env:CHROME_BIN = "$env:LOCALAPPDATA\BraveSoftware\Brave-Browser\Application\brave.exe"
+```
+
+```bash
+# Linux/macOS
+export CHROME_BIN=$(which chromium || which google-chrome)
+```
+
+Sur un runner GitHub `ubuntu-latest`, Chrome est préinstallé et détecté sans configuration.
+
+### Configuration des tests serveur
+
+[`server/.env.test`](server/.env.test) est **committé volontairement** : toutes ses valeurs
+sont jetables et n'ont de sens que face à la base éphémère. Elles prennent le pas sur votre
+`server/.env` local, car `dotenv` n'écrase jamais une variable déjà définie.
+
+> ⚠️ N'y recopiez **jamais** une valeur de `deploy/.env`. La suite vide les tables à chaque
+> test, et `MASTER_KEY_V1` est la clé qui déchiffre tous les secrets stockés.
+
+---
+
 ## Extension navigateur
 
 1. Ouvrir Chrome → `chrome://extensions`
