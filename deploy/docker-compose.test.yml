@@ -6,7 +6,7 @@
 #  Différences assumées avec docker-compose.yml :
 #   - pas de `container_name` : il entrerait en collision avec la pile de dev ;
 #   - pas de volume nommé, et un datadir en tmpfs : l'init rejoue à chaque
-#     démarrage, donc mysql-init/*.sql s'applique toujours — contrairement au
+#     démarrage, donc mysql-init/*.sql s'applique toujours - contrairement au
 #     volume externe de la prod, où ces scripts ne tournent qu'une seule fois ;
 #   - port 3307, pour ne pas heurter un MySQL déjà présent sur 3306.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -16,7 +16,7 @@ services:
   db:
     # Version figée, là où dev et prod disent `mysql:lts` : un bump amont de la
     # LTS ne doit pas pouvoir casser la CI sur une PR qui n'y touche pas.
-    # (`mysql:lts` vaut 8.4 aujourd'hui — les deux coïncident.)
+    # (`mysql:lts` vaut 8.4 aujourd'hui - les deux coïncident.)
     image: mysql:8.4
 
     # Même fuseau explicite que dev et prod : NOW() écrit en UTC, comme le
@@ -44,7 +44,7 @@ services:
     # `mysqladmin ping` seul ne suffirait pas : l'entrypoint MySQL démarre un
     # serveur temporaire pour jouer les scripts d'init, et un ping y répondrait
     # déjà « up » avant que le schéma n'existe. On interroge donc une table du
-    # schéma, en TCP et avec l'utilisateur applicatif — ce qui prouve d'un coup
+    # schéma, en TCP et avec l'utilisateur applicatif - ce qui prouve d'un coup
     # que le serveur écoute, que l'utilisateur et la base existent, et que
     # 01-schema.sql est passé.
     healthcheck:

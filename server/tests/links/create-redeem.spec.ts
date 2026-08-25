@@ -17,7 +17,7 @@ const app = createApp();
 beforeEach(resetDb);
 afterAll(closeDb);
 
-describe('POST /links — création publique anonyme', () => {
+describe('POST /links - création publique anonyme', () => {
   it('renvoie 201 avec un résultat unique enveloppé dans `result`', async () => {
     const res = await api(app).post('/links').send({ secret: 'vpn-ALICE' });
 
@@ -40,7 +40,7 @@ describe('POST /links — création publique anonyme', () => {
     expect(url).toBe(`${config.FRONT_BASE_URL}/redeem/${token}`);
 
     // Régression historique : link_url pointait vers `/links/<token>/redeem`,
-    // une route qui n'existe pas — l'URL distribuée par l'API ne servait donc
+    // une route qui n'existe pas - l'URL distribuée par l'API ne servait donc
     // jamais le secret.
     expect(url).not.toContain('/links/');
   });
@@ -123,7 +123,7 @@ describe('GET /links/redeem/:token', () => {
   });
 });
 
-describe('GET /links/redeem/:token — passphrase', () => {
+describe('GET /links/redeem/:token - passphrase', () => {
   async function createProtectedLink(passphrase: string) {
     const { cookie } = await createSignedInUser(app);
     const res = await api(app, { cookie })
@@ -187,7 +187,7 @@ describe('GET /links/redeem/:token — passphrase', () => {
   });
 });
 
-describe('POST /links/bulk — authentification', () => {
+describe('POST /links/bulk - authentification', () => {
   const item = () => [{ item_id: `item-${Math.random()}`, secret: 's' }];
 
   it('sans session ni PAT → 401 UNAUTHORIZED', async () => {

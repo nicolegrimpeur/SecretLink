@@ -356,7 +356,7 @@ it('POST /signup should create user and set session', async () => {
 
 The server publishes no port of its own. It sits behind the `client` container's nginx,
 which serves the Angular SPA at `/` and proxies `/api/*` here after stripping the `/api`
-prefix — so routes stay mounted at the root (`/users`, `/links`) inside the app.
+prefix - so routes stay mounted at the root (`/users`, `/links`) inside the app.
 
 ```
 Cloudflare → Traefik → nginx (client) ─┬─ /       → Angular SPA

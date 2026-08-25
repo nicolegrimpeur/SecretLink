@@ -99,7 +99,7 @@ btnGenerate.addEventListener('click', async () => {
     try {
       data = await response.json();
     } catch {
-      showError(`Erreur ${response.status} — réponse inattendue du serveur.`);
+      showError(`Erreur ${response.status} - réponse inattendue du serveur.`);
       return;
     }
 

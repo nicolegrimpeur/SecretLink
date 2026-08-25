@@ -35,7 +35,7 @@ describe('PatService', () => {
     it('uses withCredentials', async () => {
       const listPromise = service.list();
       const req = http.expectOne(`${environment.apiBaseUrl}/users/tokens`);
-      expect(req.request.withCredentials).toBeTrue();
+      expect(req.request.withCredentials).toBe(true);
       req.flush([]);
       await listPromise;
     });
@@ -71,7 +71,7 @@ describe('PatService', () => {
       const createPromise = service.create('test', []);
       const req = http.expectOne(`${environment.apiBaseUrl}/users/tokens`);
       expect(req.request.method).toBe('POST');
-      expect(req.request.withCredentials).toBeTrue();
+      expect(req.request.withCredentials).toBe(true);
       req.flush({});
       await createPromise;
     });
@@ -89,7 +89,7 @@ describe('PatService', () => {
     it('uses withCredentials', async () => {
       const revokePromise = service.revoke(1);
       const req = http.expectOne(`${environment.apiBaseUrl}/users/tokens/1`);
-      expect(req.request.withCredentials).toBeTrue();
+      expect(req.request.withCredentials).toBe(true);
       req.flush(null);
       await revokePromise;
     });

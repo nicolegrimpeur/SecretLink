@@ -9,7 +9,7 @@ let ipCounter = 0;
  * Les 4 limiteurs de middleware/rateLimit.ts sont des singletons de module :
  * ils sont partagés par toutes les instances de createApp(), et leur store est
  * en mémoire pour toute la durée du process. Sans rotation d'IP, le 6ᵉ signup
- * de la suite prendrait un 429 — le limiteur d'inscription est à 5/heure.
+ * de la suite prendrait un 429 - le limiteur d'inscription est à 5/heure.
  *
  * `app.set('trust proxy', TRUST_PROXY)` avec TRUST_PROXY=1 fait que `req.ip`
  * vaut la dernière entrée de X-Forwarded-For : la poser suffit à obtenir un

@@ -11,7 +11,7 @@ const app = createApp();
 beforeEach(resetDb);
 afterAll(closeDb);
 
-describe('POST /links/bulk — validation et statuts par item', () => {
+describe('POST /links/bulk - validation et statuts par item', () => {
   it('répond 201 même en échec total : le statut est porté par chaque item', async () => {
     const { cookie } = await createSignedInUser(app);
     const client = api(app, { cookie });

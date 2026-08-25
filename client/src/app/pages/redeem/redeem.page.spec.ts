@@ -20,7 +20,7 @@ describe('RedeemPage', () => {
         {
           provide: ToastController,
           useValue: {
-            create: jasmine.createSpy('create').and.returnValue(
+            create: vi.fn().mockReturnValue(
               Promise.resolve({present: () => Promise.resolve()})
             )
           }

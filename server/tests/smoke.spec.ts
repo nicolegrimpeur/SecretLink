@@ -4,10 +4,10 @@ import { describe, expect, it } from 'vitest';
 // Le point de tout ce fichier : ce specifier. `src/` est du TypeScript ESM qui
 // importe en `.js` (moduleResolution: bundler), et rien ne garantit a priori
 // qu'un runner sache remonter de `app.js` vers `app.ts`. Si cet import passe,
-// toute la chaîne passe — app.ts tire env.ts, database.ts, les routers, etc.
+// toute la chaîne passe - app.ts tire env.ts, database.ts, les routers, etc.
 import { createApp } from '../src/app.js';
 
-describe('smoke — résolution des modules et branchement de l\'environnement', () => {
+describe('smoke - résolution des modules et branchement de l\'environnement', () => {
   it('résout les specifiers .js vers les sources .ts', () => {
     expect(typeof createApp).toBe('function');
   });

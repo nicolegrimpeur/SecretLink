@@ -70,7 +70,7 @@ export async function signupUser(
 /**
  * Connecte un utilisateur déjà inscrit : login puis vérification MFA.
  *
- * Deux appels sont nécessaires, car `signup` **n'émet pas de session** — le
+ * Deux appels sont nécessaires, car `signup` **n'émet pas de session** - le
  * client repasse par /login (cf. le commentaire de user.controller.ts).
  */
 export async function loginFull(
@@ -107,7 +107,7 @@ export async function createSignedInUser(app: Express): Promise<SignedInUser> {
 }
 
 /**
- * Crée un PAT et renvoie le token en clair — il n'est retourné qu'une seule
+ * Crée un PAT et renvoie le token en clair - il n'est retourné qu'une seule
  * fois par l'API, seul son hash SHA-256 est stocké.
  */
 export async function createPat(

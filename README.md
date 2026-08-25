@@ -1,6 +1,6 @@
 # SecretLink
 
-Application de partage de secrets à usage unique. Un lien chiffré est généré, utilisable une seule fois — une fois consulté, le secret est détruit.
+Application de partage de secrets à usage unique. Un lien chiffré est généré, utilisable une seule fois - une fois consulté, le secret est détruit.
 
 > Pour la documentation complète, voir le [wiki](https://github.com/nicolegrimpeur/SecretLink/wiki).
 
@@ -61,7 +61,7 @@ Remplir les valeurs dans `.env` :
 | `SESSION_SECRET` | Secret de session (32 car. min.) | `openssl rand -base64 32` |
 | `IP_HMAC_SECRET` | Secret HMAC pour pseudonymiser IP/email dans les logs (32 car. min.) | `openssl rand -base64 32` |
 | `FRONT_BASE_URL` | Origine publique unique (front + API sous `/api`) | `http://localhost` |
-| `TRUST_PROXY` | Nombre de proxys de confiance devant le serveur — **voir ci-dessous** | `2` en prod, `1` en dev |
+| `TRUST_PROXY` | Nombre de proxys de confiance devant le serveur - **voir ci-dessous** | `2` en prod, `1` en dev |
 
 ⚠️ `TRUST_PROXY` se compte en partant du serveur, et le nginx qui proxifie `/api` compte
 pour un saut. Une valeur trop basse fait partager un même quota et un même hash d'IP à
@@ -77,7 +77,7 @@ docker volume create secretlink-db-data
 ### 3. Démarrer les services
 
 **Production** (aucun port publié : la stack est destinée à être placée derrière un
-reverse proxy — Traefik/Dokploy — qui route l'unique hostname vers le service `client`) :
+reverse proxy - Traefik/Dokploy - qui route l'unique hostname vers le service `client`) :
 
 ```bash
 cd deploy
@@ -140,7 +140,7 @@ npm run usine
 
 Elle enchaîne : contrôle de cohérence des versions → démarrage d'une base MySQL éphémère →
 tests d'intégration du serveur → tests unitaires du client → arrêt de la base. Comptez
-environ 3 minutes.
+environ 2 minutes. Aucun navigateur n'est nécessaire : les deux suites tournent sous Vitest.
 
 ### Commandes séparées
 
@@ -150,9 +150,13 @@ npm run test:server       # tests d'intégration serveurs
 npm run test:client       # tests unitaires Angular
 npm run db:test:down      # arrêt et suppression du volume
 
-npm --prefix server run test:watch        # boucle de développement
+npm --prefix server run test:watch        # boucle de développement, serveur
+npm --prefix client run test:watch        # boucle de développement, client
 npm --prefix server run typecheck:tests   # type-check des tests, sans émission
 ```
+
+Les variantes `test:ci` (`npm --prefix server run test:ci`, idem client) ajoutent la
+couverture et un rapport JUnit dans `reports/` - c'est ce que la CI consomme.
 
 Le serveur a besoin de la base ; les tests client, non. Si l'usine échoue, la base **reste
 debout** volontairement, pour pouvoir l'inspecter :
@@ -161,22 +165,13 @@ debout** volontairement, pour pouvoir l'inspecter :
 docker exec secretlink-test-db-1 mysql -ulink -pcipass secretLink -e "SELECT * FROM links"
 ```
 
-### Navigateur pour les tests client
+### Tests unitaires du client
 
-Les tests Angular tournent aujourd'hui dans un Chromium headless via Karma. Si votre
-navigateur n'est pas Chrome installé à l'emplacement par défaut, indiquez son binaire :
+Ils utilisent le builder `@angular/build:unit-test` avec Vitest. Le builder initialise lui-même les polyfills et le `TestBed`, il n'y a donc pas de fichier d'amorçage à maintenir.
 
-```powershell
-# Exemple avec Brave (Chromium, donc compatible)
-$env:CHROME_BIN = "$env:LOCALAPPDATA\BraveSoftware\Brave-Browser\Application\brave.exe"
-```
-
-```bash
-# Linux/macOS
-export CHROME_BIN=$(which chromium || which google-chrome)
-```
-
-Sur un runner GitHub `ubuntu-latest`, Chrome est préinstallé et détecté sans configuration.
+[`client/vitest.config.ts`](client/vitest.config.ts) ne corrige qu'un point : `@ionic/angular`
+importe un *répertoire* (`@ionic/core/components`), ce que le résolveur ESM de Node refuse.
+Inliner Ionic force Vite à le résoudre lui-même.
 
 ### Configuration des tests serveur
 

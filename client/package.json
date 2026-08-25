@@ -1,6 +1,6 @@
 {
   "name": "secret_link",
-  "version": "0.19.1",
+  "version": "0.19.2",
   "author": "Nicolas BARRAT",
   "homepage": "https://secret.nicob.ovh/",
   "engines": {
@@ -10,7 +10,9 @@
   "scripts": {
     "start": "ionic serve",
     "build": "ng run app:build:production",
-    "test": "ng test --watch=false --browsers=ChromeHeadless",
+    "test": "ng test --no-watch",
+    "test:watch": "ng test",
+    "test:ci": "ng test --configuration ci --no-watch",
     "version:sync": "node ../scripts/sync-version.mjs"
   },
   "dependencies": {
@@ -47,22 +49,17 @@
     "@angular/language-service": "^21.2.17",
     "@capacitor/cli": "^8.3.2",
     "@ionic/angular-toolkit": "^12.3.0",
-    "@types/jasmine": "~5.1.9",
     "@types/qrcode": "^1.5.6",
     "@typescript-eslint/eslint-plugin": "^8.59.2",
     "@typescript-eslint/parser": "^8.59.2",
+    "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^9.37.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsdoc": "^60.8.0",
     "eslint-plugin-prefer-arrow": "1.2.3",
-    "jasmine-core": "~5.11.0",
-    "jasmine-spec-reporter": "~7.0.0",
-    "karma": "~6.4.4",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.1",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.2.0",
-    "typescript": "~5.9.3"
+    "jsdom": "^30.0.1",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.11"
   },
   "description": "An Ionic project",
   "license": "MIT",

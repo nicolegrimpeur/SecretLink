@@ -22,7 +22,7 @@ export const ANONYMOUS_USER_ID = 1;
  *
  * La réinsertion de `users(id=1)` n'est pas cosmétique : `POST /links` écrit
  * `owner_user_id = 1` en dur, et viole la contrainte `fk_links_owner` sans
- * cette ligne — l'endpoint répondrait 500 au lieu de 201.
+ * cette ligne - l'endpoint répondrait 500 au lieu de 201.
  *
  * TRUNCATE remet aussi l'AUTO_INCREMENT à 1, donc les utilisateurs créés
  * ensuite reçoivent des ids déterministes (2, 3, …) d'un test à l'autre.

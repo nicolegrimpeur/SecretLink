@@ -6,18 +6,18 @@ import {sessionExpiredInterceptor} from './session-expired.interceptor';
 import {AuthService} from '../core/auth';
 import {ToastService} from './services/toast';
 import {User} from '../shared/models/user';
+import type {Mock} from 'vitest';
 
 describe('sessionExpiredInterceptor', () => {
   let http: HttpClient;
   let httpMock: HttpTestingController;
   let auth: AuthService;
-  let router: jasmine.SpyObj<Router>;
+  let router: {navigateByUrl: Mock};
 
   const signIn = () => auth['userSubject'].next({id: 1, email: 'a@b.c'} as User);
 
   beforeEach(() => {
-    router = jasmine.createSpyObj('Router', ['navigateByUrl']);
-    router.navigateByUrl.and.returnValue(Promise.resolve(true));
+    router = {navigateByUrl: vi.fn().mockResolvedValue(true)};
 
     TestBed.configureTestingModule({
       providers: [
@@ -48,7 +48,7 @@ describe('sessionExpiredInterceptor', () => {
 
     expect(auth.user).toBeNull();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/auth');
-    expect(failed()).withContext('l\'erreur doit rester propagée aux pages').toBeTrue();
+    expect(failed(), 'l\'erreur doit rester propagée aux pages').toBe(true);
   });
 
   it('laisse passer un 401 anonyme sans rediriger (page publique / me() d\'amorçage)', () => {
@@ -75,7 +75,7 @@ describe('sessionExpiredInterceptor', () => {
     signIn();
     fire('/links/status', 401, 'UNAUTHORIZED', {Authorization: 'Bearer pat-invalide'});
 
-    expect(auth.user).withContext('la session navigateur reste valide').not.toBeNull();
+    expect(auth.user, 'la session navigateur reste valide').not.toBeNull();
     expect(router.navigateByUrl).not.toHaveBeenCalled();
   });
 
@@ -87,7 +87,7 @@ describe('sessionExpiredInterceptor', () => {
 
     expect(auth.user).toBeNull();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/auth');
-    expect(failed).toBeTrue();
+    expect(failed).toBe(true);
   });
 
   it('ignore les statuts autres que 401', () => {
