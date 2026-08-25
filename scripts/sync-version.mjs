@@ -19,17 +19,25 @@ let drift = 0;
 for (const file of files) {
   const path = resolve(root, file);
   const json = JSON.parse(readFileSync(path, 'utf-8'));
-  if (json.version === version) continue;
+  // Les lockfiles portent la version à deux endroits. Les comparer tous les deux :
+  // en mode --check, ne regarder que le premier laisserait passer une dérive
+  // introduite par un `npm install` externe, que la CI est justement là pour voir.
+  const nested = json.packages?.[''];
+  const stale = json.version !== version || (nested && nested.version !== version);
+  if (!stale) continue;
 
   drift++;
   if (check) {
-    console.error(`[drift]  ${file}  ${json.version} ≠ ${version}`);
+    const found = nested && nested.version !== json.version
+      ? `${json.version} / ${nested.version}`
+      : json.version;
+    console.error(`[drift]  ${file}  ${found} ≠ ${version}`);
     continue;
   }
 
   console.log(`[synced] ${file}  ${json.version} → ${version}`);
   json.version = version;
-  if (json.packages?.['']) json.packages[''].version = version; // lockfile : 2e emplacement
+  if (nested) nested.version = version;
   writeFileSync(path, JSON.stringify(json, null, 2) + '\n');
 }
 

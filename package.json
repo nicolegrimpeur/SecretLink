@@ -4,6 +4,10 @@
   "private": true,
   "description": "SecretLink monorepo - version source of truth",
   "author": "Nicolas BARRAT",
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=10"
+  },
   "scripts": {
     "version": "node scripts/sync-version.mjs && git add client/package.json client/package-lock.json server/package.json server/package-lock.json",
     "version:sync": "node scripts/sync-version.mjs",

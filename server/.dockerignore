@@ -9,4 +9,8 @@ README.md
 ARCHITECTURE.md
 *.spec.ts
 *.test.ts
+tests
+vitest.config.ts
 coverage
+reports
+.env.test

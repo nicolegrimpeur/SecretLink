@@ -1,5 +1,6 @@
 # ---------- Stage 1: build ----------
-FROM node:lts-alpine AS builder
+ARG NODE_VERSION=24
+FROM node:${NODE_VERSION}-alpine AS builder
 WORKDIR /app
 
 # Installe les deps
