@@ -1,0 +1,40 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Socle commun du service `db`, source unique de vérité pour tout ce qui doit
+#  rester identique entre la prod, le dev, les tests d'intégration et les e2e :
+#  la version de l'image, le fuseau et les scripts d'init.
+#
+#  Ce fichier ne se lance pas seul : il est repris par `extends` dans les
+#  autres compose, qui n'ajoutent que ce qui leur est propre (identifiants,
+#  ports publiés, persistance, healthcheck).
+#
+#      services:
+#        db:
+#          extends:
+#            file: docker-compose.db.yml
+#            service: db
+#
+#  `extends` fusionne les mappings (environment) et concatène les séquences
+#  (volumes), et résout les chemins relatifs depuis CE fichier - donc
+#  indépendamment du répertoire d'où la commande est lancée.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  db:
+    # Version figée volontairement, plutôt que `mysql:lts` : un bump amont ne
+    # doit pas pouvoir casser la CI sur une PR qui n'y touche pas. Comme les
+    # quatre piles pointent ici, les tests valident bien la version livrée.
+    image: mysql:8.4
+
+    # Fuseau explicite : NOW() et CURRENT_TIMESTAMP écrivent en UTC, comme le
+    # driver côté serveur (timezone: 'Z'). Sans ça, le fuseau dépend de celui
+    # de l'hôte, et les assertions de date divergeraient entre tests et prod.
+    # Offset numérique et non "UTC" : un nom de zone exigerait les tables de
+    # fuseaux.
+    command: --default-time-zone=+00:00
+
+    environment:
+      MYSQL_DATABASE: secretLink
+      MYSQL_RANDOM_ROOT_PASSWORD: "true"
+
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro

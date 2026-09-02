@@ -1,19 +1,15 @@
 services:
   db:
-    image: mysql:8.4
+    # Image, fuseau et scripts d'init : voir docker-compose.db.yml.
+    extends:
+      file: docker-compose.db.yml
+      service: db
     container_name: secretlink-db
-    # Fuseau explicite : NOW() et CURRENT_TIMESTAMP écrivent en UTC, comme le driver
-    # côté serveur (timezone: 'Z'). Sans ça, le fuseau dépend de celui de l'hôte.
-    # Offset numérique et non "UTC" : un nom de zone exigerait les tables de fuseaux.
-    command: --default-time-zone=+00:00
     environment:
-      MYSQL_DATABASE: secretLink
-      MYSQL_RANDOM_ROOT_PASSWORD: "true"
       MYSQL_USER: ${MYSQL_USER:-link}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
     volumes:
       - db_data:/var/lib/mysql
-      - ./mysql-init:/docker-entrypoint-initdb.d:ro
     expose:
       - "3306"
     healthcheck:

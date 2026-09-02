@@ -14,15 +14,13 @@ name: secretlink-e2e
 
 services:
   db:
-    image: mysql:8.4
-    command: --default-time-zone=+00:00
+    # Image, fuseau et scripts d'init : voir docker-compose.db.yml.
+    extends:
+      file: docker-compose.db.yml
+      service: db
     environment:
-      MYSQL_DATABASE: secretLink
-      MYSQL_RANDOM_ROOT_PASSWORD: "true"
       MYSQL_USER: link
       MYSQL_PASSWORD: cipass
-    volumes:
-      - ./mysql-init:/docker-entrypoint-initdb.d:ro
     # Datadir en RAM : la base est reconstruite à chaque `up`, donc les scripts
     # de mysql-init rejouent systématiquement.
     tmpfs:

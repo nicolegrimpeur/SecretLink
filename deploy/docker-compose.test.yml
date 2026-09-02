@@ -14,24 +14,14 @@ name: secretlink-test
 
 services:
   db:
-    # Version figée, là où dev et prod disent `mysql:lts` : un bump amont de la
-    # LTS ne doit pas pouvoir casser la CI sur une PR qui n'y touche pas.
-    # (`mysql:lts` vaut 8.4 aujourd'hui - les deux coïncident.)
-    image: mysql:8.4
-
-    # Même fuseau explicite que dev et prod : NOW() écrit en UTC, comme le
-    # driver côté serveur (timezone: 'Z'). Tout écart ici ferait diverger les
-    # assertions de date entre les tests et la production.
-    command: --default-time-zone=+00:00
+    # Image, fuseau et scripts d'init : voir docker-compose.db.yml.
+    extends:
+      file: docker-compose.db.yml
+      service: db
 
     environment:
-      MYSQL_DATABASE: secretLink
-      MYSQL_RANDOM_ROOT_PASSWORD: "true"
       MYSQL_USER: link
       MYSQL_PASSWORD: cipass
-
-    volumes:
-      - ./mysql-init:/docker-entrypoint-initdb.d:ro
 
     # Datadir en RAM : l'init est nettement plus rapide et ne laisse aucune
     # trace sur le disque au teardown.
