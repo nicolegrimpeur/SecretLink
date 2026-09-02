@@ -1,2 +1,16 @@
+# Dependencies
+node_modules
+
+# IDE
 .idea
+.vscode
+.DS_Store
+
+# Build artifacts
 extension.zip
+
+# Sorties de tests (server/ et client/ ont leurs propres règles ; celles-ci
+# couvrent la racine, où un outil lancé au mauvais endroit peut écrire)
+coverage
+reports
+.vite

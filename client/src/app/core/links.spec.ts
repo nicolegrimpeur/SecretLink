@@ -35,7 +35,7 @@ describe('LinksService', () => {
     it('does not send credentials (public endpoint)', async () => {
       const createPromise = service.createSingle({secret: 'my secret'} as any);
       const req = http.expectOne(`${environment.apiBaseUrl}/links`);
-      expect(req.request.withCredentials).toBeFalse();
+      expect(req.request.withCredentials).toBe(false);
       req.flush({result: {}});
       await createPromise;
     });
@@ -53,7 +53,7 @@ describe('LinksService', () => {
     it('sends credentials', async () => {
       const bulkPromise = service.createBulk([]);
       const req = http.expectOne(`${environment.apiBaseUrl}/links/bulk`);
-      expect(req.request.withCredentials).toBeTrue();
+      expect(req.request.withCredentials).toBe(true);
       req.flush({results: []});
       await bulkPromise;
     });
@@ -61,7 +61,7 @@ describe('LinksService', () => {
     it('does not send an Idempotency-Key header', async () => {
       const bulkPromise = service.createBulk([]);
       const req = http.expectOne(`${environment.apiBaseUrl}/links/bulk`);
-      expect(req.request.headers.has('Idempotency-Key')).toBeFalse();
+      expect(req.request.headers.has('Idempotency-Key')).toBe(false);
       req.flush({results: []});
       await bulkPromise;
     });
@@ -79,7 +79,7 @@ describe('LinksService', () => {
     it('sends credentials', async () => {
       const listPromise = service.listStatus();
       const req = http.expectOne(r => r.url.includes('/links/status'));
-      expect(req.request.withCredentials).toBeTrue();
+      expect(req.request.withCredentials).toBe(true);
       req.flush([]);
       await listPromise;
     });
@@ -103,7 +103,7 @@ describe('LinksService', () => {
     it('relies on the session cookie, never on an Authorization header', async () => {
       const listPromise = service.listStatus();
       const req = http.expectOne(r => r.url.includes('/links/status'));
-      expect(req.request.headers.has('Authorization')).toBeFalse();
+      expect(req.request.headers.has('Authorization')).toBe(false);
       req.flush([]);
       await listPromise;
     });
@@ -140,7 +140,7 @@ describe('LinksService', () => {
     it('does not send credentials (public endpoint)', async () => {
       const redeemPromise = service.redeemLink('sometoken');
       const req = http.expectOne(r => r.url.includes('/links/redeem/'));
-      expect(req.request.withCredentials).toBeFalse();
+      expect(req.request.withCredentials).toBe(false);
       req.flush({});
       await redeemPromise;
     });

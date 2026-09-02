@@ -108,26 +108,17 @@
           }
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "main": "src/test.ts",
-            "polyfills": ["src/polyfills.ts"],
+            "buildTarget": "app:build:development",
             "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "src/assets",
-                "output": "assets"
-              }
-            ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
-            "scripts": []
+            "runnerConfig": "vitest.config.ts"
           },
           "configurations": {
             "ci": {
-              "watch": false
+              "coverage": true,
+              "coverageReporters": ["text-summary", "lcovonly"],
+              "reporters": ["default", ["junit", { "outputFile": "reports/junit.xml" }]]
             }
           }
         },

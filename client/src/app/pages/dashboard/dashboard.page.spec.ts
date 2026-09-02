@@ -29,7 +29,7 @@ describe('DashboardPage', () => {
   });
 
   it('starts in loading state', () => {
-    expect(component.loading()).toBeTrue();
+    expect(component.loading()).toBe(true);
   });
 
   it('starts with empty links and tokens', () => {

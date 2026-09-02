@@ -42,14 +42,14 @@ describe('AuthService', () => {
       http.expectOne(`${environment.apiBaseUrl}/users/login`)
         .flush({mfa_required: true, pre_auth_token: 'token123'});
       const result = await loginPromise;
-      expect(result.mfa_required).toBeTrue();
+      expect(result.mfa_required).toBe(true);
       expect(service.user).toBeNull();
     });
 
     it('uses withCredentials', async () => {
       const loginPromise = service.login('test@example.com', 'password');
       const req = http.expectOne(`${environment.apiBaseUrl}/users/login`);
-      expect(req.request.withCredentials).toBeTrue();
+      expect(req.request.withCredentials).toBe(true);
       req.flush({mfa_required: false, user: {id: 1}});
       await loginPromise;
     });
@@ -77,7 +77,7 @@ describe('AuthService', () => {
 
       const logoutPromise = service.logout();
       const req = http.expectOne(`${environment.apiBaseUrl}/users/logout`);
-      expect(req.request.withCredentials).toBeTrue();
+      expect(req.request.withCredentials).toBe(true);
       req.flush({});
       await logoutPromise;
       expect(service.user).toBeNull();
@@ -112,7 +112,7 @@ describe('AuthService', () => {
     it('sends remember_device flag', async () => {
       const verifyPromise = service.verifyMfa('pretoken', '111111', undefined, true);
       const req = http.expectOne(`${environment.apiBaseUrl}/users/mfa/verify`);
-      expect(req.request.body['remember_device']).toBeTrue();
+      expect(req.request.body['remember_device']).toBe(true);
       req.flush({id: 1});
       await verifyPromise;
     });

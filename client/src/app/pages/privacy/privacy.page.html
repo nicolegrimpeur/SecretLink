@@ -17,7 +17,7 @@
         <li><strong>Compte utilisateur</strong> : e-mail, mot de passe (haché).</li>
         <li><strong>Authentification</strong> : cookie de <strong>session</strong> strictement nécessaire (voir § cookies).</li>
         <li><strong>Tokens personnels (PAT)</strong> : <strong>empreinte</strong> (hash) du token, libellé, scopes, dates (jamais affiché en clair après création).</li>
-        <li><strong>Authentification multi-facteurs (MFA)</strong> : secret TOTP (chiffré au repos) et codes de récupération (hachés) — le MFA est obligatoire à la création de tout compte.</li>
+        <li><strong>Authentification multi-facteurs (MFA)</strong> : secret TOTP (chiffré au repos) et codes de récupération (hachés) - le MFA est obligatoire à la création de tout compte.</li>
         <li><strong>Liens/“items”</strong> : identifiant, jeton de lien, <strong>secret chiffré</strong> jusqu'à sa lecture/expiration, dates (création, expiration, usage, suppression).</li>
         <li><strong>Passphrase (optionnelle)</strong> : lors de la création d'un lien, l'utilisateur peut définir une passphrase utilisée pour chiffrer le secret <strong>localement</strong> (dans son navigateur). Seul le <strong>hachage</strong> de la passphrase est transmis au serveur à des fins de vérification lors de la consultation.
           <ul>

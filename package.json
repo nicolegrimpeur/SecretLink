@@ -1,6 +1,6 @@
 {
   "name": "secretlink",
-  "version": "0.18.0",
+  "version": "0.19.3",
   "private": true,
   "description": "SecretLink monorepo - version source of truth",
   "author": "Nicolas BARRAT",
@@ -9,8 +9,17 @@
     "npm": ">=10"
   },
   "scripts": {
-    "version": "node scripts/sync-version.mjs && git add client/package.json client/package-lock.json server/package.json server/package-lock.json",
+    "version": "node scripts/sync-version.mjs && git add client/package.json client/package-lock.json server/package.json server/package-lock.json e2e/package.json e2e/package-lock.json",
     "version:sync": "node scripts/sync-version.mjs",
-    "version:check": "node scripts/sync-version.mjs --check"
+    "version:check": "node scripts/sync-version.mjs --check",
+    "db:test:up": "docker compose -f deploy/docker-compose.test.yml up -d --wait db",
+    "db:test:down": "docker compose -f deploy/docker-compose.test.yml down -v",
+    "test:server": "npm --prefix server run test",
+    "test:client": "npm --prefix client run test",
+    "test:e2e": "npm --prefix e2e run test",
+    "e2e:up": "docker compose -f deploy/docker-compose.e2e.yml up -d --build --wait",
+    "e2e:down": "docker compose -f deploy/docker-compose.e2e.yml down -v",
+    "usine": "npm run version:check && npm run db:test:up && npm run test:server && npm run test:client && npm run db:test:down",
+    "usine:full": "npm run usine && npm run e2e:up && npm run test:e2e && npm run e2e:down"
   }
 }

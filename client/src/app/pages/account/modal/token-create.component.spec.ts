@@ -18,13 +18,13 @@ describe('TokenCreateComponent', () => {
         {
           provide: ModalController,
           useValue: {
-            dismiss: jasmine.createSpy('dismiss').and.returnValue(Promise.resolve()),
+            dismiss: vi.fn().mockReturnValue(Promise.resolve()),
           }
         },
         {
           provide: ToastController,
           useValue: {
-            create: jasmine.createSpy('create').and.returnValue(
+            create: vi.fn().mockReturnValue(
               Promise.resolve({present: () => Promise.resolve()})
             )
           }

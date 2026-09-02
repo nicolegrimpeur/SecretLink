@@ -32,26 +32,26 @@ describe('Route guards', () => {
 
   describe('authGuard', () => {
     it('returns true when user is authenticated', () => {
-      spyOnProperty(authService, 'user', 'get').and.returnValue({id: 1} as any);
-      expect(runAuthGuard({} as any, {} as any)).toBeTrue();
+      vi.spyOn(authService, 'user', 'get').mockReturnValue({id: 1} as any);
+      expect(runAuthGuard({} as any, {} as any)).toBe(true);
     });
 
     it('returns false when user is not authenticated', () => {
-      spyOnProperty(authService, 'user', 'get').and.returnValue(null);
-      spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
-      expect(runAuthGuard({} as any, {} as any)).toBeFalse();
+      vi.spyOn(authService, 'user', 'get').mockReturnValue(null);
+      vi.spyOn(router, 'navigateByUrl').mockReturnValue(Promise.resolve(true));
+      expect(runAuthGuard({} as any, {} as any)).toBe(false);
     });
 
     it('redirects to /auth when user is not authenticated', () => {
-      spyOnProperty(authService, 'user', 'get').and.returnValue(null);
-      const navSpy = spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
+      vi.spyOn(authService, 'user', 'get').mockReturnValue(null);
+      const navSpy = vi.spyOn(router, 'navigateByUrl').mockReturnValue(Promise.resolve(true));
       runAuthGuard({} as any, {} as any);
       expect(navSpy).toHaveBeenCalledWith('/auth');
     });
 
     it('does not redirect when user is authenticated', () => {
-      spyOnProperty(authService, 'user', 'get').and.returnValue({id: 1} as any);
-      const navSpy = spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
+      vi.spyOn(authService, 'user', 'get').mockReturnValue({id: 1} as any);
+      const navSpy = vi.spyOn(router, 'navigateByUrl').mockReturnValue(Promise.resolve(true));
       runAuthGuard({} as any, {} as any);
       expect(navSpy).not.toHaveBeenCalled();
     });
@@ -61,26 +61,26 @@ describe('Route guards', () => {
 
   describe('guestGuard', () => {
     it('returns true when user is not authenticated', () => {
-      spyOnProperty(authService, 'user', 'get').and.returnValue(null);
-      expect(runGuestGuard({} as any, {} as any)).toBeTrue();
+      vi.spyOn(authService, 'user', 'get').mockReturnValue(null);
+      expect(runGuestGuard({} as any, {} as any)).toBe(true);
     });
 
     it('returns false when user is authenticated', () => {
-      spyOnProperty(authService, 'user', 'get').and.returnValue({id: 1} as any);
-      spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
-      expect(runGuestGuard({} as any, {} as any)).toBeFalse();
+      vi.spyOn(authService, 'user', 'get').mockReturnValue({id: 1} as any);
+      vi.spyOn(router, 'navigateByUrl').mockReturnValue(Promise.resolve(true));
+      expect(runGuestGuard({} as any, {} as any)).toBe(false);
     });
 
     it('redirects to /dashboard when user is authenticated', () => {
-      spyOnProperty(authService, 'user', 'get').and.returnValue({id: 1} as any);
-      const navSpy = spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
+      vi.spyOn(authService, 'user', 'get').mockReturnValue({id: 1} as any);
+      const navSpy = vi.spyOn(router, 'navigateByUrl').mockReturnValue(Promise.resolve(true));
       runGuestGuard({} as any, {} as any);
       expect(navSpy).toHaveBeenCalledWith('/dashboard');
     });
 
     it('does not redirect when user is not authenticated', () => {
-      spyOnProperty(authService, 'user', 'get').and.returnValue(null);
-      const navSpy = spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
+      vi.spyOn(authService, 'user', 'get').mockReturnValue(null);
+      const navSpy = vi.spyOn(router, 'navigateByUrl').mockReturnValue(Promise.resolve(true));
       runGuestGuard({} as any, {} as any);
       expect(navSpy).not.toHaveBeenCalled();
     });

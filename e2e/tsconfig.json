@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    // DOM en plus de Node : le code passé à `page.evaluate` s'exécute dans le
+    // navigateur et a besoin de `document` / `window`.
+    "lib": ["ES2022", "DOM"],
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    // Playwright transpile lui-même les specs : TypeScript ne sert qu'au
+    // contrôle de types (éditeur et `npm run typecheck`).
+    "noEmit": true
+  },
+  "include": ["playwright.config.ts", "helpers/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules"]
+}

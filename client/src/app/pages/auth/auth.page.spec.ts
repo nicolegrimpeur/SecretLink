@@ -20,7 +20,7 @@ describe('AuthPage', () => {
         {
           provide: ModalController,
           useValue: {
-            create: jasmine.createSpy('create').and.returnValue(Promise.resolve({present: () => {}})),
+            create: vi.fn().mockReturnValue(Promise.resolve({present: () => {}})),
           }
         }
       ]

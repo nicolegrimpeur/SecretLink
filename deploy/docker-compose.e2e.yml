@@ -1,0 +1,90 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Stack complète et éphémère pour les tests end-to-end.
+#      npm run e2e:up   /   npm run e2e:test   /   npm run e2e:down
+#
+#  Reproduit le point d'entrée unique de la production : seul le nginx du
+#  service `client` publie un port, et il proxifie /api vers `server`. Les
+#  tests tapent donc http://localhost:8080 pour tout - SPA comme API - ce qui
+#  valide le proxy au passage. Le serveur ne publie rien, exactement comme en
+#  production.
+#
+#  Toutes les valeurs sensibles sont JETABLES, comme dans server/.env.test.
+# ─────────────────────────────────────────────────────────────────────────────
+name: secretlink-e2e
+
+services:
+  db:
+    # Image, fuseau et scripts d'init : voir docker-compose.db.yml.
+    extends:
+      file: docker-compose.db.yml
+      service: db
+    environment:
+      MYSQL_USER: link
+      MYSQL_PASSWORD: cipass
+    # Datadir en RAM : la base est reconstruite à chaque `up`, donc les scripts
+    # de mysql-init rejouent systématiquement.
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      # On interroge une table du schéma, pas un simple ping : l'entrypoint
+      # MySQL répond « up » depuis un serveur temporaire avant d'avoir joué
+      # les scripts d'init.
+      test:
+        - CMD-SHELL
+        - mysql -h 127.0.0.1 -ulink -pcipass secretLink -e "SELECT 1 FROM users LIMIT 1" > /dev/null 2>&1
+      interval: 2s
+      timeout: 5s
+      retries: 40
+      start_period: 20s
+
+  server:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # 'test' et non 'production' : en production les cookies sont posés avec
+      # le flag Secure, que le navigateur refuse sur du http:// en clair. La
+      # connexion serait donc impossible. C'est le seul écart avec la prod.
+      NODE_ENV: test
+      PORT: 3000
+      # Sert à construire `link_url` : les tests naviguent vers cette URL.
+      FRONT_BASE_URL: http://localhost:8080
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_USER: link
+      MYSQL_PASSWORD: cipass
+      MYSQL_DB: secretLink
+      MASTER_KEY_V1: 00000000000000000000000000000000000000000000000000000000deadbeef
+      KEY_VERSION: 1
+      SESSION_SECRET: e2e-session-secret-strictly-throwaway-0000
+      IP_HMAC_SECRET: e2e-ip-hmac-secret-strictly-throwaway-0000
+      LOG_LEVEL: warn
+      MAINTENANCE_MODE: 0
+      # Chaîne : navigateur -> nginx (service client) -> ici. Un seul saut de
+      # confiance, comme dans docker-compose-dev.yml.
+      TRUST_PROXY: 1
+    # Aucun port publié : le serveur n'est joignable que par nginx. Le
+    # HEALTHCHECK de l'image interroge /health en interne.
+    expose:
+      - "3000"
+
+  client:
+    build:
+      context: ../client
+      dockerfile: Dockerfile
+    depends_on:
+      server:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    healthcheck:
+      # L'image nginx n'embarque ni curl ni wget ; on se rabat sur le client
+      # TCP intégré de bash… absent aussi en alpine. `nc` est présent.
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 80 || exit 1"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 5s

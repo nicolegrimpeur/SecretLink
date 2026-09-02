@@ -1,0 +1,15 @@
+{
+  // Le tsconfig de build exclut *.spec.ts et ne compile que src/. Celui-ci type-check
+  // les tests SANS les émettre : `npm run build` ne doit jamais produire dist/tests/.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    // Le tsconfig de build fixe rootDir à ./src, ce qui exclurait tests/ et
+    // vitest.config.ts du programme. Sans émission, rootDir n'a aucun effet.
+    "rootDir": "."
+  },
+  "include": ["src/**/*", "tests/**/*", "vitest.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}

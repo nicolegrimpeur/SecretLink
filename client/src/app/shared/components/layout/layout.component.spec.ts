@@ -19,15 +19,15 @@ describe('LayoutComponent', () => {
         provideRouter([]),
         {
           provide: NavController,
-          useValue: {navigateRoot: jasmine.createSpy(), navigateForward: jasmine.createSpy()}
+          useValue: {navigateRoot: vi.fn(), navigateForward: vi.fn()}
         },
         {
           provide: PopoverController,
-          useValue: {create: jasmine.createSpy('create').and.returnValue(Promise.resolve({present: () => {}}))}
+          useValue: {create: vi.fn().mockReturnValue(Promise.resolve({present: () => {}}))}
         },
         {
           provide: ToastController,
-          useValue: {create: jasmine.createSpy('create').and.returnValue(Promise.resolve({present: () => {}}))}
+          useValue: {create: vi.fn().mockReturnValue(Promise.resolve({present: () => {}}))}
         }
       ]
     }).compileComponents();

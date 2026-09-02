@@ -18,23 +18,23 @@ describe('CryptoService', () => {
 
   describe('isEncrypted()', () => {
     it('returns true for valid enc: payloads', () => {
-      expect(service.isEncrypted('enc:salt:iv:ct')).toBeTrue();
+      expect(service.isEncrypted('enc:salt:iv:ct')).toBe(true);
     });
 
     it('returns false for plain strings', () => {
-      expect(service.isEncrypted('hello world')).toBeFalse();
+      expect(service.isEncrypted('hello world')).toBe(false);
     });
 
     it('returns false for null', () => {
-      expect(service.isEncrypted(null)).toBeFalse();
+      expect(service.isEncrypted(null)).toBe(false);
     });
 
     it('returns false for undefined', () => {
-      expect(service.isEncrypted(undefined)).toBeFalse();
+      expect(service.isEncrypted(undefined)).toBe(false);
     });
 
     it('returns false for strings starting with enc but without colon', () => {
-      expect(service.isEncrypted('encoded-payload')).toBeFalse();
+      expect(service.isEncrypted('encoded-payload')).toBe(false);
     });
   });
 
@@ -44,10 +44,10 @@ describe('CryptoService', () => {
     it('returns a 64-character hex string (SHA-256)', async () => {
       const hash = await service.hashPassphrase('test');
       expect(hash.length).toBe(64);
-      expect(/^[0-9a-f]{64}$/.test(hash)).toBeTrue();
+      expect(/^[0-9a-f]{64}$/.test(hash)).toBe(true);
     });
 
-    it('is deterministic — same input yields same hash', async () => {
+    it('is deterministic - same input yields same hash', async () => {
       const h1 = await service.hashPassphrase('same passphrase');
       const h2 = await service.hashPassphrase('same passphrase');
       expect(h1).toBe(h2);
@@ -84,7 +84,7 @@ describe('CryptoService', () => {
     it('encrypts the secret when a passphrase is given', async () => {
       const result = await service.encryptIfPassphrase('my secret', 'passphrase');
       expect(result.secret).not.toBe('my secret');
-      expect((result.secret as string).startsWith('enc:')).toBeTrue();
+      expect((result.secret as string).startsWith('enc:')).toBe(true);
     });
 
     it('passphraseHash matches hashPassphrase()', async () => {
@@ -121,7 +121,7 @@ describe('CryptoService', () => {
     });
 
     it('round-trips unicode / emoji content', async () => {
-      const original = 'été 2024 — £€¥ 🔐 café';
+      const original = 'été 2024 - £€¥ 🔐 café';
       const {secret} = await service.encryptIfPassphrase(original, 'pass');
       const decrypted = await service.decryptIfNeeded(secret as string, 'pass');
       expect(decrypted).toBe(original);
@@ -138,7 +138,7 @@ describe('CryptoService', () => {
       const {secret} = await service.encryptIfPassphrase('secret', 'pass');
       try {
         await service.decryptIfNeeded(secret as string);
-        fail('should have thrown');
+        expect.fail('should have thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(CryptoError);
         expect((e as CryptoError).code).toBe(CryptoErrorCode.WrongPassphrase);
@@ -149,7 +149,7 @@ describe('CryptoService', () => {
       const {secret} = await service.encryptIfPassphrase('secret', 'correct');
       try {
         await service.decryptIfNeeded(secret as string, 'wrong');
-        fail('should have thrown');
+        expect.fail('should have thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(CryptoError);
         expect((e as CryptoError).code).toBe(CryptoErrorCode.WrongPassphrase);
@@ -159,7 +159,7 @@ describe('CryptoService', () => {
     it('throws InvalidPayload on malformed enc: payload (< 4 parts)', async () => {
       try {
         await service.decryptIfNeeded('enc:only:two', 'somepass');
-        fail('should have thrown');
+        expect.fail('should have thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(CryptoError);
         expect((e as CryptoError).code).toBe(CryptoErrorCode.InvalidPayload);
