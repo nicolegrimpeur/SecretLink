@@ -12,6 +12,8 @@ const files = [
   'client/package-lock.json',
   'server/package.json',
   'server/package-lock.json',
+  'e2e/package.json',
+  'e2e/package-lock.json',
 ];
 
 let drift = 0;

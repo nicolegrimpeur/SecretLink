@@ -173,6 +173,24 @@ Ils utilisent le builder `@angular/build:unit-test` avec Vitest. Le builder init
 importe un *répertoire* (`@ionic/core/components`), ce que le résolveur ESM de Node refuse.
 Inliner Ionic force Vite à le résoudre lui-même.
 
+### Tests end-to-end
+
+Playwright contre la stack Docker complète (MySQL + serveur + nginx), qui reproduit le point
+d'entrée unique de la production :
+
+```bash
+npm run e2e:up      # build les images et monte la stack (~2 min la 1re fois)
+npm run test:e2e    # joue la suite (~20 s)
+npm run e2e:down
+
+npm run usine:full  # tout : unitaires, intégration, puis end-to-end
+```
+
+Ils ne rejouent **pas** le contrat de l'API - les tests d'intégration s'en chargent. Ils
+vérifient ce que seule la stack assemblée peut prouver : le routage nginx, le parcours du lien
+à usage unique dans un vrai navigateur, et la chaîne d'authentification MFA complète.
+Détails, contraintes et diagnostic dans [`e2e/README.md`](e2e/README.md).
+
 ### Configuration des tests serveur
 
 [`server/.env.test`](server/.env.test) est **committé volontairement** : toutes ses valeurs
