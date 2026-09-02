@@ -37,7 +37,7 @@ jobs:
   #  ⚠️ Le filtrage est fait ICI, au niveau des jobs, et JAMAIS via `on.paths`.
   #  Si le workflow entier était skippé faute de chemin correspondant, GitHub
   #  ne recevrait aucun statut pour `ci-gate` : la PR afficherait
-  #  « Expected — waiting for status to be reported » pour toujours, sans
+  #  « Expected - waiting for status to be reported » pour toujours, sans
   #  timeout et sans recours autre que d'éditer la protection de branche.
   # ───────────────────────────────────────────────────────────────────────────
   changes:
@@ -53,11 +53,11 @@ jobs:
       extension: ${{ steps.decide.outputs.extension }}
       e2e: ${{ steps.decide.outputs.e2e }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - id: filter
         if: github.event_name == 'pull_request'
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           # Chaque projet inclut la liste `shared` : on ne merge jamais un
           # changement de CI ou de toolchain validé sur un sous-ensemble.
@@ -109,7 +109,7 @@ jobs:
           fi
 
   # ───────────────────────────────────────────────────────────────────────────
-  #  Cohérence des versions — sans filtre de chemin, volontairement
+  #  Cohérence des versions - sans filtre de chemin, volontairement
   #
   #  Une dérive de version est exactement le genre de bug qu'un filtre de
   #  chemin masquerait. Le job coûte vingt secondes.
@@ -119,8 +119,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - run: node scripts/sync-version.mjs --check
@@ -138,7 +138,7 @@ jobs:
       contents: read
       checks: write # dorny/test-reporter publie un check run
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/npm-setup
         with:
@@ -176,7 +176,7 @@ jobs:
 
       - name: Publication du rapport de tests
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         with:
           name: Tests serveur
           path: server/reports/junit.xml
@@ -202,7 +202,7 @@ jobs:
       contents: read
       checks: write # dorny/test-reporter publie un check run
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/npm-setup
         with:
@@ -225,7 +225,7 @@ jobs:
 
       - name: Publication du rapport de tests
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         with:
           name: Tests client
           path: client/reports/junit.xml
@@ -234,7 +234,7 @@ jobs:
 
       - name: Couverture
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: client-coverage
           path: client/coverage
@@ -252,12 +252,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Nécessaire pour comparer au commit de base (garde de version).
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 
@@ -278,7 +278,7 @@ jobs:
             }
             const popup = m.action?.default_popup;
             if (popup && !existsSync(`extension/${popup}`)) fail(`default_popup absent : ${popup}`);
-            console.log(`manifest OK — ${m.name} ${m.version}`);
+            console.log(`manifest OK - ${m.name} ${m.version}`);
           '
 
       - name: Syntaxe des scripts
@@ -308,7 +308,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/npm-setup
         with:
@@ -316,7 +316,7 @@ jobs:
 
       - name: Cache des navigateurs Playwright
         id: pw-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('e2e/package-lock.json') }}
@@ -379,7 +379,7 @@ jobs:
 
       - name: Rapport Playwright
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: |
@@ -393,12 +393,12 @@ jobs:
         run: npm run e2e:down
 
   # ───────────────────────────────────────────────────────────────────────────
-  #  Le gate — SEUL check à exiger dans la protection de branche
+  #  Le gate - SEUL check à exiger dans la protection de branche
   # ───────────────────────────────────────────────────────────────────────────
   ci-gate:
     name: ci-gate
     # `always()` est le point critique. Avec le `success()` implicite, ce job
-    # serait *skippé* dès qu'un job amont échoue — et un check requis skippé
+    # serait *skippé* dès qu'un job amont échoue - et un check requis skippé
     # est traité comme PENDING, pas comme échoué : le merge resterait bloqué
     # sans aucune croix rouge pour l'expliquer.
     if: always()
@@ -417,7 +417,7 @@ jobs:
           RESULTS: ${{ toJSON(needs) }}
         shell: bash
         # Node plutôt que jq : les deux sont préinstallés sur le runner, mais
-        # ce script-ci est testable hors CI — et c'est la pièce dont une faute
+        # ce script-ci est testable hors CI - et c'est la pièce dont une faute
         # de syntaxe se paierait le plus cher. Heredoc entre quotes simples :
         # aucune expansion bash sur le JavaScript.
         run: |
