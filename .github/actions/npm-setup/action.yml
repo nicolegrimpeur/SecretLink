@@ -1,0 +1,28 @@
+name: npm setup
+description: >
+  Installe Node d'après .nvmrc et les dépendances d'un des projets du dépôt.
+  Le dépôt n'utilise pas les workspaces npm : chaque projet a son propre
+  package-lock.json, donc son propre cache.
+
+inputs:
+  project:
+    description: Répertoire du projet (server | client | e2e)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        # Source unique de vérité pour la version de Node : le même fichier
+        # alimente les Dockerfiles via --build-arg.
+        node-version-file: .nvmrc
+        cache: npm
+        cache-dependency-path: ${{ inputs.project }}/package-lock.json
+
+    - name: npm ci (${{ inputs.project }})
+      shell: bash
+      working-directory: ${{ inputs.project }}
+      # --no-audit : l'audit a son propre job, il n'a pas à ralentir chaque
+      # install ni à faire échouer une PR sans rapport.
+      run: npm ci --no-audit --no-fund
