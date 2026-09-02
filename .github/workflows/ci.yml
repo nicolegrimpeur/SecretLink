@@ -290,13 +290,27 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
+        # Cette garde raisonne sur le diff réel, et NON sur le fait que le job
+        # ait été programmé. Le filtre `shared` déclenche ce job dès qu'un
+        # fichier de `.github/**` bouge : ne tester que « le manifest n'a pas
+        # changé » ferait échouer toute PR purement CI.
         run: |
           set -euo pipefail
+
+          if git diff --quiet "$BASE" -- extension/ ':(exclude)extension/manifest.json'; then
+            echo "Aucun changement dans extension/ hors manifest : rien à exiger."
+            exit 0
+          fi
+
+          echo "Fichiers d'extension modifiés :"
+          git diff --name-only "$BASE" -- extension/ | sed 's/^/  /'
+
           if git diff --quiet "$BASE" -- extension/manifest.json; then
-            echo "::error::extension/** a changé sans bump de extension/manifest.json." \
+            echo "::error file=extension/manifest.json::extension/ a changé sans bump de version." \
                  " Le Chrome Web Store refuse le téléversement d'une version existante."
             exit 1
           fi
+          echo "Version du manifest modifiée : OK."
 
   # ───────────────────────────────────────────────────────────────────────────
   #  End-to-end : la stack Docker complète, point d'entrée unique compris
