@@ -1,6 +1,6 @@
 {
   "name": "secret_link",
-  "version": "0.19.3",
+  "version": "0.19.4",
   "author": "Nicolas BARRAT",
   "homepage": "https://secret.nicob.ovh/",
   "engines": {
@@ -10,6 +10,7 @@
   "scripts": {
     "start": "ionic serve",
     "build": "ng run app:build:production",
+    "lint": "ng lint",
     "test": "ng test --no-watch",
     "test:watch": "ng test",
     "test:ci": "ng test --configuration ci --no-watch",

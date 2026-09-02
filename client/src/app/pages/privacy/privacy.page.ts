@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 
 import {FormsModule} from '@angular/forms';
 import {
@@ -17,11 +17,5 @@ import {
   standalone: true,
   imports: [IonContent, FormsModule, IonCard, IonCardHeader, IonCardContent, IonCardTitle, IonCardSubtitle]
 })
-export class PrivacyPage implements OnInit {
-
-  constructor() { }
-
-  ngOnInit() {
-  }
-
+export class PrivacyPage {
 }

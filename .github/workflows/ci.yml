@@ -1,0 +1,454 @@
+name: CI
+
+on:
+  # C'est CE déclencheur qui bloque le merge : les required status checks sont
+  # évalués sur le SHA de fusion de la PR. Un workflow uniquement en `push`
+  # produirait des checks sur le commit de branche, et la PR resterait
+  # indéfiniment « waiting for status ».
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+  # Filet post-merge : attrape les conflits sémantiques qu'aucune des deux
+  # branches ne présentait séparément.
+  push:
+    branches: [master]
+
+  workflow_dispatch:
+    inputs:
+      run_all:
+        description: Tout lancer en ignorant les filtres de chemin
+        type: boolean
+        default: true
+
+# Aucun secret n'est nécessaire : les valeurs de test sont committées
+# (server/.env.test) ou en dur dans les compose de test.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  #  Détection des changements
+  #
+  #  ⚠️ Le filtrage est fait ICI, au niveau des jobs, et JAMAIS via `on.paths`.
+  #  Si le workflow entier était skippé faute de chemin correspondant, GitHub
+  #  ne recevrait aucun statut pour `ci-gate` : la PR afficherait
+  #  « Expected — waiting for status to be reported » pour toujours, sans
+  #  timeout et sans recours autre que d'éditer la protection de branche.
+  # ───────────────────────────────────────────────────────────────────────────
+  changes:
+    name: Détection des changements
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read # requis par dorny/paths-filter sur une PR
+    outputs:
+      server: ${{ steps.decide.outputs.server }}
+      client: ${{ steps.decide.outputs.client }}
+      extension: ${{ steps.decide.outputs.extension }}
+      e2e: ${{ steps.decide.outputs.e2e }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: filter
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v3
+        with:
+          # Chaque projet inclut la liste `shared` : on ne merge jamais un
+          # changement de CI ou de toolchain validé sur un sous-ensemble.
+          filters: |
+            shared: &shared
+              - '.github/**'
+              - '.nvmrc'
+              - 'package.json'
+              - 'scripts/**'
+            server:
+              - *shared
+              - 'server/**'
+              - 'deploy/mysql-init/**'
+              - 'deploy/docker-compose.db.yml'
+              - 'deploy/docker-compose.test.yml'
+            client:
+              - *shared
+              - 'client/**'
+            extension:
+              - *shared
+              - 'extension/**'
+            e2e:
+              - *shared
+              - 'server/**'
+              - 'client/**'
+              - 'deploy/**'
+              - 'e2e/**'
+
+      - id: decide
+        env:
+          # Hors PR (push sur master, lancement manuel) il n'existe pas de base
+          # de diff fiable, et ces exécutions sont rares : on lance tout.
+          FORCE_ALL: ${{ github.event_name != 'pull_request' }}
+          F_SERVER: ${{ steps.filter.outputs.server }}
+          F_CLIENT: ${{ steps.filter.outputs.client }}
+          F_EXTENSION: ${{ steps.filter.outputs.extension }}
+          F_E2E: ${{ steps.filter.outputs.e2e }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          emit() { echo "$1=$2" >> "$GITHUB_OUTPUT"; echo "$1=$2"; }
+          if [ "$FORCE_ALL" = "true" ]; then
+            for k in server client extension e2e; do emit "$k" true; done
+          else
+            emit server    "${F_SERVER:-false}"
+            emit client    "${F_CLIENT:-false}"
+            emit extension "${F_EXTENSION:-false}"
+            emit e2e       "${F_E2E:-false}"
+          fi
+
+  # ───────────────────────────────────────────────────────────────────────────
+  #  Cohérence des versions — sans filtre de chemin, volontairement
+  #
+  #  Une dérive de version est exactement le genre de bug qu'un filtre de
+  #  chemin masquerait. Le job coûte vingt secondes.
+  # ───────────────────────────────────────────────────────────────────────────
+  versions:
+    name: Cohérence des versions
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: node scripts/sync-version.mjs --check
+
+  # ───────────────────────────────────────────────────────────────────────────
+  #  Serveur : typage, build, et les tests d'intégration qui figent l'API
+  # ───────────────────────────────────────────────────────────────────────────
+  server:
+    name: Serveur
+    needs: changes
+    if: needs.changes.outputs.server == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      checks: write # dorny/test-reporter publie un check run
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/npm-setup
+        with:
+          project: server
+
+      # Séparé du build : une erreur de type et une erreur de compilation
+      # produisent des logs très différents, et on veut savoir laquelle c'est.
+      - name: Typage du code source
+        working-directory: server
+        run: npm run typecheck
+
+      - name: Typage des tests
+        working-directory: server
+        run: npm run typecheck:tests
+
+      - name: Build
+        working-directory: server
+        run: npm run build
+
+      - name: Les tests ne doivent pas atterrir dans dist/
+        run: test ! -d server/dist/tests
+
+      # Le même script qu'en local : si la CI inventait ses propres commandes,
+      # les deux divergeraient sans qu'on le voie.
+      - name: Base MySQL éphémère
+        run: npm run db:test:up
+
+      - name: Tests d'intégration
+        working-directory: server
+        run: npm run test:ci
+
+      - name: Logs MySQL en cas d'échec
+        if: failure()
+        run: docker compose -f deploy/docker-compose.test.yml logs db
+
+      - name: Publication du rapport de tests
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Tests serveur
+          path: server/reports/junit.xml
+          reporter: java-junit
+          # L'étape de test a déjà tranché : sans ça on obtient un double
+          # verdict et un job rouge pour une raison illisible.
+          fail-on-error: false
+
+      - name: Arrêt de la base
+        if: always()
+        run: npm run db:test:down
+
+  # ───────────────────────────────────────────────────────────────────────────
+  #  Client : lint, build de production, tests unitaires (jsdom, sans navigateur)
+  # ───────────────────────────────────────────────────────────────────────────
+  client:
+    name: Client
+    needs: changes
+    if: needs.changes.outputs.client == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      checks: write # dorny/test-reporter publie un check run
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/npm-setup
+        with:
+          project: client
+
+      - name: Lint
+        working-directory: client
+        run: npm run lint
+
+      - name: Build de production
+        working-directory: client
+        run: npm run build
+
+      - name: Le build doit produire www/index.html
+        run: test -f client/www/index.html
+
+      - name: Tests unitaires
+        working-directory: client
+        run: npm run test:ci
+
+      - name: Publication du rapport de tests
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Tests client
+          path: client/reports/junit.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Couverture
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-coverage
+          path: client/coverage
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ───────────────────────────────────────────────────────────────────────────
+  #  Extension : elle n'a ni build ni package.json, donc rien ne la vérifie
+  #  aujourd'hui. Un popup.js cassé partirait en production sans un mot.
+  # ───────────────────────────────────────────────────────────────────────────
+  extension:
+    name: Extension
+    needs: changes
+    if: needs.changes.outputs.extension == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Nécessaire pour comparer au commit de base (garde de version).
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Validation du manifest
+        run: |
+          node --input-type=module -e '
+            import { readFileSync, existsSync } from "node:fs";
+            const m = JSON.parse(readFileSync("extension/manifest.json", "utf8"));
+            const fail = (msg) => {
+              console.error(`::error file=extension/manifest.json::${msg}`);
+              process.exitCode = 1;
+            };
+            if (m.manifest_version !== 3) fail(`manifest_version doit valoir 3, trouvé ${m.manifest_version}`);
+            if (!/^\d{1,5}(\.\d{1,5}){0,3}$/.test(m.version ?? "")) fail(`version Chrome invalide : ${m.version}`);
+            if (!m.name || !m.description) fail("name et description sont obligatoires");
+            for (const [size, p] of Object.entries(m.icons ?? {})) {
+              if (!existsSync(`extension/${p}`)) fail(`icône ${size} absente : ${p}`);
+            }
+            const popup = m.action?.default_popup;
+            if (popup && !existsSync(`extension/${popup}`)) fail(`default_popup absent : ${popup}`);
+            console.log(`manifest OK — ${m.name} ${m.version}`);
+          '
+
+      - name: Syntaxe des scripts
+        # Rien ne compile l'extension : sans ce contrôle, une faute de syntaxe
+        # dans popup.js ne se voit qu'à l'ouverture du popup.
+        run: for f in extension/*.js; do node --check "$f"; done
+
+      - name: Un changement d'extension exige un bump de version
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet "$BASE" -- extension/manifest.json; then
+            echo "::error::extension/** a changé sans bump de extension/manifest.json." \
+                 " Le Chrome Web Store refuse le téléversement d'une version existante."
+            exit 1
+          fi
+
+  # ───────────────────────────────────────────────────────────────────────────
+  #  End-to-end : la stack Docker complète, point d'entrée unique compris
+  # ───────────────────────────────────────────────────────────────────────────
+  e2e:
+    name: End-to-end
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/npm-setup
+        with:
+          project: e2e
+
+      - name: Cache des navigateurs Playwright
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('e2e/package-lock.json') }}
+
+      - name: Installation de Chromium
+        working-directory: e2e
+        # `--with-deps` installe aussi les paquets système ; inutile de le
+        # refaire quand le cache a répondu.
+        run: |
+          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+            npx playwright install-deps chromium
+          else
+            npx playwright install --with-deps chromium
+          fi
+
+      - name: Build des images et démarrage de la stack
+        run: npm run e2e:up
+
+      - name: Tests end-to-end
+        run: npm run test:e2e
+
+      # Seul contrôle qui prouve que l'image serveur démarre VRAIMENT comme en
+      # production : NODE_ENV=production, aucun fichier .env monté, et une base
+      # atteinte par le réseau du compose. La stack e2e, elle, tourne en
+      # NODE_ENV=test pour que les cookies non-Secure fonctionnent en HTTP.
+      - name: L'image serveur démarre en mode production
+        run: |
+          set -euo pipefail
+          IMAGE="$(docker compose -f deploy/docker-compose.e2e.yml images -q server | head -1)"
+          NETWORK="$(docker network ls --format '{{.Name}}' | grep '^secretlink-e2e' | head -1)"
+          echo "image=$IMAGE réseau=$NETWORK"
+          # Sans ces gardes, un `docker run` sur une chaîne vide produirait une
+          # erreur bien plus difficile à relier à sa cause.
+          [ -n "$IMAGE" ] || { echo "::error::image serveur introuvable"; exit 1; }
+          [ -n "$NETWORK" ] || { echo "::error::réseau du compose e2e introuvable"; exit 1; }
+
+          docker run -d --name prod-boot --network "$NETWORK" -p 3999:3000 \
+            -e NODE_ENV=production -e PORT=3000 \
+            -e FRONT_BASE_URL=http://localhost \
+            -e MYSQL_HOST=db -e MYSQL_PORT=3306 \
+            -e MYSQL_USER=link -e MYSQL_PASSWORD=cipass -e MYSQL_DB=secretLink \
+            -e MASTER_KEY_V1=00000000000000000000000000000000000000000000000000000000deadbeef \
+            -e KEY_VERSION=1 \
+            -e SESSION_SECRET=prod-boot-secret-strictly-throwaway-00000 \
+            -e IP_HMAC_SECRET=prod-boot-hmac-strictly-throwaway-000000 \
+            "$IMAGE"
+
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3999/health | grep -q '"status":"ok"'; then
+              echo "démarrage en production confirmé"; ok=1; break
+            fi
+            sleep 2
+          done
+          docker rm -f prod-boot > /dev/null
+          [ "${ok:-}" = 1 ] || { echo "::error::l'image serveur n'a pas démarré en NODE_ENV=production"; exit 1; }
+
+      - name: Logs de la stack en cas d'échec
+        if: failure()
+        run: docker compose -f deploy/docker-compose.e2e.yml logs --tail=200
+
+      - name: Rapport Playwright
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Arrêt de la stack
+        if: always()
+        run: npm run e2e:down
+
+  # ───────────────────────────────────────────────────────────────────────────
+  #  Le gate — SEUL check à exiger dans la protection de branche
+  # ───────────────────────────────────────────────────────────────────────────
+  ci-gate:
+    name: ci-gate
+    # `always()` est le point critique. Avec le `success()` implicite, ce job
+    # serait *skippé* dès qu'un job amont échoue — et un check requis skippé
+    # est traité comme PENDING, pas comme échoué : le merge resterait bloqué
+    # sans aucune croix rouge pour l'expliquer.
+    if: always()
+    needs:
+      - changes
+      - versions
+      - server
+      - client
+      - extension
+      - e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Synthèse et verdict
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        shell: bash
+        # Node plutôt que jq : les deux sont préinstallés sur le runner, mais
+        # ce script-ci est testable hors CI — et c'est la pièce dont une faute
+        # de syntaxe se paierait le plus cher. Heredoc entre quotes simples :
+        # aucune expansion bash sur le JavaScript.
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/gate.mjs" <<'GATE'
+          import { appendFileSync } from 'node:fs';
+
+          const entries = Object.entries(JSON.parse(process.env.RESULTS));
+
+          const summary = [
+            '| job | résultat |',
+            '|---|---|',
+            ...entries.map(([job, { result }]) => `| ${job} | ${result} |`),
+          ].join('\n');
+          console.log(summary);
+          if (process.env.GITHUB_STEP_SUMMARY) {
+            appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + '\n');
+          }
+
+          // `skipped` vaut succès : c'est le filtre de chemin qui a fait son
+          // travail. `cancelled` bloque, en revanche : une exécution annulée
+          // ne doit jamais être mergeable.
+          const bad = entries.filter(
+            ([, { result }]) => result !== 'success' && result !== 'skipped',
+          );
+
+          if (bad.length > 0) {
+            const detail = bad.map(([job, { result }]) => `${job} (${result})`).join(', ');
+            console.error(`::error::Gate en échec : ${detail}`);
+            process.exit(1);
+          }
+          console.log('Gate franchi. Les jobs skippés sont attendus (filtres de chemin).');
+          GATE
+          node "$RUNNER_TEMP/gate.mjs"
