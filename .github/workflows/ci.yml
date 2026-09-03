@@ -9,8 +9,12 @@ on:
     branches: [master]
     types: [opened, synchronize, reopened, ready_for_review]
 
-  # Filet post-merge : attrape les conflits sémantiques qu'aucune des deux
-  # branches ne présentait séparément.
+  # Assurance contre les filtres de chemin eux-mêmes. Sur un push master, le
+  # job `changes` force FORCE_ALL et lance TOUT, sans filtrage. Ces filtres
+  # étant écrits à la main, un chemin oublié ou une dépendance inter-projets
+  # non anticipée ferait sauter un job en silence sur les PR : le run complet
+  # sur master est ce qui le révèle. Accessoirement, c'est aussi le seul
+  # déclencheur qui vérifie un push direct.
   push:
     branches: [master]
 

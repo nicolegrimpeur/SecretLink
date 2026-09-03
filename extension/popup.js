@@ -1,5 +1,5 @@
 'use strict';
-// test crash ci
+
 // ── Configuration ─────────────────────────────────────────────────────────────
 // Pour une instance auto-hébergée, remplacez l'URL ci-dessous (et le host_permissions
 // correspondant dans manifest.json). L'API est servie sous /api de la même origine.
