@@ -10,7 +10,7 @@ import {routes} from './app/app.routes';
 import {AppComponent} from './app/app.component';
 import {AuthService} from "./app/core/auth";
 import {sessionExpiredInterceptor} from "./app/shared/session-expired.interceptor";
-// test modif ci
+
 registerLocaleData(localFr, 'fr');
 bootstrapApplication(AppComponent, {
   providers: [
