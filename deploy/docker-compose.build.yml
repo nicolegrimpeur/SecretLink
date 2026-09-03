@@ -1,0 +1,25 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Surcharge rétablissant la construction locale des images, là où
+#  docker-compose.yml tire celles publiées sur GHCR.
+#
+#  À utiliser pour déployer du code non encore livré, ou pour reproduire un
+#  problème avec une modification locale :
+#
+#      docker compose -f docker-compose.yml -f docker-compose.build.yml up --build
+#
+#  `build` et `image` coexistent volontairement : Compose construit et étiquette
+#  l'image sous le nom déclaré dans le fichier de base. SECRETLINK_TAG reste
+#  donc requis, et l'image locale porte le tag qu'elle prétend porter — pas de
+#  confusion possible avec celle du registry.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  server:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+
+  client:
+    build:
+      context: ../client
+      dockerfile: Dockerfile

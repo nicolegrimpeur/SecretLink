@@ -20,9 +20,12 @@ services:
     restart: unless-stopped
 
   server:
-    build:
-      context: ../server
-      dockerfile: Dockerfile
+    # Image publiée par .github/workflows/release.yml. `${VAR:?message}` fait
+    # échouer bruyamment un SECRETLINK_TAG absent, là où un défaut silencieux
+    # sur `latest` rendrait « qu'est-ce qui tourne ? » insoluble et le rollback
+    # devinatoire. Pour construire localement à la place :
+    #   docker compose -f docker-compose.yml -f docker-compose.build.yml up --build
+    image: ghcr.io/nicolegrimpeur/secretlink-server:${SECRETLINK_TAG:?renseigner SECRETLINK_TAG dans deploy/.env}
     container_name: secretlink-server
     depends_on:
       db:
@@ -55,9 +58,7 @@ services:
     restart: unless-stopped
 
   client:
-    build:
-      context: ../client
-      dockerfile: Dockerfile
+    image: ghcr.io/nicolegrimpeur/secretlink-client:${SECRETLINK_TAG:?renseigner SECRETLINK_TAG dans deploy/.env}
     container_name: secretlink-client
     depends_on:
       - server

@@ -62,6 +62,7 @@ Remplir les valeurs dans `.env` :
 | `IP_HMAC_SECRET` | Secret HMAC pour pseudonymiser IP/email dans les logs (32 car. min.) | `openssl rand -base64 32` |
 | `FRONT_BASE_URL` | Origine publique unique (front + API sous `/api`) | `http://localhost` |
 | `TRUST_PROXY` | Nombre de proxys de confiance devant le serveur - **voir ci-dessous** | `2` en prod, `1` en dev |
+| `SECRETLINK_TAG` | Version des images à tirer de GHCR, sans le `v` | `0.19.5` |
 
 ⚠️ `TRUST_PROXY` se compte en partant du serveur, et le nginx qui proxifie `/api` compte
 pour un saut. Une valeur trop basse fait partager un même quota et un même hash d'IP à
@@ -76,13 +77,29 @@ docker volume create secretlink-db-data
 
 ### 3. Démarrer les services
 
-**Production** (aucun port publié : la stack est destinée à être placée derrière un
-reverse proxy - Traefik/Dokploy - qui route l'unique hostname vers le service `client`) :
+**Production** — les images sont **tirées de GHCR**, pas construites sur l'hôte. Elles sont
+publiées par [`release.yml`](.github/workflows/release.yml) à chaque merge qui bumpe la
+version. Aucun port publié : la stack est destinée à être placée derrière un reverse proxy
+(Traefik/Dokploy) qui route l'unique hostname vers le service `client`.
 
 ```bash
 cd deploy
 . .\.env.local.ps1          # charge le .env dans l'environnement (PowerShell)
-docker compose up --build
+docker compose pull
+docker compose up -d
+```
+
+> **Mise à jour ou rollback** : changer `SECRETLINK_TAG` dans `.env`, puis rejouer les deux
+> commandes. C'est la seule manipulation. Un `SECRETLINK_TAG` absent fait échouer Compose
+> avec un message explicite, plutôt que de retomber silencieusement sur `latest`.
+
+**Construire localement** au lieu de tirer les images publiées — pour déployer du code non
+encore livré, ou reproduire un problème avec une modification locale :
+
+```bash
+cd deploy
+. .\.env.local.ps1
+docker compose -f docker-compose.yml -f docker-compose.build.yml up --build -d
 ```
 
 **Développement** (`80` pour l'application complète, `3000` pour taper l'API en direct,
@@ -199,6 +216,71 @@ sont jetables et n'ont de sens que face à la base éphémère. Elles prennent l
 
 > ⚠️ N'y recopiez **jamais** une valeur de `deploy/.env`. La suite vide les tables à chaque
 > test, et `MASTER_KEY_V1` est la clé qui déchiffre tous les secrets stockés.
+
+---
+
+## Intégration continue et livraison
+
+### Le gate de merge
+
+[`ci.yml`](.github/workflows/ci.yml) tourne sur chaque PR vers `master`, sur les pushs dans
+`master`, et à la demande. Sept jobs : détection des changements, cohérence des versions,
+serveur (typage + build + 98 tests d'intégration), client (lint + build + 123 tests
+unitaires), extension (manifest + syntaxe + garde de bump), end-to-end (stack Docker + 16
+tests Playwright + démarrage en mode production), puis **`ci-gate`**.
+
+`ci-gate` est le **seul** check requis par la protection de branche. Il agrège les six autres
+et traite `skipped` comme un succès — les jobs sont filtrés par chemin, une PR ne touchant que
+le client n'a aucune raison de lancer les tests serveur. C'est aussi ce qui évite qu'une PR
+reste bloquée indéfiniment en « waiting for status ».
+
+**Aucun secret n'est nécessaire.** Les valeurs de test sont committées
+([`server/.env.test`](server/.env.test)) ou écrites en dur dans les compose de test, et la
+publication sur GHCR utilise le `GITHUB_TOKEN` automatique.
+
+### Livrer une version
+
+1. Bumper la `version` du `package.json` **racine**, puis `npm run version:sync` (le hook npm
+   `version` le fait et stage les fichiers).
+2. Merger la PR dans `master`.
+
+[`release.yml`](.github/workflows/release.yml) prend le relais : il compare la version au
+dernier tag et, si elle est nouvelle, construit et pousse les deux images sur GHCR, crée le
+tag `vX.Y.Z`, puis publie une Release avec les PR mergées, la liste des commits, les
+coordonnées des images et le zip de l'extension. Si la version est déjà taguée — le cas de la
+plupart des pushs — il ne fait rien.
+
+Les images sont poussées **avant** la création du tag : un build raté ne laisse ni tag ni
+release, donc un rejeu repart proprement.
+
+> L'`extension` suit son propre cycle de version : le Chrome Web Store exige des versions
+> strictement croissantes, et le manifest est déjà en `1.x`. `sync-version.mjs` ne l'aligne
+> donc pas sur la version du dépôt.
+
+### Protection de `master`
+
+Ruleset à configurer dans l'interface GitHub. Les valeurs et, surtout, **leurs raisons** :
+
+| Réglage | Valeur | Pourquoi |
+|---|---|---|
+| Require a pull request before merging | on | c'est ce qui rend le gate incontournable |
+| Required approvals | **0** | GitHub interdit d'approuver sa propre PR : à `1`, aucune PR ne serait mergeable en solo |
+| Require extra approval for unattributed changes | **off** | même piège : un commit dont l'email n'est pas rattaché au compte exigerait une approbation impossible à donner |
+| Require status checks | on, **`ci-gate` seul** | les autres jobs sont conditionnels ; exiger un job skippé bloque la PR |
+| Require branches to be up to date | on | couvre les conflits sémantiques avant le merge |
+| Require linear history | on | va avec le squash, garde `git log` exploitable par le changelog |
+| Block force pushes, Restrict deletions | on | |
+| Require conversation resolution | on | discipline gratuite, fonctionne même en solo |
+| Bypass actors | rôle *Repository admin* | échappatoire journalisée ; sans elle, le geste de secours est de désactiver le ruleset |
+
+Hors ruleset, deux réglages tout aussi structurants :
+
+- **Settings → General → Pull Requests** : squash merge uniquement, message par défaut
+  *Pull request title and description*. Un commit `master` = une PR, ce qui rend les notes de
+  release natives exploitables.
+- **Settings → Actions → General → Workflow permissions** : *Read and write*. C'est un
+  **plafond** — un `permissions: contents: write` déclaré dans un job ne peut pas le dépasser.
+  En read-only, `release.yml` échoue à la création du tag sur un 403 trompeur.
 
 ---
 

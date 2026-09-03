@@ -1,0 +1,289 @@
+name: Release
+
+# Pilotée par la `version` du package.json racine : on livre en la bumpant dans
+# une PR. Ce choix tient à une contrainte concrète du projet —
+# client/src/app/shared/services/app-version.ts IMPORTE client/package.json et
+# affiche cette version dans l'interface. La version doit donc être committée
+# AVANT le build de l'image, sinon l'UI mentirait. Toute approche pilotée par
+# tag ou par messages de commit la calcule après coup.
+on:
+  push:
+    branches: [master]
+
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Rejouer même si le tag existe déjà (ne recrée pas le tag)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-master
+  # JAMAIS d'annulation : interrompre en plein push laisse des tags d'image à
+  # moitié poussés et aucune release. À l'opposé exact de la CI.
+  cancel-in-progress: false
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  #  Y a-t-il quelque chose à livrer ?
+  #
+  #  Ce job décide seul, en interrogeant l'état réel du dépôt — il ne déduit
+  #  rien du fait d'avoir été déclenché. La grande majorité des pushs sur
+  #  master ne sont pas des releases.
+  # ───────────────────────────────────────────────────────────────────────────
+  decide:
+    name: Décider
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      release: ${{ steps.v.outputs.release }}
+      version: ${{ steps.v.outputs.version }}
+      tag: ${{ steps.v.outputs.tag }}
+      prev_tag: ${{ steps.v.outputs.prev_tag }}
+      node: ${{ steps.v.outputs.node }}
+      ext_version: ${{ steps.v.outputs.ext_version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Historique ET tags complets : indispensable pour tester l'existence
+          # du tag et calculer la plage du changelog.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      # Fail-fast avant toute publication : livrer des images dont les
+      # package.json divergent produirait une version affichée fausse.
+      - name: Cohérence des versions
+        run: node scripts/sync-version.mjs --check
+
+      - id: v
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p 'require("./package.json").version')"
+          TAG="v$VERSION"
+
+          {
+            echo "version=$VERSION"
+            echo "tag=$TAG"
+            echo "node=$(cat .nvmrc)"
+            echo "ext_version=$(node -p 'require("./extension/manifest.json").version')"
+            echo "prev_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo '')"
+          } >> "$GITHUB_OUTPUT"
+
+          if git rev-parse -q --verify "refs/tags/$TAG" > /dev/null; then
+            if [ "${{ inputs.force }}" = "true" ]; then
+              echo "release=true" >> "$GITHUB_OUTPUT"
+              echo "::warning::$TAG existe déjà — rejeu forcé."
+            else
+              echo "release=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::$TAG est déjà publié, rien à faire."
+            fi
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Publication de $TAG."
+          fi
+
+      - name: Récapitulatif
+        shell: bash
+        run: |
+          {
+            echo "### Décision"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| version | ${{ steps.v.outputs.version }} |"
+            echo "| tag | ${{ steps.v.outputs.tag }} |"
+            echo "| tag précédent | ${{ steps.v.outputs.prev_tag || '(aucun)' }} |"
+            echo "| release | ${{ steps.v.outputs.release }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  #  Images vers GHCR
+  #
+  #  Poussées AVANT la création du tag : un build raté ne laisse ni tag ni
+  #  release, donc un rejeu repart proprement. L'ordre inverse laisserait un
+  #  tag orphelin qui ferait dire à `decide` « déjà publié ».
+  # ───────────────────────────────────────────────────────────────────────────
+  images:
+    name: Image ${{ matrix.name }}
+    needs: decide
+    if: needs.decide.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write # push GHCR — aucun PAT nécessaire
+      id-token: write # attestation de provenance
+      attestations: write
+    strategy:
+      # Sans ça, un échec côté serveur annulerait le push client en vol, et
+      # `latest` pourrait désigner deux versions différentes selon l'image.
+      fail-fast: false
+      matrix:
+        include:
+          - name: server
+            context: ./server
+          - name: client
+            context: ./client
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/secretlink-${{ matrix.name }}
+          # Le workflow est déclenché par un push de branche, pas de tag : on
+          # fournit donc explicitement la valeur semver à interpréter.
+          tags: |
+            type=semver,pattern={{version}},value=${{ needs.decide.outputs.tag }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.decide.outputs.tag }}
+            type=sha,format=long
+            type=raw,value=latest
+          labels: |
+            org.opencontainers.image.title=secretlink-${{ matrix.name }}
+            org.opencontainers.image.version=${{ needs.decide.outputs.version }}
+
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.context }}/Dockerfile
+          push: true
+          # amd64 seul. `argon2` livre bien un prebuild musl arm64, ce n'est
+          # donc pas un blocage technique — mais sous QEMU le leg arm64 émule
+          # tout le build Angular, soit 5 à 10x plus lent. Si arm64 devient
+          # nécessaire : runners ARM natifs + `buildx imagetools create`.
+          platforms: linux/amd64
+          build-args: |
+            NODE_VERSION=${{ needs.decide.outputs.node }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          # Scopes DISTINCTS par image : un scope partagé et les deux builds se
+          # détruisent mutuellement leur cache.
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+          # Attestations désactivées côté BuildKit à dessein : elles
+          # transformeraient l'image en index multi-manifestes, ce qui n'apporte
+          # rien ici et complique un `docker compose pull` en production.
+          # La provenance est publiée séparément juste en dessous.
+          provenance: false
+          sbom: false
+
+      - name: Attestation de provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/${{ github.repository_owner }}/secretlink-${{ matrix.name }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+  # ───────────────────────────────────────────────────────────────────────────
+  #  Tag, release, changelog, et le zip de l'extension
+  # ───────────────────────────────────────────────────────────────────────────
+  release:
+    name: Tag et Release
+    needs: [decide, images]
+    if: needs.decide.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # créer le tag et la release
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ needs.decide.outputs.tag }}
+      VERSION: ${{ needs.decide.outputs.version }}
+      PREV: ${{ needs.decide.outputs.prev_tag }}
+      EXT_VERSION: ${{ needs.decide.outputs.ext_version }}
+      OWNER: ${{ github.repository_owner }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Aujourd'hui ce zip est fabriqué à la main et gitignoré : exactement
+      # l'étape qu'on oublie, ou qui produit une archive ne correspondant pas
+      # au tag. Nommée d'après la version du manifest, qui suit son propre
+      # cycle (le Chrome Web Store exige des versions strictement croissantes).
+      - name: Empaqueter l'extension
+        run: |
+          set -euo pipefail
+          ZIP="secretlink-extension-${EXT_VERSION}.zip"
+          (cd extension && zip -r "../$ZIP" . -x '*.DS_Store' -x '__MACOSX/*')
+          unzip -l "$ZIP"
+          echo "ZIP=$ZIP" >> "$GITHUB_ENV"
+
+      - name: Composer les notes de release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Volet natif : GitHub liste les PR mergées depuis le tag précédent,
+          # groupées d'après .github/release.yml. Il ne voit QUE les PR — d'où
+          # la liste de commits ajoutée ensuite, qui couvre aussi les pushs
+          # directs et la transition depuis l'historique d'avant la protection.
+          gh api "repos/${{ github.repository }}/releases/generate-notes" \
+            -f tag_name="$TAG" \
+            -f target_commitish="${{ github.sha }}" \
+            ${PREV:+-f previous_tag_name="$PREV"} \
+            --jq .body > notes.md
+
+          RANGE="${PREV:+$PREV..}HEAD"
+          {
+            echo ""
+            echo "## Commits"
+            echo ""
+            git log --no-merges --pretty='- %s (%h)' "$RANGE"
+            echo ""
+            echo "## Images"
+            echo ""
+            echo '```'
+            echo "ghcr.io/$OWNER/secretlink-server:$VERSION"
+            echo "ghcr.io/$OWNER/secretlink-client:$VERSION"
+            echo '```'
+            echo ""
+            echo "Déploiement : renseigner \`SECRETLINK_TAG=$VERSION\` dans \`deploy/.env\`, puis"
+            echo '`docker compose pull && docker compose up -d`.'
+            if [ -n "$PREV" ]; then
+              echo ""
+              echo "**Diff complet** : https://github.com/${{ github.repository }}/compare/$PREV...$TAG"
+            fi
+          } >> notes.md
+
+          echo "--- notes composées ---"
+          cat notes.md
+
+      # `gh release create` crée le tag lui-même sur --target : pas de
+      # `git push --tags` à autoriser dans un éventuel ruleset de tags.
+      # Et `gh` est préinstallé sur le runner, ce qui évite une action tierce.
+      - name: Créer le tag et la release
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" \
+            --target "${{ github.sha }}" \
+            --title "$TAG" \
+            --notes-file notes.md \
+            "$ZIP"
+
+      - name: Récapitulatif
+        run: |
+          {
+            echo "### Release $TAG publiée"
+            echo ""
+            echo "- https://github.com/${{ github.repository }}/releases/tag/$TAG"
+            echo "- \`ghcr.io/$OWNER/secretlink-server:$VERSION\`"
+            echo "- \`ghcr.io/$OWNER/secretlink-client:$VERSION\`"
+            echo "- Asset : \`$ZIP\`"
+          } >> "$GITHUB_STEP_SUMMARY"
