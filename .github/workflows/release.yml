@@ -36,7 +36,7 @@ jobs:
   # ───────────────────────────────────────────────────────────────────────────
   decide:
     name: Décider
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       release: ${{ steps.v.outputs.release }}
@@ -104,35 +104,140 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ───────────────────────────────────────────────────────────────────────────
-  #  Images vers GHCR
+  #  Images vers GHCR - une construction par plateforme, sur runner natif
   #
   #  Poussées AVANT la création du tag : un build raté ne laisse ni tag ni
   #  release, donc un rejeu repart proprement. L'ordre inverse laisserait un
   #  tag orphelin qui ferait dire à `decide` « déjà publié ».
+  #
+  #  arm64 est construit sur un VRAI runner ARM, pas sous QEMU. Trois raisons :
+  #  ces runners sont gratuits sur dépôt public, l'émulation d'un build Angular
+  #  coûte 5 à 10x, et surtout esbuild - que la chaîne Angular utilise - est
+  #  une source connue d'échecs erratiques sous émulation.
+  #
+  #  Chaque leg pousse SANS tag, par digest seul. Les tags sont posés ensuite
+  #  par `manifest`, sur l'index qui référence les deux architectures : c'est
+  #  ce qui permet à un `docker pull` de choisir tout seul la bonne image.
   # ───────────────────────────────────────────────────────────────────────────
   images:
-    name: Image ${{ matrix.name }}
+    name: Image ${{ matrix.image }} (${{ matrix.platform }})
     needs: decide
     if: needs.decide.outputs.release == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     permissions:
       contents: read
       packages: write # push GHCR - aucun PAT nécessaire
+    strategy:
+      # Sans ça, l'échec d'un leg annulerait les autres en vol et laisserait
+      # des digests orphelins dans le registry.
+      fail-fast: false
+      matrix:
+        image: [server, client]
+        platform: [linux/amd64, linux/arm64]
+        # Les deux runners sont déclarés côte à côte, sur la même version
+        # d'Ubuntu : les deux moitiés d'une même image multi-arch doivent être
+        # construites sur le même OS, et une divergence doit sauter aux yeux.
+        # Il n'existe pas de label `ubuntu-latest-arm` — GitHub ne publie ses
+        # runners ARM qu'en versions explicites — donc la version est de toute
+        # façon imposée d'un côté ; autant l'assumer des deux.
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    env:
+      REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/secretlink-${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Ne sert ici qu'aux labels OCI : les tags sont posés par `manifest`, sur
+      # l'index final.
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+          labels: |
+            org.opencontainers.image.title=secretlink-${{ matrix.image }}
+            org.opencontainers.image.version=${{ needs.decide.outputs.version }}
+
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.image }}
+          file: ./${{ matrix.image }}/Dockerfile
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            NODE_VERSION=${{ needs.decide.outputs.node }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # `push-by-digest` : l'image part sans nom de tag, adressable par son
+          # seul digest. Deux legs ne peuvent donc pas s'écraser un tag pendant
+          # qu'ils tournent en parallèle.
+          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          # Scope par image ET par plateforme : sans la plateforme, les deux
+          # architectures se détruiraient mutuellement leur cache.
+          cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}-${{ matrix.platform }}
+          # Attestations BuildKit désactivées : elles ajouteraient des
+          # manifestes parasites que `imagetools create` recopierait dans
+          # l'index. La provenance est attestée sur l'index, dans `manifest`.
+          provenance: false
+          sbom: false
+
+      # Le NOM du fichier est le digest : `manifest` n'a plus qu'à lire les
+      # noms pour reconstituer la liste des architectures.
+      - name: Exporter le digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${DIGEST#sha256:}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.image }}-${{ strategy.job-index }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # ───────────────────────────────────────────────────────────────────────────
+  #  Index multi-architecture
+  #
+  #  Assemble les digests des deux plateformes en un manifeste unique, et c'est
+  #  LUI qui reçoit les tags. Un `docker pull` depuis un Raspberry Pi y trouve
+  #  le leg arm64, depuis un x86 le leg amd64, sans rien changer côté appelant.
+  # ───────────────────────────────────────────────────────────────────────────
+  manifest:
+    name: Manifeste ${{ matrix.image }}
+    needs: [decide, images]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
       id-token: write # attestation de provenance
       attestations: write
     strategy:
-      # Sans ça, un échec côté serveur annulerait le push client en vol, et
-      # `latest` pourrait désigner deux versions différentes selon l'image.
       fail-fast: false
       matrix:
-        include:
-          - name: server
-            context: ./server
-          - name: client
-            context: ./client
+        image: [server, client]
+    env:
+      REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/secretlink-${{ matrix.image }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-${{ matrix.image }}-*
+          merge-multiple: true
 
       - uses: docker/setup-buildx-action@v3
 
@@ -145,7 +250,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/secretlink-${{ matrix.name }}
+          images: ${{ env.REGISTRY_IMAGE }}
           # Le workflow est déclenché par un push de branche, pas de tag : on
           # fournit donc explicitement la valeur semver à interpréter.
           tags: |
@@ -153,41 +258,60 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},value=${{ needs.decide.outputs.tag }}
             type=sha,format=long
             type=raw,value=latest
-          labels: |
-            org.opencontainers.image.title=secretlink-${{ matrix.name }}
-            org.opencontainers.image.version=${{ needs.decide.outputs.version }}
 
-      - id: build
-        uses: docker/build-push-action@v6
-        with:
-          context: ${{ matrix.context }}
-          file: ${{ matrix.context }}/Dockerfile
-          push: true
-          # amd64 seul. `argon2` livre bien un prebuild musl arm64, ce n'est
-          # donc pas un blocage technique - mais sous QEMU le leg arm64 émule
-          # tout le build Angular, soit 5 à 10x plus lent. Si arm64 devient
-          # nécessaire : runners ARM natifs + `buildx imagetools create`.
-          platforms: linux/amd64
-          build-args: |
-            NODE_VERSION=${{ needs.decide.outputs.node }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.name }}
-          # Scopes DISTINCTS par image : un scope partagé et les deux builds se
-          # détruisent mutuellement leur cache.
-          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
-          # Attestations désactivées côté BuildKit à dessein : elles
-          # transformeraient l'image en index multi-manifestes, ce qui n'apporte
-          # rien ici et complique un `docker compose pull` en production.
-          # La provenance est publiée séparément juste en dessous.
-          provenance: false
-          sbom: false
+      - id: create
+        name: Créer et pousser l'index
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          set -euo pipefail
+          cd /tmp/digests
+
+          # `tags` est une liste séparée par des retours à la ligne. On la lit
+          # dans un tableau plutôt qu'en expansion directe : une valeur vide ou
+          # contenant un espace casserait une expansion naïve.
+          args=()
+          while IFS= read -r tag; do
+            [ -n "$tag" ] && args+=(-t "$tag")
+          done <<< "$TAGS"
+
+          refs=()
+          for digest in *; do
+            refs+=("${REGISTRY_IMAGE}@sha256:${digest}")
+          done
+          [ ${#refs[@]} -gt 0 ] || { echo "::error::aucun digest récupéré"; exit 1; }
+
+          echo "Assemblage de ${#refs[@]} architectures :"
+          printf '  %s\n' "${refs[@]}"
+
+          docker buildx imagetools create "${args[@]}" "${refs[@]}"
+
+          # Digest de l'INDEX, et non d'un leg : c'est lui qu'on atteste.
+          FIRST_TAG="$(head -1 <<< "$TAGS")"
+          INDEX_DIGEST="$(docker buildx imagetools inspect "$FIRST_TAG" --format '{{json .Manifest}}' \
+            | sed -n 's/.*"digest":"\(sha256:[a-f0-9]*\)".*/\1/p' | head -1)"
+          [ -n "$INDEX_DIGEST" ] || { echo "::error::digest de l'index illisible"; exit 1; }
+          echo "digest=$INDEX_DIGEST" >> "$GITHUB_OUTPUT"
+          echo "index = $INDEX_DIGEST"
+
+      # Garde-fou : sans elle, un leg manquant produirait un index amputé qui
+      # ne se verrait qu'au `docker pull` sur le Raspberry Pi.
+      - name: Vérifier la présence des deux architectures
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          set -euo pipefail
+          FIRST_TAG="$(head -1 <<< "$TAGS")"
+          docker buildx imagetools inspect "$FIRST_TAG" | tee /tmp/inspect.txt
+          for arch in linux/amd64 linux/arm64; do
+            grep -q "$arch" /tmp/inspect.txt || { echo "::error::$arch absent de l'index"; exit 1; }
+          done
 
       - name: Attestation de provenance
         uses: actions/attest-build-provenance@v2
         with:
-          subject-name: ghcr.io/${{ github.repository_owner }}/secretlink-${{ matrix.name }}
-          subject-digest: ${{ steps.build.outputs.digest }}
+          subject-name: ${{ env.REGISTRY_IMAGE }}
+          subject-digest: ${{ steps.create.outputs.digest }}
           push-to-registry: true
 
   # ───────────────────────────────────────────────────────────────────────────
@@ -195,9 +319,9 @@ jobs:
   # ───────────────────────────────────────────────────────────────────────────
   release:
     name: Tag et Release
-    needs: [decide, images]
+    needs: [decide, manifest]
     if: needs.decide.outputs.release == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: write # créer le tag et la release
