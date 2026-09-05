@@ -1,0 +1,36 @@
+# Catégorisation des notes de release générées par GitHub.
+#
+# Ce fichier n'est PAS un workflow : il configure le volet natif des notes,
+# celui que `gh api .../releases/generate-notes` produit dans release.yml.
+#
+# Le regroupement se fait par **label de PR** : sans labels posés, tout tombe
+# dans « Autres ». La liste de commits ajoutée par release.yml reste, elle,
+# exhaustive quoi qu'il arrive.
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - dependabot
+      - github-actions
+
+  categories:
+    - title: Nouveautés
+      labels: [feature, enhancement]
+    - title: Corrections
+      labels: [bug, fix]
+    - title: Sécurité
+      labels: [security]
+    - title: Serveur
+      labels: [server]
+    - title: Client
+      labels: [client]
+    - title: Extension
+      labels: [extension]
+    - title: Tests et CI
+      labels: [ci, tests]
+    - title: Dépendances
+      labels: [dependencies]
+    # Fourre-tout, OBLIGATOIREMENT en dernier : il capte tout ce qui reste.
+    - title: Autres
+      labels: ["*"]
