@@ -46,7 +46,7 @@ jobs:
   # ───────────────────────────────────────────────────────────────────────────
   changes:
     name: Détection des changements
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
@@ -120,7 +120,7 @@ jobs:
   # ───────────────────────────────────────────────────────────────────────────
   versions:
     name: Cohérence des versions
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
@@ -136,7 +136,7 @@ jobs:
     name: Serveur
     needs: changes
     if: needs.changes.outputs.server == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
@@ -200,7 +200,7 @@ jobs:
     name: Client
     needs: changes
     if: needs.changes.outputs.client == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
@@ -253,7 +253,7 @@ jobs:
     name: Extension
     needs: changes
     if: needs.changes.outputs.extension == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
@@ -323,7 +323,7 @@ jobs:
     name: End-to-end
     needs: changes
     if: needs.changes.outputs.e2e == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
@@ -427,7 +427,7 @@ jobs:
       - client
       - extension
       - e2e
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - name: Synthèse et verdict

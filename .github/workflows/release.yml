@@ -36,7 +36,7 @@ jobs:
   # ───────────────────────────────────────────────────────────────────────────
   decide:
     name: Décider
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       release: ${{ steps.v.outputs.release }}
@@ -123,7 +123,7 @@ jobs:
     name: Image ${{ matrix.image }} (${{ matrix.platform }})
     needs: decide
     if: needs.decide.outputs.release == 'true'
-    runs-on: ${{ matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     permissions:
       contents: read
@@ -135,6 +135,17 @@ jobs:
       matrix:
         image: [server, client]
         platform: [linux/amd64, linux/arm64]
+        # Les deux runners sont déclarés côte à côte, sur la même version
+        # d'Ubuntu : les deux moitiés d'une même image multi-arch doivent être
+        # construites sur le même OS, et une divergence doit sauter aux yeux.
+        # Il n'existe pas de label `ubuntu-latest-arm` — GitHub ne publie ses
+        # runners ARM qu'en versions explicites — donc la version est de toute
+        # façon imposée d'un côté ; autant l'assumer des deux.
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
     env:
       REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/secretlink-${{ matrix.image }}
     steps:
@@ -208,7 +219,7 @@ jobs:
   manifest:
     name: Manifeste ${{ matrix.image }}
     needs: [decide, images]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -310,7 +321,7 @@ jobs:
     name: Tag et Release
     needs: [decide, manifest]
     if: needs.decide.outputs.release == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: write # créer le tag et la release
