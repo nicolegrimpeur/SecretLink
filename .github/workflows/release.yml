@@ -1,7 +1,7 @@
 name: Release
 
 # Pilotée par la `version` du package.json racine : on livre en la bumpant dans
-# une PR. Ce choix tient à une contrainte concrète du projet —
+# une PR. Ce choix tient à une contrainte concrète du projet -
 # client/src/app/shared/services/app-version.ts IMPORTE client/package.json et
 # affiche cette version dans l'interface. La version doit donc être committée
 # AVANT le build de l'image, sinon l'UI mentirait. Toute approche pilotée par
@@ -30,7 +30,7 @@ jobs:
   # ───────────────────────────────────────────────────────────────────────────
   #  Y a-t-il quelque chose à livrer ?
   #
-  #  Ce job décide seul, en interrogeant l'état réel du dépôt — il ne déduit
+  #  Ce job décide seul, en interrogeant l'état réel du dépôt - il ne déduit
   #  rien du fait d'avoir été déclenché. La grande majorité des pushs sur
   #  master ne sont pas des releases.
   # ───────────────────────────────────────────────────────────────────────────
@@ -79,7 +79,7 @@ jobs:
           if git rev-parse -q --verify "refs/tags/$TAG" > /dev/null; then
             if [ "${{ inputs.force }}" = "true" ]; then
               echo "release=true" >> "$GITHUB_OUTPUT"
-              echo "::warning::$TAG existe déjà — rejeu forcé."
+              echo "::warning::$TAG existe déjà - rejeu forcé."
             else
               echo "release=false" >> "$GITHUB_OUTPUT"
               echo "::notice::$TAG est déjà publié, rien à faire."
@@ -118,7 +118,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      packages: write # push GHCR — aucun PAT nécessaire
+      packages: write # push GHCR - aucun PAT nécessaire
       id-token: write # attestation de provenance
       attestations: write
     strategy:
@@ -164,7 +164,7 @@ jobs:
           file: ${{ matrix.context }}/Dockerfile
           push: true
           # amd64 seul. `argon2` livre bien un prebuild musl arm64, ce n'est
-          # donc pas un blocage technique — mais sous QEMU le leg arm64 émule
+          # donc pas un blocage technique - mais sous QEMU le leg arm64 émule
           # tout le build Angular, soit 5 à 10x plus lent. Si arm64 devient
           # nécessaire : runners ARM natifs + `buildx imagetools create`.
           platforms: linux/amd64
@@ -231,7 +231,7 @@ jobs:
           set -euo pipefail
 
           # Volet natif : GitHub liste les PR mergées depuis le tag précédent,
-          # groupées d'après .github/release.yml. Il ne voit QUE les PR — d'où
+          # groupées d'après .github/release.yml. Il ne voit QUE les PR - d'où
           # la liste de commits ajoutée ensuite, qui couvre aussi les pushs
           # directs et la transition depuis l'historique d'avant la protection.
           gh api "repos/${{ github.repository }}/releases/generate-notes" \

@@ -9,7 +9,7 @@
 #
 #  `build` et `image` coexistent volontairement : Compose construit et étiquette
 #  l'image sous le nom déclaré dans le fichier de base. SECRETLINK_TAG reste
-#  donc requis, et l'image locale porte le tag qu'elle prétend porter — pas de
+#  donc requis, et l'image locale porte le tag qu'elle prétend porter - pas de
 #  confusion possible avec celle du registry.
 # ─────────────────────────────────────────────────────────────────────────────
 

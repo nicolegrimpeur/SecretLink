@@ -77,7 +77,7 @@ docker volume create secretlink-db-data
 
 ### 3. Démarrer les services
 
-**Production** — les images sont **tirées de GHCR**, pas construites sur l'hôte. Elles sont
+**Production** - les images sont **tirées de GHCR**, pas construites sur l'hôte. Elles sont
 publiées par [`release.yml`](.github/workflows/release.yml) à chaque merge qui bumpe la
 version. Aucun port publié : la stack est destinée à être placée derrière un reverse proxy
 (Traefik/Dokploy) qui route l'unique hostname vers le service `client`.
@@ -93,7 +93,7 @@ docker compose up -d
 > commandes. C'est la seule manipulation. Un `SECRETLINK_TAG` absent fait échouer Compose
 > avec un message explicite, plutôt que de retomber silencieusement sur `latest`.
 
-**Construire localement** au lieu de tirer les images publiées — pour déployer du code non
+**Construire localement** au lieu de tirer les images publiées - pour déployer du code non
 encore livré, ou reproduire un problème avec une modification locale :
 
 ```bash
@@ -230,7 +230,7 @@ unitaires), extension (manifest + syntaxe + garde de bump), end-to-end (stack Do
 tests Playwright + démarrage en mode production), puis **`ci-gate`**.
 
 `ci-gate` est le **seul** check requis par la protection de branche. Il agrège les six autres
-et traite `skipped` comme un succès — les jobs sont filtrés par chemin, une PR ne touchant que
+et traite `skipped` comme un succès - les jobs sont filtrés par chemin, une PR ne touchant que
 le client n'a aucune raison de lancer les tests serveur. C'est aussi ce qui évite qu'une PR
 reste bloquée indéfiniment en « waiting for status ».
 
@@ -247,8 +247,8 @@ publication sur GHCR utilise le `GITHUB_TOKEN` automatique.
 [`release.yml`](.github/workflows/release.yml) prend le relais : il compare la version au
 dernier tag et, si elle est nouvelle, construit et pousse les deux images sur GHCR, crée le
 tag `vX.Y.Z`, puis publie une Release avec les PR mergées, la liste des commits, les
-coordonnées des images et le zip de l'extension. Si la version est déjà taguée — le cas de la
-plupart des pushs — il ne fait rien.
+coordonnées des images et le zip de l'extension. Si la version est déjà taguée - le cas de la
+plupart des pushs - il ne fait rien.
 
 Les images sont poussées **avant** la création du tag : un build raté ne laisse ni tag ni
 release, donc un rejeu repart proprement.
@@ -279,7 +279,7 @@ Hors ruleset, deux réglages tout aussi structurants :
   *Pull request title and description*. Un commit `master` = une PR, ce qui rend les notes de
   release natives exploitables.
 - **Settings → Actions → General → Workflow permissions** : *Read and write*. C'est un
-  **plafond** — un `permissions: contents: write` déclaré dans un job ne peut pas le dépasser.
+  **plafond** - un `permissions: contents: write` déclaré dans un job ne peut pas le dépasser.
   En read-only, `release.yml` échoue à la création du tag sur un 403 trompeur.
 
 ---
