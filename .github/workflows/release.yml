@@ -287,9 +287,12 @@ jobs:
           docker buildx imagetools create "${args[@]}" "${refs[@]}"
 
           # Digest de l'INDEX, et non d'un leg : c'est lui qu'on atteste.
+          # On demande le champ au template plutôt que de parser le JSON : sa
+          # sortie est indentée, et un `sed` sur `"digest":"` ne matchait pas
+          # l'espace après les deux-points - il renvoyait silencieusement du
+          # vide. Un template en erreur, lui, échoue franchement.
           FIRST_TAG="$(head -1 <<< "$TAGS")"
-          INDEX_DIGEST="$(docker buildx imagetools inspect "$FIRST_TAG" --format '{{json .Manifest}}' \
-            | sed -n 's/.*"digest":"\(sha256:[a-f0-9]*\)".*/\1/p' | head -1)"
+          INDEX_DIGEST="$(docker buildx imagetools inspect "$FIRST_TAG" --format '{{.Manifest.Digest}}')"
           [ -n "$INDEX_DIGEST" ] || { echo "::error::digest de l'index illisible"; exit 1; }
           echo "digest=$INDEX_DIGEST" >> "$GITHUB_OUTPUT"
           echo "index = $INDEX_DIGEST"
