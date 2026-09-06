@@ -19,7 +19,7 @@ import {
   IonTitle,
   IonToolbar,
   ModalController
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 import {PatService} from "../../../core/pat";
 import {ToastService} from "../../../shared/services/toast";

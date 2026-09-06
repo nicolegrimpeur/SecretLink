@@ -18,8 +18,8 @@ import {
   IonSkeletonText,
   IonText,
   IonTextarea
-} from '@ionic/angular/standalone';
-import {ToastController} from "@ionic/angular";
+} from '@ionic/angular';
+import {ToastController} from "@ionic/angular/lazy";
 import {ActivatedRoute} from "@angular/router";
 import {addIcons} from "ionicons";
 import {copyOutline, lockClosedOutline} from "ionicons/icons";

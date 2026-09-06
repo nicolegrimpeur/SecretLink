@@ -28,9 +28,9 @@ import {
   IonSelect,
   IonSelectOption,
   IonTextarea
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import {LinksService} from "../../core/links";
-import {SegmentValue} from "@ionic/angular";
+import {SegmentValue} from "@ionic/angular/lazy";
 import {LinkCreateItem, LinkCreateResult} from "../../shared/models/link-create";
 import {LinkStatus} from "../../shared/models/link-status";
 import {StatusFilter} from "../../shared/models/statutsFilter";

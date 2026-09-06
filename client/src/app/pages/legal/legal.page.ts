@@ -8,7 +8,7 @@ import {
   IonCardSubtitle,
   IonCardTitle,
   IonContent
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 
 @Component({
   selector: 'app-legal',

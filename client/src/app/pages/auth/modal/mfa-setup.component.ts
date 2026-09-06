@@ -18,7 +18,7 @@ import {
   IonTitle,
   IonToolbar,
   ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import {AuthService} from '../../../core/auth';
 import {addIcons} from 'ionicons';
 import {clipboardOutline, shieldCheckmarkOutline} from 'ionicons/icons';

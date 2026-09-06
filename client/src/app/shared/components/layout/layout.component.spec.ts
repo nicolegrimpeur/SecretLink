@@ -2,7 +2,7 @@ import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {provideRouter} from '@angular/router';
-import {NavController, PopoverController, ToastController} from '@ionic/angular/standalone';
+import {NavController, PopoverController, ToastController} from '@ionic/angular';
 
 import {LayoutComponent} from './layout.component';
 

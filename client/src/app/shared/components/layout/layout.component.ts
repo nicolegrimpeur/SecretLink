@@ -15,7 +15,7 @@ import {
   NavController,
   PopoverController,
   ToastController
-} from "@ionic/angular/standalone";
+} from "@ionic/angular";
 import {Router, RouterLink} from "@angular/router";
 import {addIcons} from 'ionicons';
 import {

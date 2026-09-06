@@ -25,7 +25,7 @@ import {
   IonText,
   IonToggle,
   ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import {PAT} from "../../shared/models/pat";
 import {PatService} from "../../core/pat";
 import {TokenCreateComponent} from "./modal/token-create.component";
