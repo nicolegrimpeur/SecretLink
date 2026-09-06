@@ -1,4 +1,4 @@
-import {Component, DestroyRef, inject, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import {Component, DestroyRef, inject, OnInit, signal} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {apiErrorText} from '../../shared/services/api-error';
 import {
@@ -50,7 +50,6 @@ import {environment} from "../../../environments/environment";
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     RouterLink,
@@ -80,15 +79,15 @@ export class HomePage implements OnInit {
   private linksService = inject(LinksService);
   private toast = inject(ToastService);
   private destroyRef = inject(DestroyRef);
-  user: User = null;
+  user = signal<User>(null);
   version = this.appVersion.version;
   chromeExtensionUrl = environment.chromeExtensionUrl;
 
-  loading = false;
+  loading = signal(false);
   form = inject(FormBuilder).group({
     secret: ['', [Validators.required]],
   });
-  creationResult: LinkCreateResult | null = null;
+  creationResult = signal<LinkCreateResult | null>(null);
 
   statusHelp: { [key: string]: string } = {
     'created': 'Lien créé avec succès.',
@@ -112,21 +111,21 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
-    this.auth.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(u => this.user = u);
+    this.auth.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(u => this.user.set(u));
   }
 
   async createSecret() {
     if (this.form.invalid) return;
-    this.loading = true;
+    this.loading.set(true);
     try {
       const payload: LinkCreateSingleItem = {
         secret: this.form.value.secret!,
       };
-      this.creationResult = await this.linksService.createSingle(payload);
+      this.creationResult.set(await this.linksService.createSingle(payload));
     } catch (e) {
       this.toast.toastMsg(apiErrorText(e, {fallback: 'Création échouée.'}), 3000).then();
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 

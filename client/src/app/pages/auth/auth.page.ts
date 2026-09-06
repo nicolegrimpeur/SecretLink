@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, effect, inject, signal} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 
 import {FormBuilder, FormsModule, ReactiveFormsModule, ValidatorFn, Validators} from '@angular/forms';
@@ -35,7 +35,6 @@ type Mode = 'login' | 'signup';
   standalone: true,
   templateUrl: './auth.page.html',
   styleUrls: ['./auth.page.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     ReactiveFormsModule,

@@ -1,4 +1,4 @@
-import {Component, ChangeDetectionStrategy} from '@angular/core';
+import {Component} from '@angular/core';
 
 import {FormsModule} from '@angular/forms';
 import {
@@ -15,7 +15,6 @@ import {
   templateUrl: './legal.page.html',
   styleUrls: ['./legal.page.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonContent, FormsModule, IonCardTitle, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle]
 })
 export class LegalPage {

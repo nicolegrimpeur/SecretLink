@@ -1,4 +1,4 @@
-import {Component, computed, inject, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, inject, signal} from '@angular/core';
 import {apiErrorText} from '../../shared/services/api-error';
 
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -41,7 +41,6 @@ import {Router} from "@angular/router";
   templateUrl: './account.page.html',
   styleUrls: ['./account.page.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonContent, FormsModule, IonButton, IonList, IonLabel, IonItem, IonInput, IonBadge, IonButtons, IonText, ReactiveFormsModule, IonCard, IonCardTitle, IonCardSubtitle, IonCardHeader, IonCardContent, IonInputPasswordToggle, IonToggle, IonIcon, IonGrid, IonRow, IonCol]
 })
 export class AccountPage {
@@ -56,8 +55,8 @@ export class AccountPage {
 
 
   /////////// Gestion du mot de passe ///////////
-  loading = false;
-  error: string | null = null;
+  loading = signal(false);
+  error = signal<string | null>(null);
 
   form = this.fb.group({
     current_password: ['', [Validators.required]],
@@ -80,21 +79,21 @@ export class AccountPage {
     if (this.form.invalid) return;
     const {current_password, new_password, confirm} = this.form.value as any;
     if (new_password !== confirm) {
-      this.error = 'Les mots de passe ne correspondent pas';
+      this.error.set('Les mots de passe ne correspondent pas');
       return;
     }
-    this.loading = true;
-    this.error = null;
+    this.loading.set(true);
+    this.error.set(null);
     try {
       await this.auth.changePassword(current_password, new_password);
       await this.toast.toastMsg('Mot de passe mis à jour', 1400);
     } catch (e) {
-      this.error = apiErrorText(e, {
+      this.error.set(apiErrorText(e, {
         fallback: 'Échec de la mise à jour',
         overrides: this.passwordErrorOverrides,
-      });
+      }));
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 

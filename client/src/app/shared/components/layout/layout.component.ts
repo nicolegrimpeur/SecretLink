@@ -1,4 +1,4 @@
-import {Component, DestroyRef, inject, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import {Component, DestroyRef, inject, OnInit, signal} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {
   IonButton,
@@ -38,7 +38,6 @@ import {NgOptimizedImage} from "@angular/common";
   selector: 'app-layout',
   templateUrl: './layout.component.html',
   styleUrls: ['./layout.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader,
     IonToolbar,
@@ -56,7 +55,7 @@ import {NgOptimizedImage} from "@angular/common";
   ]
 })
 export class LayoutComponent implements OnInit {
-  public popoverOpen = false;
+  public popoverOpen = signal(false);
   private router = inject(Router);
   private auth = inject(AuthService);
   private nav = inject(NavController);
@@ -64,9 +63,10 @@ export class LayoutComponent implements OnInit {
   private toastController = inject(ToastController);
   private popoverController = inject(PopoverController);
   private destroyRef = inject(DestroyRef);
-  user: User = null;
-  isManagementPage = false;
+  user = signal<User>(null);
+  isManagementPage = signal(false);
   tabManagementPages = ['/account', '/dashboard', '/links'];
+  // Pas un signal : jamais rendu, uniquement lu pour décider d'afficher le toast.
   cookieConsentGiven = false;
 
   constructor() {
@@ -84,10 +84,10 @@ export class LayoutComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.auth.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(u => this.user = u);
+    this.auth.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(u => this.user.set(u));
 
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.isManagementPage = this.tabManagementPages.some(path => this.router.url.startsWith(path));
+      this.isManagementPage.set(this.tabManagementPages.some(path => this.router.url.startsWith(path)));
     });
 
     this.storage.get<boolean>('cookieConsent').then(consent => {
@@ -103,7 +103,7 @@ export class LayoutComponent implements OnInit {
   }
 
   async handleLogout() {
-    this.popoverOpen = false;
+    this.popoverOpen.set(false);
     await this.popoverController.dismiss().catch(() => {});
 
     await this.auth.logout();

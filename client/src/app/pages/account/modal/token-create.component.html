@@ -1,10 +1,10 @@
 <ion-header><ion-toolbar>
   <ion-title>Nouveau token</ion-title>
-  <ion-buttons slot="end"><ion-button (click)="createdToken ? done() : close()">Fermer</ion-button></ion-buttons>
+  <ion-buttons slot="end"><ion-button (click)="createdToken() ? done() : close()">Fermer</ion-button></ion-buttons>
 </ion-toolbar></ion-header>
 
 <ion-content class="ion-padding">
-  @if (!createdToken) {
+  @if (!createdToken()) {
     <form [formGroup]="form" (ngSubmit)="submit()">
       <ion-item>
         <ion-input label="Label" placeholder="ex: bulk-import" formControlName="label"></ion-input>
@@ -23,16 +23,16 @@
         }
       </ion-list>
 
-      <ion-button type="submit" expand="block" [disabled]="loading">Créer</ion-button>
+      <ion-button type="submit" expand="block" [disabled]="loading()">Créer</ion-button>
     </form>
   }
 
-  @if (createdToken) {
+  @if (createdToken()) {
     <ion-card>
       <ion-card-header><ion-card-title>Token créé</ion-card-title></ion-card-header>
       <ion-card-content>
         <ion-text color="warning">Copiez-le maintenant : il ne sera plus affiché.</ion-text>
-        <pre style="white-space: break-spaces">{{ createdToken }}</pre>
+        <pre style="white-space: break-spaces">{{ createdToken() }}</pre>
         <ion-button (click)="copy()">Copier</ion-button>
       </ion-card-content>
     </ion-card>

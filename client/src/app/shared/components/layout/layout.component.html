@@ -5,7 +5,7 @@
         <img slot="start" ngSrc="assets/icon/logo.svg" alt="lock" width="24" height="24" />
         <ion-title id="title">SecretLink</ion-title>
       </ion-button>
-      @if (isManagementPage) {
+      @if (isManagementPage()) {
         <ion-button class="ion-hide-md-down" fill="clear" routerLink="/dashboard" color="primary">
           <ion-icon slot="start" name="grid-outline"></ion-icon>
           Dashboard
@@ -18,19 +18,19 @@
     </ion-buttons>
 
     <ion-buttons slot="end">
-      @if (isManagementPage) {
+      @if (isManagementPage()) {
         <ion-button id="account-btn" fill="clear" color="primary">
           <ion-icon slot="start" name="person-circle-outline"></ion-icon>
-          <span class="email ion-hide-md-down">{{ user?.email || "Chargement en cours" }}</span>
+          <span class="email ion-hide-md-down">{{ user()?.email || "Chargement en cours" }}</span>
           <ion-icon slot="end"
                     class="ion-hide-md-down"
                     name="chevron-down-outline"
-                    [class.rotated]="popoverOpen"></ion-icon>
+                    [class.rotated]="popoverOpen()"></ion-icon>
         </ion-button>
       } @else {
-        <ion-button fill="clear" color="primary" [routerLink]="user ? '/dashboard' : '/auth'">
+        <ion-button fill="clear" color="primary" [routerLink]="user() ? '/dashboard' : '/auth'">
           <ion-icon slot="start" name="person-circle-outline"></ion-icon>
-          @if (user) {
+          @if (user()) {
             <span class="ion-hide-md-down">Accéder à mon espace</span>
           } @else {
             <span class="ion-hide-md-down">Se connecter / Créer un compte</span>
@@ -44,13 +44,13 @@
   <ion-router-outlet></ion-router-outlet>
 </ion-content>
 
-@if (isManagementPage) {
+@if (isManagementPage()) {
   <ion-popover trigger="account-btn"
                [showBackdrop]="false"
                side="bottom"
                alignment="end"
-               (ionPopoverWillPresent)="popoverOpen = true"
-               (ionPopoverWillDismiss)="popoverOpen = false"
+               (ionPopoverWillPresent)="popoverOpen.set(true)"
+               (ionPopoverWillDismiss)="popoverOpen.set(false)"
                [dismissOnSelect]="true">
     <ng-template>
       <ion-list lines="none">

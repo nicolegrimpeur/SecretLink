@@ -7,8 +7,8 @@
         <b>supprimé définitivement</b> après lecture.
       </p>
     <div class="cta">
-      <ion-button color="primary" [routerLink]="user ? '/dashboard' : '/auth'">
-        {{ user ? 'Accéder à mon espace' : 'Se connecter / Créer un compte' }}
+      <ion-button color="primary" [routerLink]="user() ? '/dashboard' : '/auth'">
+        {{ user() ? 'Accéder à mon espace' : 'Se connecter / Créer un compte' }}
       </ion-button>
       <ion-button fill="outline" href="https://github.com/nicolegrimpeur/SecretLink/wiki" target="_blank">
         Documentation
@@ -39,28 +39,28 @@
                 </ion-item>
 
                 <div class="ion-display-flex ion-justify-content-center">
-                  <ion-button type="submit" [disabled]="form.invalid || loading">Créer le lien</ion-button>
+                  <ion-button type="submit" [disabled]="form.invalid || loading()">Créer le lien</ion-button>
                 </div>
               </form>
 
-              @if (creationResult) {
+              @if (creationResult(); as result) {
                 <ion-list>
                   <ion-item>
                     <ion-label>
-                      {{ statusHelp[creationResult.status] }}
+                      {{ statusHelp[result.status] }}
 
                       <br>
 
-                      @if (creationResult.link_url) {
-                        <a [href]="creationResult.link_url" target="_blank">{{ creationResult.link_url }}</a>
+                      @if (result.link_url) {
+                        <a [href]="result.link_url" target="_blank">{{ result.link_url }}</a>
                       }
 
-                      @if (creationResult.expires_at) {
-                        <div>Expire : {{ creationResult.expires_at | date:'medium' }}</div>
+                      @if (result.expires_at) {
+                        <div>Expire : {{ result.expires_at | date:'medium' }}</div>
                       }
                     </ion-label>
-                    @if (creationResult.link_url) {
-                      <ion-button size="default" fill="clear" (click)="copy(creationResult.link_url)" slot="end">Copier</ion-button>
+                    @if (result.link_url) {
+                      <ion-button size="default" fill="clear" (click)="copy(result.link_url)" slot="end">Copier</ion-button>
                     }
                   </ion-item>
                 </ion-list>
@@ -372,8 +372,8 @@
 
   <section class="cta-bottom">
     <h2>Prêt à simplifier le partage de vos secrets ?</h2>
-    <ion-button size="large" color="primary" [routerLink]="user ? '/dashboard' : '/auth'">
-      {{ user ? 'Accéder à mon espace' : 'Créer un compte gratuit' }}
+    <ion-button size="large" color="primary" [routerLink]="user() ? '/dashboard' : '/auth'">
+      {{ user() ? 'Accéder à mon espace' : 'Créer un compte gratuit' }}
     </ion-button>
   </section>
 

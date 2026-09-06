@@ -1,4 +1,4 @@
-import {Component, computed, inject, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, inject, signal} from '@angular/core';
 import {
   IonButton,
   IonCard,
@@ -41,7 +41,6 @@ import {PatService} from "../../core/pat";
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink, IonContent, IonRefresher, IonRefresherContent, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonIcon, IonSkeletonText]
 })
 export class DashboardPage {

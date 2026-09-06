@@ -1,4 +1,4 @@
-import {Component, computed, ElementRef, inject, signal, ViewChild, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, ElementRef, inject, signal, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {HttpErrorResponse} from '@angular/common/http';
 import {apiErrorText} from '../../shared/services/api-error';
@@ -47,7 +47,6 @@ import {CryptoService} from "../../shared/services/crypto";
   templateUrl: './links.page.html',
   styleUrls: ['./links.page.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonContent, CommonModule, FormsModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonButton, IonInput, IonLabel, IonItem, IonList, IonButtons, IonNote, IonTextarea, ReactiveFormsModule, IonSegmentButton, IonSegment, IonIcon, IonBadge, IonCol, IonGrid, IonRow, IonCheckbox, IonSelect, IonSelectOption]
 })
 export class LinksPage {
@@ -60,8 +59,8 @@ export class LinksPage {
   private alert = inject(AlertController);
   private crypto = inject(CryptoService);
 
-  tab: 'create' | 'status' = 'create';
-  loading = false;
+  tab = signal<'create' | 'status'>('create');
+  loading = signal(false);
 
   // Formulation propre à l'import en masse, plus précise que le message générique.
   private readonly bulkErrorOverrides = {
@@ -93,15 +92,15 @@ export class LinksPage {
     return 'Valeur invalide.';
   }
 
-  lastResults: LinkCreateResult[] | null = null;
+  lastResults = signal<LinkCreateResult[] | null>(null);
 
   // quick
-  quickSecret = '';
-  lastQuickResults: LinkCreateResult[] | null = null;
+  quickSecret = signal('');
+  lastQuickResults = signal<LinkCreateResult[] | null>(null);
 
   // bulk
-  showBulk: boolean = false;
-  csvText = '';
+  showBulk = signal(false);
+  csvText = signal('');
 
   // status
   since = '';
@@ -115,7 +114,7 @@ export class LinksPage {
 
   // filtres
   statusFilter = signal<StatusFilter | 'all'>('active');
-  statusSearch: string = '';
+  statusSearch = signal('');
 
   // Tri
   sortColumn = signal<'item_id' | 'created_at' | 'expires_at' | 'used_at' | 'deleted_at'>('created_at');
@@ -135,7 +134,7 @@ export class LinksPage {
   }
 
   async ionViewWillEnter() {
-    if (this.route.snapshot.queryParamMap.get('tab') === 'status') this.tab = 'status';
+    if (this.route.snapshot.queryParamMap.get('tab') === 'status') this.tab.set('status');
 
     this.statusFilter.set(await this.storage.get('links_statusFilter') || 'active');
     this.reload().then();
@@ -153,11 +152,11 @@ export class LinksPage {
   }
 
   async createQuick() {
-    const secret = this.quickSecret.trim();
+    const secret = this.quickSecret().trim();
     if (!secret) return;
 
-    this.lastResults = null;
-    this.loading = true;
+    this.lastResults.set(null);
+    this.loading.set(true);
     try {
       const {secret: encryptedSecret} = await this.crypto.encryptIfPassphrase(secret, '');
       const item_id = this.generateTimestampId();
@@ -168,9 +167,9 @@ export class LinksPage {
         ttl_days: 7,
       }];
 
-      this.lastQuickResults = await this.api.createBulk(payload);
-      if (this.lastQuickResults?.length) {
-        this.quickSecret = '';
+      this.lastQuickResults.set(await this.api.createBulk(payload));
+      if (this.lastQuickResults()?.length) {
+        this.quickSecret.set('');
         await this.reload();
       }
     } catch (e) {
@@ -179,15 +178,15 @@ export class LinksPage {
         3000,
       ).then();
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 
   async createSingle() {
     if (this.form.invalid) return;
 
-    this.lastQuickResults = null;
-    this.loading = true;
+    this.lastQuickResults.set(null);
+    this.loading.set(true);
     try {
       const {secret, passphraseHash} = await this.crypto.encryptIfPassphrase(
         this.form.value.secret!,
@@ -201,36 +200,36 @@ export class LinksPage {
       }];
       if (passphraseHash) (payload[0] as LinkCreateItem).passphrase_hash = passphraseHash;
 
-      this.lastResults = await this.api.createBulk(payload);
-      if (this.lastResults?.length) await this.reload();
+      this.lastResults.set(await this.api.createBulk(payload));
+      if (this.lastResults()?.length) await this.reload();
     } catch (e) {
       this.toast.toastMsg(
         apiErrorText(e, {fallback: 'Création échouée.', overrides: this.bulkErrorOverrides}),
         3000,
       ).then();
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 
   async createBulk() {
-    const items = await this.parseCsv(this.csvText);
+    const items = await this.parseCsv(this.csvText());
     if (!items.length) {
       this.toast.toastMsg('CSV vide ou invalide').then();
       return;
     }
 
-    this.lastQuickResults = null;
-    this.loading = true;
+    this.lastQuickResults.set(null);
+    this.loading.set(true);
     try {
-      this.lastResults = await this.api.createBulk(items);
-      if (this.lastResults?.length) await this.reload();
+      this.lastResults.set(await this.api.createBulk(items));
+      if (this.lastResults()?.length) await this.reload();
     } catch (e) {
       this.toast.toastMsg(
         apiErrorText(e, {fallback: 'Bulk échoué', overrides: this.bulkErrorOverrides}),
       ).then();
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 
@@ -262,7 +261,7 @@ export class LinksPage {
   }
 
   async reload() {
-    this.loading = true;
+    this.loading.set(true);
     try {
       this.rows.set(await this.api.listStatus(
         {since: this.since || undefined, until: this.until || undefined}
@@ -277,7 +276,7 @@ export class LinksPage {
       }
     } finally {
       setTimeout(() => {
-        this.loading = false;
+        this.loading.set(false);
       }, 2000);
     }
   }
@@ -336,7 +335,7 @@ export class LinksPage {
     // Dépendance au trigger pour forcer le recalcul
     this.refreshTrigger();
 
-    const q = this.statusSearch.toLowerCase();
+    const q = this.statusSearch().toLowerCase();
     const f = this.statusFilter();
     const sortCol = this.sortColumn();
     const sortDir = this.sortDirection();

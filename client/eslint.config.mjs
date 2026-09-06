@@ -37,24 +37,12 @@ export default defineConfig([
         { type: 'attribute', prefix: 'app', style: 'camelCase' },
       ],
 
-      // Désactivée volontairement, et c'est une DETTE ASSUMÉE, pas un désaccord
-      // avec la règle.
-      //
-      // Angular 22 fait d'OnPush la stratégie par défaut ; `ng update` a donc
-      // inscrit `ChangeDetectionStrategy.Eager` dans les 13 composants pour
-      // préserver le comportement existant, et cette règle signale précisément
-      // cet opt-out.
-      //
-      // Le passage à OnPush n'a rien de mécanique : plusieurs pages mutent des
-      // champs simples depuis des callbacks asynchrones (`this.state`,
-      // `this.secret` dans redeem.page.ts par exemple). Sous OnPush et sans
-      // signal, la vue ne serait pas rafraîchie - le secret ne s'afficherait
-      // plus. La conversion demande de passer ces états en `signal()`, page par
-      // page, avec vérification à l'écran.
-      //
-      // À rouvrir comme chantier à part entière, en réactivant cette règle à la
-      // fin pour garantir qu'on n'a rien oublié.
-      '@angular-eslint/prefer-on-push-component-change-detection': 'off',
+      // La dette est soldée : les 13 composants sont passés en signaux et
+      // l'opt-out `ChangeDetectionStrategy.Eager` posé par `ng update` a été
+      // retiré partout. La règle est réactivée pour que le retour en arrière
+      // soit impossible sans le voir - sous zoneless, un champ muté hors signal
+      // ne rafraîchit tout simplement plus la vue, et ça échoue en silence.
+      '@angular-eslint/prefer-on-push-component-change-detection': 'error',
     },
   },
 

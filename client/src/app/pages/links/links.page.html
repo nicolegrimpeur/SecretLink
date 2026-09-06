@@ -6,7 +6,7 @@
   </ion-segment>
 
   <!-- === CREATE === -->
-  @if (tab === 'create') {
+  @if (tab() === 'create') {
     <ion-grid>
       <!-- QUICK CREATION -->
       <ion-row>
@@ -30,13 +30,13 @@
                   />
                 </ion-item>
                 <div class="ion-display-flex ion-justify-content-center">
-                  <ion-button type="submit" [disabled]="!quickSecret.trim() || loading">Créer</ion-button>
+                  <ion-button type="submit" [disabled]="!quickSecret().trim() || loading()">Créer</ion-button>
                 </div>
               </form>
 
-              @if (lastQuickResults?.length) {
+              @if (lastQuickResults()?.length) {
                 <ion-list>
-                  @for (r of lastQuickResults; track r.item_id) {
+                  @for (r of lastQuickResults(); track r.item_id) {
                     <ion-item>
                       <ion-label>
                         <b>{{ r.item_id }}</b> - {{ statusHelp[r.status] }}
@@ -116,13 +116,13 @@
                 </ion-item>
 
                 <div class="ion-display-flex ion-justify-content-center">
-                  <ion-button type="submit" [disabled]="form.invalid || loading">Créer</ion-button>
+                  <ion-button type="submit" [disabled]="form.invalid || loading()">Créer</ion-button>
                 </div>
               </form>
 
-              @if (lastResults?.length && Number($safeNavigationMigration(lastResults?.length)) === 1) {
+              @if (lastResults()?.length && Number($safeNavigationMigration(lastResults()?.length)) === 1) {
                 <ion-list>
-                  @for (r of lastResults; track r.item_id) {
+                  @for (r of lastResults(); track r.item_id) {
                     <ion-item>
                       <ion-label>
                         <b>{{ r.item_id }}</b> - {{ statusHelp[r.status] }}
@@ -156,7 +156,7 @@
         </ion-col>
       </ion-row>
 
-      @if (showBulk) {
+      @if (showBulk()) {
         <ion-row>
           <ion-col size="12" size-md="10" offset-md="1" size-lg="6" offset-lg="3">
             <ion-card class="fade-in">
@@ -177,12 +177,12 @@ alice@example.com,vpn-ALICE,7,12345678
 bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
 
                 <div class="ion-display-flex ion-justify-content-center">
-                  <ion-button (click)="createBulk()" [disabled]="loading || !csvText.trim()">Créer les liens</ion-button>
+                  <ion-button (click)="createBulk()" [disabled]="loading() || !csvText().trim()">Créer les liens</ion-button>
                 </div>
 
-                @if (lastResults?.length && Number($safeNavigationMigration(lastResults?.length)) > 1) {
+                @if (lastResults()?.length && Number($safeNavigationMigration(lastResults()?.length)) > 1) {
                   <ion-list>
-                    @for (r of lastResults; track r.item_id) {
+                    @for (r of lastResults(); track r.item_id) {
                       <ion-item>
                         <ion-label>
                           <b>{{ r.item_id }}</b> - {{ statusHelp[r.status] }}
@@ -208,7 +208,7 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
 
 
   <!-- === STATUS === -->
-  @if (tab === 'status') {
+  @if (tab() === 'status') {
     <ion-grid>
       <ion-row>
         <ion-col size="12" size-md="10" offset-md="1" size-lg="8" offset-lg="2">
@@ -295,8 +295,8 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                              [clearInput]="true"
                              (ionInput)="forceRefresh()"
                   />
-                  <ion-button (click)="reload()" [disabled]="loading" slot="end">
-                    <ion-icon name="refresh-outline" [class.spin]="loading"></ion-icon>
+                  <ion-button (click)="reload()" [disabled]="loading()" slot="end">
+                    <ion-icon name="refresh-outline" [class.spin]="loading()"></ion-icon>
                   </ion-button>
                   <ion-button class="ion-hide-md-down" fill="outline" (click)="exportCsv()"
                               [disabled]="!filteredRows().length" slot="end">

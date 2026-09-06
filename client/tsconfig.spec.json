@@ -5,9 +5,8 @@
     "outDir": "./out-tsc/spec",
     "types": ["vitest/globals"]
   },
-  // polyfills.ts est injecté par le builder depuis le buildTarget ; il doit
-  // rester dans le programme TypeScript, sinon il est bundlé sans être vérifié.
-  "files": ["src/polyfills.ts"],
+  // Plus aucun polyfill : l'application est zoneless, `src/polyfills.ts` ne
+  // contenait que l'import de zone.js et a disparu avec lui.
   "include": [
     "src/**/*.spec.ts",
     "src/**/*.d.ts"

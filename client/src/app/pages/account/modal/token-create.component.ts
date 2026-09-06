@@ -1,4 +1,4 @@
-import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {
   IonButton,
@@ -31,7 +31,6 @@ type Scope = { key: string; label: string; help: string };
   templateUrl: './token-create.component.html',
   styleUrls: ['./token-create.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonToolbar,
     IonHeader,
@@ -60,8 +59,8 @@ export class TokenCreateComponent {
   private modalController = inject(ModalController);
   private toast = inject(ToastService);
 
-  loading = false;
-  createdToken: string | null = null;
+  loading = signal(false);
+  createdToken = signal<string | null>(null);
 
 
   scopes: Scope[] = [
@@ -82,20 +81,21 @@ export class TokenCreateComponent {
   }
 
   async submit() {
-    this.loading = true;
+    this.loading.set(true);
     try {
       const { label, scopes } = this.form.value as any;
       const res = await this.api.create(label || null, scopes && scopes.length ? scopes : ['links:read','links:write']);
-      this.createdToken = res.token;
+      this.createdToken.set(res.token);
       await this.toast.toastMsg('Token généré');
     } catch (e) {
       await this.toast.toastMsg((e as HttpErrorResponse).error?.error?.message || 'Création échouée');
-    } finally { this.loading = false; }
+    } finally { this.loading.set(false); }
   }
 
   async copy() {
-    if (!this.createdToken) return;
-    await navigator.clipboard.writeText(this.createdToken);
+    const token = this.createdToken();
+    if (!token) return;
+    await navigator.clipboard.writeText(token);
     this.toast.toastMsg('Copié dans le presse-papier').then();
   }
 

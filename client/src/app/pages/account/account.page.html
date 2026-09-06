@@ -28,11 +28,11 @@
                 </ion-input>
               </ion-item>
 
-              @if (error) {
-                <ion-text color="danger" style="display:block;margin-top:8px">{{ error }}</ion-text>
+              @if (error()) {
+                <ion-text color="danger" style="display:block;margin-top:8px">{{ error() }}</ion-text>
               }
 
-              <ion-button expand="block" type="submit" [disabled]="loading || form.invalid">Mettre à jour</ion-button>
+              <ion-button expand="block" type="submit" [disabled]="loading() || form.invalid">Mettre à jour</ion-button>
             </form>
           </ion-card-content>
         </ion-card>

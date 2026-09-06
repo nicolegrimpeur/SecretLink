@@ -1,4 +1,4 @@
-import {Component, inject, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, OnInit, signal} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -31,7 +31,6 @@ import {CryptoService} from "../../shared/services/crypto";
   templateUrl: './redeem.page.html',
   styleUrls: ['./redeem.page.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonContent, FormsModule, IonCard, IonCardTitle, IonCardHeader, IonCardSubtitle, IonCardContent, IonItem, IonCheckbox, IonButton, IonSkeletonText, IonIcon, IonInput, IonInputPasswordToggle, ReactiveFormsModule, IonText, IonTextarea]
 })
 export class RedeemPage implements OnInit {
@@ -41,18 +40,20 @@ export class RedeemPage implements OnInit {
   private crypto = inject(CryptoService);
   private fb = inject(FormBuilder);
 
+  // Pas un signal : lu une seule fois dans ngOnInit et jamais rendu.
   token = '';
-  state: 'ready' | 'loading' | 'success' | 'error' | 'passphrase_required' = 'ready';
-  loading = false;
-  ack = false;
 
-  secret: string | null = null;
-  itemId: string | null = null;
-  errorMessage = 'Ce lien a peut-être déjà été utilisé, supprimé ou a expiré.';
+  state = signal<'ready' | 'loading' | 'success' | 'error' | 'passphrase_required'>('ready');
+  loading = signal(false);
+  ack = signal(false);
+
+  secret = signal<string | null>(null);
+  itemId = signal<string | null>(null);
+  errorMessage = signal('Ce lien a peut-être déjà été utilisé, supprimé ou a expiré.');
   form = this.fb.group({
     passphrase: ['', [Validators.required]]
   });
-  isPassphraseInvalid = false;
+  isPassphraseInvalid = signal(false);
 
   constructor() {
     addIcons({lockClosedOutline, copyOutline});
@@ -64,11 +65,11 @@ export class RedeemPage implements OnInit {
 
   async reveal() {
     if (!this.token) {
-      this.state = 'error';
+      this.state.set('error');
       return;
     }
-    this.loading = true;
-    if (this.state !== 'passphrase_required') this.state = 'loading';
+    this.loading.set(true);
+    if (this.state() !== 'passphrase_required') this.state.set('loading');
 
     try {
       const pass = this.form.value.passphrase?.trim();
@@ -76,17 +77,17 @@ export class RedeemPage implements OnInit {
 
       const redeemResponse = await this.linksService.redeemLink(this.token, passphrase_hash);
 
-      this.itemId = redeemResponse.item_id;
-      this.secret = await this.crypto.decryptIfNeeded(redeemResponse.secret, pass);
-      this.state = 'success';
+      this.itemId.set(redeemResponse.item_id);
+      this.secret.set(await this.crypto.decryptIfNeeded(redeemResponse.secret, pass));
+      this.state.set('success');
     } catch (e) {
       const err = e as HttpErrorResponse;
       if (err.status === 403) {
         if (err.error?.error?.code === 'PASSPHRASE_REQUIRED') {
-          this.state = 'passphrase_required';
+          this.state.set('passphrase_required');
         } else if (err.error?.error?.code === 'INVALID_PASSPHRASE') {
-          this.state = 'passphrase_required';
-          this.isPassphraseInvalid = true;
+          this.state.set('passphrase_required');
+          this.isPassphraseInvalid.set(true);
         }
       } else {
         const status = err.status;
@@ -99,13 +100,14 @@ export class RedeemPage implements OnInit {
         this.fail(msg);
       }
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 
   async copy() {
-    if (!this.secret) return;
-    await navigator.clipboard.writeText(this.secret);
+    const secret = this.secret();
+    if (!secret) return;
+    await navigator.clipboard.writeText(secret);
     await (await this.toast.create({
       message: 'Copié dans le presse papier',
       duration: 1200,
@@ -114,7 +116,7 @@ export class RedeemPage implements OnInit {
   }
 
   private fail(msg?: string) {
-    if (msg) this.errorMessage = msg;
-    this.state = 'error';
+    if (msg) this.errorMessage.set(msg);
+    this.state.set('error');
   }
 }

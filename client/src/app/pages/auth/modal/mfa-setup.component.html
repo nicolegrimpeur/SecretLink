@@ -51,7 +51,7 @@
       <ion-button
         expand="block"
         class="ion-margin-top"
-        [disabled]="submitting() || otpCode.length !== 6"
+        [disabled]="submitting() || otpCode().length !== 6"
         (click)="confirm()">
         @if (submitting()) {
           <ion-spinner name="crescent" slot="start"></ion-spinner>
@@ -94,7 +94,7 @@
       <ion-button
         expand="block"
         class="ion-margin-top"
-        [disabled]="!savedConfirmed"
+        [disabled]="!savedConfirmed()"
         (click)="finish()">
         Terminer l'inscription
       </ion-button>
