@@ -36,5 +36,5 @@ services:
       MYSQL_DATABASE: secretLink
       MYSQL_RANDOM_ROOT_PASSWORD: "true"
 
-    volumes:
-      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+    # Plus de montage de `mysql-init` : le schéma est désormais porté par les
+    # migrations de `server/migrations/`, appliquées de la même façon partout.

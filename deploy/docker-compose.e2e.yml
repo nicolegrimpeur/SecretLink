@@ -26,16 +26,29 @@ services:
     tmpfs:
       - /var/lib/mysql
     healthcheck:
-      # On interroge une table du schéma, pas un simple ping : l'entrypoint
-      # MySQL répond « up » depuis un serveur temporaire avant d'avoir joué
-      # les scripts d'init.
       test:
         - CMD-SHELL
-        - mysql -h 127.0.0.1 -ulink -pcipass secretLink -e "SELECT 1 FROM users LIMIT 1" > /dev/null 2>&1
+        - mysqladmin ping -h 127.0.0.1 -ulink -pcipass --silent
       interval: 2s
       timeout: 5s
       retries: 40
       start_period: 20s
+
+  migrate:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_USER: link
+      MYSQL_PASSWORD: cipass
+      MYSQL_DB: secretLink
+    command: ["node", "scripts/migrate.mjs"]
+    restart: "no"
 
   server:
     build:
@@ -44,6 +57,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       # 'test' et non 'production' : en production les cookies sont posés avec
       # le flag Secure, que le navigateur refuse sur du http:// en clair. La

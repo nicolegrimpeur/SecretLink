@@ -19,6 +19,30 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # Applique les migrations de schéma en attente, puis se termine. Le serveur
+  # n'est lancé qu'après sa sortie en succès, si bien qu'aucune version ne
+  # tourne jamais contre un schéma qu'elle n'attend pas.
+  #
+  # Étape séparée plutôt qu'au démarrage du serveur : elle est visible dans les
+  # logs, échoue bruyamment sans laisser l'application à moitié démarrée, et ne
+  # couple pas le temps de démarrage à une opération de schéma.
+  migrate:
+    image: ghcr.io/nicolegrimpeur/secretlink-server:${SECRETLINK_TAG:?renseigner SECRETLINK_TAG dans deploy/.env}
+    container_name: secretlink-migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER:-link}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
+      MYSQL_DB: secretLink
+    command: ["node", "scripts/migrate.mjs"]
+    # Conteneur à usage unique : le relancer en boucle le ferait rejouer sans
+    # fin, alors qu'un échec doit rester visible et bloquer le démarrage.
+    restart: "no"
+
   server:
     # Image publiée par .github/workflows/release.yml. `${VAR:?message}` fait
     # échouer bruyamment un SECRETLINK_TAG absent, là où un défaut silencieux
@@ -30,6 +54,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
