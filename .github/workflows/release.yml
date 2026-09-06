@@ -357,22 +357,80 @@ jobs:
         run: |
           set -euo pipefail
 
+          RANGE="${PREV:+$PREV..}HEAD"
+
           # Volet natif : GitHub liste les PR mergées depuis le tag précédent,
-          # groupées d'après .github/release.yml. Il ne voit QUE les PR - d'où
-          # la liste de commits ajoutée ensuite, qui couvre aussi les pushs
-          # directs et la transition depuis l'historique d'avant la protection.
+          # groupées d'après .github/release.yml, et ajoute lui-même le lien
+          # « Full Changelog ». C'est l'INDEX de la release ; tout ce qu'on
+          # ajoute ensuite doit être additif, sinon on fait relire deux fois la
+          # même chose.
           gh api "repos/${{ github.repository }}/releases/generate-notes" \
             -f tag_name="$TAG" \
             -f target_commitish="${{ github.sha }}" \
             ${PREV:+-f previous_tag_name="$PREV"} \
             --jq .body > notes.md
 
-          RANGE="${PREV:+$PREV..}HEAD"
+          # Le squash merge suffixe le sujet du commit par « (#N) ». C'est ce
+          # qui relie un commit de master à sa PR - et, par différence, ce qui
+          # permet de repérer ce qui est arrivé SANS passer par une PR.
+          PR_NUMBERS="$(git log --no-merges --pretty='%s' "$RANGE" \
+            | sed -n 's/.*(#\([0-9]\+\))$/\1/p' | sort -n -u || true)"
+
+          # Descriptions de PR : GitHub ne sait pas les inclure nativement.
+          # Repliées dans des <details> pour que la release reste scannable,
+          # le détail restant à un clic. Le titre y est un en-tête de section,
+          # pas une seconde entrée de liste.
+          cat > "$RUNNER_TEMP/pr-details.mjs" <<'PRD'
+          import { execFileSync } from 'node:child_process';
+
+          const numbers = (process.env.PR_NUMBERS ?? '').split(/\s+/).filter(Boolean);
+          const blocks = [];
+
+          for (const n of numbers) {
+            let pr;
+            try {
+              pr = JSON.parse(
+                execFileSync('gh', ['pr', 'view', n, '--json', 'title,body'], { encoding: 'utf8' }),
+              );
+            } catch {
+              console.error(`::warning::PR #${n} illisible, ignorée dans les détails`);
+              continue;
+            }
+
+            // Les gabarits de PR laissent des commentaires HTML d'instructions,
+            // qui n'ont rien à faire dans une note de version.
+            const body = (pr.body ?? '').replace(/<!--[\s\S]*?-->/g, '').trim();
+            // Une PR sans description n'apporterait rien de plus que l'index.
+            if (!body) continue;
+
+            blocks.push(
+              `<details><summary><b>#${n} — ${pr.title}</b></summary>\n\n${body}\n\n</details>`,
+            );
+          }
+
+          if (blocks.length > 0) {
+            process.stdout.write(`\n## Détails\n\n${blocks.join('\n\n')}\n`);
+          }
+          PRD
+          PR_NUMBERS="$PR_NUMBERS" node "$RUNNER_TEMP/pr-details.mjs" >> notes.md
+
+          # Ce qui a atterri sur master SANS passer par une PR : invisible du
+          # volet natif, donc la seule chose que `git log` apporte réellement.
+          # Section omise quand il n'y a rien - le cas normal, protection de
+          # branche oblige.
+          OUTSIDE="$(git log --no-merges --pretty='- %s (%h)' "$RANGE" \
+            | grep -vE '\(#[0-9]+\) \([0-9a-f]+\)$' || true)"
+
+          if [ -n "$OUTSIDE" ]; then
+            {
+              echo ""
+              echo "## Commits hors PR"
+              echo ""
+              echo "$OUTSIDE"
+            } >> notes.md
+          fi
+
           {
-            echo ""
-            echo "## Commits"
-            echo ""
-            git log --no-merges --pretty='- %s (%h)' "$RANGE"
             echo ""
             echo "## Images"
             echo ""
@@ -380,13 +438,6 @@ jobs:
             echo "ghcr.io/$OWNER/secretlink-server:$VERSION"
             echo "ghcr.io/$OWNER/secretlink-client:$VERSION"
             echo '```'
-            echo ""
-            echo "Déploiement : renseigner \`SECRETLINK_TAG=$VERSION\` dans \`deploy/.env\`, puis"
-            echo '`docker compose pull && docker compose up -d`.'
-            if [ -n "$PREV" ]; then
-              echo ""
-              echo "**Diff complet** : https://github.com/${{ github.repository }}/compare/$PREV...$TAG"
-            fi
           } >> notes.md
 
           echo "--- notes composées ---"
