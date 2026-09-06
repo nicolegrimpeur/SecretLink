@@ -16,6 +16,11 @@ COPY src ./src
 # Build TypeScript
 RUN npm run build
 
+# Migrations et leur runner : ils ne sont pas compilés (SQL brut + .mjs), donc
+# copiés tels quels.
+COPY migrations ./migrations
+COPY scripts ./scripts
+
 # Remove development dependencies
 RUN npm prune --production
 

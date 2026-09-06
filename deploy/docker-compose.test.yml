@@ -31,16 +31,10 @@ services:
     ports:
       - "3307:3306"
 
-    # `mysqladmin ping` seul ne suffirait pas : l'entrypoint MySQL démarre un
-    # serveur temporaire pour jouer les scripts d'init, et un ping y répondrait
-    # déjà « up » avant que le schéma n'existe. On interroge donc une table du
-    # schéma, en TCP et avec l'utilisateur applicatif - ce qui prouve d'un coup
-    # que le serveur écoute, que l'utilisateur et la base existent, et que
-    # 01-schema.sql est passé.
     healthcheck:
       test:
         - CMD-SHELL
-        - mysql -h 127.0.0.1 -ulink -pcipass secretLink -e "SELECT 1 FROM users LIMIT 1" > /dev/null 2>&1
+        - mysqladmin ping -h 127.0.0.1 -ulink -pcipass --silent
       interval: 2s
       timeout: 5s
       retries: 40

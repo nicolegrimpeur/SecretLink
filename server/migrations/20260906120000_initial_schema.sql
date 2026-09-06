@@ -1,9 +1,11 @@
+-- Schéma initial
 --
--- Table structure for table `users`
---
+-- Ici tout est en `CREATE TABLE IF NOT EXISTS` : appliquer cette migration sur
+-- une base qui possède déjà le schéma est un no-op. C'est ce qui permet
+-- d'adopter les migrations sur une base existante sans la reconstruire - elle
+-- sera simplement enregistrée comme appliquée.
 
-DROP TABLE IF EXISTS `users`;
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `email` varchar(320) NOT NULL,
   `password_hash` varbinary(255) DEFAULT NULL,
@@ -17,12 +19,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- Table structure for table `trusted_devices`
---
-
-DROP TABLE IF EXISTS `trusted_devices`;
-CREATE TABLE `trusted_devices` (
+CREATE TABLE IF NOT EXISTS `trusted_devices` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` bigint NOT NULL,
   `device_token_hash` char(64) NOT NULL,
@@ -35,12 +32,7 @@ CREATE TABLE `trusted_devices` (
   CONSTRAINT `fk_td_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- Table structure for table `recovery_codes`
---
-
-DROP TABLE IF EXISTS `recovery_codes`;
-CREATE TABLE `recovery_codes` (
+CREATE TABLE IF NOT EXISTS `recovery_codes` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` bigint NOT NULL,
   `code_hash` char(64) NOT NULL,
@@ -51,12 +43,7 @@ CREATE TABLE `recovery_codes` (
   CONSTRAINT `fk_rc_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- Table structure for table `items`
---
-
-DROP TABLE IF EXISTS `items`;
-CREATE TABLE `items` (
+CREATE TABLE IF NOT EXISTS `items` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `owner_user_id` bigint NOT NULL,
   `item_id` varchar(320) NOT NULL,
@@ -67,12 +54,7 @@ CREATE TABLE `items` (
   CONSTRAINT `fk_items_owner` FOREIGN KEY (`owner_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- Table structure for table `links`
---
-
-DROP TABLE IF EXISTS `links`;
-CREATE TABLE `links` (
+CREATE TABLE IF NOT EXISTS `links` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `owner_user_id` bigint NOT NULL,
   `item_id` varchar(320) NOT NULL,
@@ -94,12 +76,7 @@ CREATE TABLE `links` (
   CONSTRAINT `fk_links_owner` FOREIGN KEY (`owner_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- Table structure for table `api_tokens`
---
-
-DROP TABLE IF EXISTS `api_tokens`;
-CREATE TABLE `api_tokens` (
+CREATE TABLE IF NOT EXISTS `api_tokens` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` bigint NOT NULL,
   `token_hash` char(64) NOT NULL,
@@ -113,3 +90,8 @@ CREATE TABLE `api_tokens` (
   KEY `ix_api_tokens_revoked` (`revoked_at`),
   CONSTRAINT `fk_api_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Utilisateur anonyme partagé : `POST /links` écrit `owner_user_id = 1` en dur
+-- et violerait `fk_links_owner` sans cette ligne. `INSERT IGNORE` pour rester
+-- un no-op sur la production, où elle existe déjà.
+INSERT IGNORE INTO `users` (`id`, `email`) VALUES (1, 'anonymous@nicob.ovh');

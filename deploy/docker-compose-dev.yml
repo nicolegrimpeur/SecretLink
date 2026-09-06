@@ -19,6 +19,26 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # Applique les migrations puis se termine ; le serveur attend sa sortie en
+  # succès. Même `build` que `server` : le contexte étant identique, la seconde
+  # construction est servie par le cache.
+  migrate:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    container_name: secretlink-migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER:-link}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
+      MYSQL_DB: secretLink
+    command: ["node", "scripts/migrate.mjs"]
+    restart: "no"
+
   server:
     build:
       context: ../server
@@ -27,6 +47,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000

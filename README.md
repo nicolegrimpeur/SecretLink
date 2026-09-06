@@ -219,6 +219,62 @@ sont jetables et n'ont de sens que face à la base éphémère. Elles prennent l
 
 ---
 
+## Migrations de schéma
+
+Le schéma vit dans [`server/migrations/`](server/migrations/), une suite de fichiers SQL
+appliqués dans l'ordre de leur nom. C'est la **source unique de vérité** : prod, dev, tests
+d'intégration et e2e passent tous par là.
+
+> Auparavant le schéma était posé par `deploy/mysql-init/`, que MySQL n'exécute que sur un
+> volume **vierge**. Il ne pouvait donc jamais faire évoluer une base existante : le schéma
+> était la seule pièce du système sans chemin outillé vers la production.
+
+### Créer une migration
+
+Un fichier `server/migrations/<horodatage>_<description>.sql`, par exemple
+`20260910093000_ajout_colonne_x.sql`. Deux règles :
+
+- **Ne jamais modifier une migration déjà appliquée** - elle ne sera pas rejouée. Toute
+  correction passe par une nouvelle migration.
+- **L'écrire pour pouvoir être rejouée sans dommage.** MySQL committe implicitement à chaque
+  instruction DDL : une transaction ne protégerait rien, et une migration interrompue à
+  mi-parcours doit pouvoir être relancée.
+
+### Appliquer
+
+En production et en développement Docker, c'est **automatique** : un service `migrate`
+s'exécute entre la base et le serveur, et ce dernier n'est lancé qu'après sa sortie en succès.
+Aucune version ne tourne donc jamais contre un schéma qu'elle n'attend pas.
+
+```
+db (healthy) → migrate (exit 0) → server → client
+```
+
+À la main, contre la base configurée dans `server/.env` :
+
+```bash
+npm run db:migrate           # applique ce qui manque
+npm run db:migrate:status    # liste sans rien appliquer
+```
+
+`npm run db:test:up` s'en charge pour la base de test.
+
+### Adopter les migrations sur une base existante
+
+La migration initiale est écrite en `CREATE TABLE IF NOT EXISTS` et `INSERT IGNORE` : sur une
+base qui possède déjà le schéma, elle ne fait rien mais est enregistrée comme appliquée. Il n'y
+a donc **aucune manipulation particulière** pour une base de production déjà en service - le
+premier déploiement l'adopte tout seul.
+
+> C'est aussi la raison pour laquelle l'ancien fichier n'a pas été repris tel quel : il
+> commençait par `DROP TABLE IF EXISTS` sur chaque table.
+
+Le runner est [`server/scripts/migrate.mjs`](server/scripts/migrate.mjs). Il lit **les mêmes
+variables d'environnement que le serveur** - délibérément, pour qu'il n'existe pas deux
+configurations de base de données susceptibles de diverger.
+
+---
+
 ## Intégration continue et livraison
 
 ### Le gate de merge
