@@ -1,0 +1,83 @@
+version: 2
+
+# ⚠️ À savoir avant d'accueillir les premières PR : les approbations
+# `allowScripts` des package.json sont **épinglées par version**. Une montée de
+# `argon2` (server) ou de `esbuild`, `lmdb`, `msgpackr-extract`, `@parcel/watcher`
+# (client) rebloque donc leur script d'installation tant que la clé n'est pas
+# mise à jour dans le même commit. C'est la fonctionnalité de sécurité de npm 12
+# qui joue son rôle, mais ça se manifeste par un `npm ci` en échec dont la cause
+# n'est pas évidente.
+
+updates:
+  - package-ecosystem: npm
+    directory: /server
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels: [dependencies, server]
+    groups:
+      # Sans regroupement, chaque paquet ouvre sa propre PR et la CI tourne
+      # autant de fois. Les correctifs et versions mineures n'ont aucune raison
+      # d'être relus séparément.
+      mineures-et-correctifs:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /client
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels: [dependencies, client]
+    groups:
+      # Les paquets Angular doivent monter en bloc : une PR par paquet
+      # produirait des combinaisons de versions incompatibles entre elles, donc
+      # une CI rouge à chaque fois.
+      angular:
+        patterns: ["@angular*", "@angular-eslint*"]
+      ionic:
+        patterns: ["@ionic*", "ionicons"]
+      mineures-et-correctifs:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      # Ionic ne suit pas immédiatement les majeures d'Angular : proposer
+      # Angular 22 tant qu'Ionic ne le supporte pas produirait des PR
+      # inmergeables, voire vertes en CI mais cassées à l'usage.
+      #
+      # Restreint aux MAJEURES à dessein : les correctifs de sécurité arrivent
+      # quasi toujours en patch ou mineure, ils continuent donc de passer. Ne
+      # pas surveiller le client du tout laisserait au contraire son millier de
+      # dépendances transitives sans aucune couverture.
+      #
+      # À lever quand Ionic annoncera le support de la majeure suivante.
+      - dependency-name: "@angular*"
+        update-types: [version-update:semver-major]
+      - dependency-name: "@ionic*"
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: npm
+    directory: /e2e
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    labels: [dependencies, tests]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels: [dependencies, ci]
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Suit les `FROM` des Dockerfiles. Utile surtout pour les correctifs de
+  # sécurité d'Alpine ; la majeure de Node, elle, reste pilotée par .nvmrc.
+  - package-ecosystem: docker
+    directories:
+      - /server
+      - /client
+    schedule:
+      interval: monthly
+    labels: [dependencies, ci]

@@ -317,6 +317,163 @@ jobs:
           echo "Version du manifest modifiée : OK."
 
   # ───────────────────────────────────────────────────────────────────────────
+  #  Audit des dépendances - informatif, JAMAIS bloquant
+  #
+  #  Volontairement absent des `needs` de `ci-gate`, et en `continue-on-error` :
+  #  un avis de sécurité paraît au gré des publications amont, sans rapport avec
+  #  la PR en cours. Le rendre bloquant ferait échouer des PR innocentes ; le
+  #  laisser durablement rouge produirait un signal qu'on apprend à ignorer.
+  #  On veut le suivi, pas le veto - la remédiation, elle, passe par Dependabot.
+  #
+  #  Pas de `npm ci` : `npm audit` se calcule à partir du seul lockfile.
+  # ───────────────────────────────────────────────────────────────────────────
+  audit:
+    name: Audit des dépendances
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Rapport
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/audit.mjs" <<'AUDIT'
+          import { appendFileSync } from 'node:fs';
+          import { execSync } from 'node:child_process';
+
+          // `livre` : ce projet produit-il un artefact déployé ? `e2e` est de
+          // l'outillage de test pur - il n'a pas de « production », et afficher un
+          // 0 dans cette colonne laisserait croire le contraire.
+          const PROJETS = [
+            { nom: 'server', livre: true },
+            { nom: 'client', livre: true },
+            { nom: 'e2e', livre: false },
+          ];
+          const SEVERITES = ['critical', 'high', 'moderate', 'low'];
+          const LIBELLE = { critical: 'critique', high: 'élevée', moderate: 'modérée', low: 'faible' };
+
+          // `npm audit` sort en code non nul dès qu'il trouve quelque chose :
+          // on récupère donc stdout dans les deux cas.
+          function audit(projet, productionSeulement) {
+            const cmd = `npm audit --json${productionSeulement ? ' --omit=dev' : ''}`;
+            let sortie;
+            try {
+              sortie = execSync(cmd, { cwd: projet, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+            } catch (err) {
+              sortie = err.stdout;
+            }
+            try {
+              return JSON.parse(sortie);
+            } catch {
+              console.error(`::warning::audit illisible pour ${projet}`);
+              return null;
+            }
+          }
+
+          const compte = (rapport) => rapport?.metadata?.vulnerabilities ?? {};
+
+          // `npm audit` liste aussi tous les paquets qui DÉPENDENT d'un paquet
+          // vulnérable : 30 entrées côté client pour une poignée de causes
+          // réelles. On ne retient que les avis racines - ceux dont `via`
+          // contient des objets et non de simples noms.
+          function avisRacines(rapport) {
+            const parPaquet = new Map();
+            for (const info of Object.values(rapport?.vulnerabilities ?? {})) {
+              for (const via of info.via ?? []) {
+                if (typeof via !== 'object') continue;
+                if (via.severity !== 'critical' && via.severity !== 'high') continue;
+                const entree = parPaquet.get(via.name) ?? { critical: 0, high: 0 };
+                entree[via.severity] += 1;
+                parPaquet.set(via.name, entree);
+              }
+            }
+            return parPaquet;
+          }
+
+          const lignes = [];
+          const tableau = [];
+          const racinesProd = new Map();
+          let totalProdBloquant = 0;
+
+          for (const { nom, livre } of PROJETS) {
+            const toutes = compte(audit(nom, false));
+
+            // Pas de seconde passe pour un projet qui ne livre rien : elle serait
+            // sans objet. Et une seule passe pour ceux qui livrent - `npm audit`
+            // interroge le registre, on ne le rappelle pas par colonne.
+            const rapportProd = livre ? audit(nom, true) : null;
+            const prod = compte(rapportProd);
+            const cellulesProd = livre
+              ? SEVERITES.map((s) => prod[s] ?? 0)
+              : SEVERITES.map(() => '—');
+
+            totalProdBloquant += (prod.critical ?? 0) + (prod.high ?? 0);
+
+            for (const [paquet, n] of avisRacines(rapportProd)) {
+              const cumul = racinesProd.get(paquet) ?? { critical: 0, high: 0, projets: new Set() };
+              cumul.critical += n.critical;
+              cumul.high += n.high;
+              cumul.projets.add(nom);
+              racinesProd.set(paquet, cumul);
+            }
+
+            tableau.push(
+              `| \`${nom}\` | ${cellulesProd.join(' | ')} | ${SEVERITES.map((s) => toutes[s] ?? 0).join(' | ')} |`,
+            );
+          }
+
+          lignes.push('## Audit des dépendances');
+          lignes.push('');
+          lignes.push('La colonne **production** est celle qui compte : elle exclut les dépendances');
+          lignes.push('de développement, qui ne partent pas dans les images livrées.');
+          lignes.push('');
+          lignes.push('`e2e` est de l\'outillage de test : il ne livre aucun artefact, d\'où le `—`.');
+          lignes.push('');
+          lignes.push(`| projet | ${SEVERITES.map((s) => `prod ${LIBELLE[s]}`).join(' | ')} | ${SEVERITES.map((s) => `dev+prod ${LIBELLE[s]}`).join(' | ')} |`);
+          lignes.push(`|---|${SEVERITES.map(() => '---').join('|')}|${SEVERITES.map(() => '---').join('|')}|`);
+          lignes.push(...tableau);
+
+          if (racinesProd.size > 0) {
+            lignes.push('');
+            lignes.push('### Avis critiques et élevés en production, par paquet');
+            lignes.push('');
+            lignes.push('Moins nombreux que les comptes ci-dessus : un même avis rend vulnérables tous');
+            lignes.push('les paquets qui dépendent du paquet fautif.');
+            lignes.push('');
+            lignes.push('| paquet | critique | élevée | projets |');
+            lignes.push('|---|---|---|---|');
+            for (const [paquet, n] of [...racinesProd].sort((a, b) => b[1].critical - a[1].critical || b[1].high - a[1].high)) {
+              lignes.push(`| \`${paquet}\` | ${n.critical} | ${n.high} | ${[...n.projets].join(', ')} |`);
+            }
+          }
+
+          lignes.push('');
+          lignes.push('Détail complet : `npm --prefix <projet> audit`. La remédiation passe par Dependabot.');
+
+          const resume = lignes.join('\n');
+          console.log(resume);
+          if (process.env.GITHUB_STEP_SUMMARY) {
+            appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${resume}\n`);
+          }
+
+          if (totalProdBloquant > 0) {
+            console.error(
+              `::warning::${totalProdBloquant} vulnérabilité(s) critique(s) ou élevée(s) dans les dépendances de production. Voir le résumé du job.`,
+            );
+          }
+
+          // Toujours 0 : ce job informe, il ne juge pas.
+          process.exit(0);
+          AUDIT
+          node "$RUNNER_TEMP/audit.mjs"
+
+  # ───────────────────────────────────────────────────────────────────────────
   #  End-to-end : la stack Docker complète, point d'entrée unique compris
   # ───────────────────────────────────────────────────────────────────────────
   e2e:
