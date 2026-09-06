@@ -1,4 +1,4 @@
-import {Component, ElementRef, inject, Input, OnInit, signal, ViewChild} from '@angular/core';
+import {Component, ElementRef, inject, Input, OnInit, signal, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import QRCode from 'qrcode';
@@ -28,6 +28,7 @@ import {clipboardOutline, shieldCheckmarkOutline} from 'ionicons/icons';
   templateUrl: './mfa-setup.component.html',
   styleUrls: ['./mfa-setup.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     IonHeader,

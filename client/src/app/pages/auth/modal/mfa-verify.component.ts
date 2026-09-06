@@ -1,4 +1,4 @@
-import {Component, inject, Input, signal} from '@angular/core';
+import {Component, inject, Input, signal, ChangeDetectionStrategy} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import {
@@ -23,6 +23,7 @@ import {AuthService} from '../../../core/auth';
   templateUrl: './mfa-verify.component.html',
   styleUrls: ['./mfa-verify.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     IonHeader,

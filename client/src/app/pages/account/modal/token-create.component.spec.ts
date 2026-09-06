@@ -1,5 +1,5 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {ModalController, ToastController} from '@ionic/angular';
 
@@ -13,7 +13,7 @@ describe('TokenCreateComponent', () => {
     await TestBed.configureTestingModule({
       imports: [TokenCreateComponent],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {
           provide: ModalController,

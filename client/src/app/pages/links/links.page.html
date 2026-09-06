@@ -120,7 +120,7 @@
                 </div>
               </form>
 
-              @if (lastResults?.length && Number(lastResults?.length) === 1) {
+              @if (lastResults?.length && Number($safeNavigationMigration(lastResults?.length)) === 1) {
                 <ion-list>
                   @for (r of lastResults; track r.item_id) {
                     <ion-item>
@@ -180,7 +180,7 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                   <ion-button (click)="createBulk()" [disabled]="loading || !csvText.trim()">Créer les liens</ion-button>
                 </div>
 
-                @if (lastResults?.length && Number(lastResults?.length) > 1) {
+                @if (lastResults?.length && Number($safeNavigationMigration(lastResults?.length)) > 1) {
                   <ion-list>
                     @for (r of lastResults; track r.item_id) {
                       <ion-item>

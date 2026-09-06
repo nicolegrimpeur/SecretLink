@@ -1,5 +1,5 @@
 import {TestBed} from '@angular/core/testing';
-import {HttpClient, provideHttpClient, withInterceptors} from '@angular/common/http';
+import {HttpClient, provideHttpClient, withInterceptors, withXhr} from '@angular/common/http';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {Router} from '@angular/router';
 import {sessionExpiredInterceptor} from './session-expired.interceptor';
@@ -21,7 +21,7 @@ describe('sessionExpiredInterceptor', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptors([sessionExpiredInterceptor])),
+        provideHttpClient(withXhr(), withInterceptors([sessionExpiredInterceptor])),
         provideHttpClientTesting(),
         {provide: Router, useValue: router},
         {provide: ToastService, useValue: {toastMsg: () => Promise.resolve()}},

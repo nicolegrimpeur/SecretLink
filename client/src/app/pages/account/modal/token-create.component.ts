@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {
   IonButton,
@@ -31,6 +31,7 @@ type Scope = { key: string; label: string; help: string };
   templateUrl: './token-create.component.html',
   styleUrls: ['./token-create.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonToolbar,
     IonHeader,
