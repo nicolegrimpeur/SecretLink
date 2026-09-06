@@ -40,10 +40,7 @@
   },
   "devDependencies": {
     "@angular-eslint/builder": "^22.2.0",
-    "@angular-eslint/eslint-plugin": "^22.2.0",
-    "@angular-eslint/eslint-plugin-template": "^22.2.0",
     "@angular-eslint/schematics": "^22.2.0",
-    "@angular-eslint/template-parser": "^22.2.0",
     "@angular/build": "^22.1.7",
     "@angular/cli": "^22.1.7",
     "@angular/compiler-cli": "^22.1.5",
@@ -51,13 +48,9 @@
     "@capacitor/cli": "^8.5.1",
     "@ionic/angular-toolkit": "^13.0.0",
     "@types/qrcode": "^1.5.6",
-    "@typescript-eslint/eslint-plugin": "^8.69.0",
-    "@typescript-eslint/parser": "^8.69.0",
     "@vitest/coverage-v8": "^4.1.11",
+    "angular-eslint": "^22.2.0",
     "eslint": "^9.39.4",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-jsdoc": "^64.3.6",
-    "eslint-plugin-prefer-arrow": "1.2.3",
     "jsdom": "^30.0.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11"
@@ -65,9 +58,9 @@
   "description": "An Ionic project",
   "license": "MIT",
   "allowScripts": {
-    "esbuild@0.27.3": true,
-    "lmdb@3.5.1": true,
-    "msgpackr-extract@3.0.3": true,
-    "@parcel/watcher@2.5.6": true
+    "@parcel/watcher@2.5.6": true,
+    "esbuild@0.28.2": true,
+    "lmdb@3.5.6": true,
+    "msgpackr-extract@3.0.4": true
   }
 }
