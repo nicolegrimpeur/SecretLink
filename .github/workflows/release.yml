@@ -138,8 +138,8 @@ jobs:
         # Les deux runners sont déclarés côte à côte, sur la même version
         # d'Ubuntu : les deux moitiés d'une même image multi-arch doivent être
         # construites sur le même OS, et une divergence doit sauter aux yeux.
-        # Il n'existe pas de label `ubuntu-latest-arm` — GitHub ne publie ses
-        # runners ARM qu'en versions explicites — donc la version est de toute
+        # Il n'existe pas de label `ubuntu-latest-arm` - GitHub ne publie ses
+        # runners ARM qu'en versions explicites - donc la version est de toute
         # façon imposée d'un côté ; autant l'assumer des deux.
         include:
           - platform: linux/amd64
@@ -404,7 +404,7 @@ jobs:
             if (!body) continue;
 
             blocks.push(
-              `<details><summary><b>#${n} — ${pr.title}</b></summary>\n\n${body}\n\n</details>`,
+              `<details><summary><b>#${n} - ${pr.title}</b></summary>\n\n${body}\n\n</details>`,
             );
           }
 

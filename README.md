@@ -259,18 +259,18 @@ release, donc un rejeu repart proprement.
 
 #### Images multi-architecture
 
-Les deux images sont publiées pour **`linux/amd64` et `linux/arm64`** — la production tourne
+Les deux images sont publiées pour **`linux/amd64` et `linux/arm64`** - la production tourne
 sur un Raspberry Pi 64 bits. Un `docker pull` sélectionne automatiquement la bonne
 architecture, il n'y a rien à préciser côté hôte.
 
 Chaque architecture est construite sur un **runner natif** (`ubuntu-24.04-arm` pour arm64),
 pas sous QEMU : ces runners sont gratuits sur dépôt public, l'émulation d'un build Angular
-coûterait 5 à 10 fois plus cher, et esbuild — que la chaîne Angular utilise — est une source
+coûterait 5 à 10 fois plus cher, et esbuild - que la chaîne Angular utilise - est une source
 connue d'échecs erratiques sous émulation.
 
 Les quatre legs poussent **sans tag, par digest seul** ; le job `manifest` assemble ensuite
 l'index qui reçoit les tags. C'est ce qui évite que deux builds parallèles s'écrasent un tag,
-et une garde vérifie que les deux architectures sont bien présentes avant de continuer — un
+et une garde vérifie que les deux architectures sont bien présentes avant de continuer - un
 index amputé ne se verrait sinon qu'au `docker pull` sur le Pi.
 
 ```bash
