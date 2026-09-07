@@ -5,8 +5,6 @@
     "outDir": "./out-tsc/spec",
     "types": ["vitest/globals"]
   },
-  // Plus aucun polyfill : l'application est zoneless, `src/polyfills.ts` ne
-  // contenait que l'import de zone.js et a disparu avec lui.
   "include": [
     "src/**/*.spec.ts",
     "src/**/*.d.ts"
