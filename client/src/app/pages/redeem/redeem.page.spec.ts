@@ -1,8 +1,8 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {provideRouter} from '@angular/router';
-import {ToastController} from '@ionic/angular/standalone';
+import {ToastController} from '@ionic/angular';
 
 import {RedeemPage} from './redeem.page';
 
@@ -14,7 +14,7 @@ describe('RedeemPage', () => {
     await TestBed.configureTestingModule({
       imports: [RedeemPage],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         provideRouter([]),
         {

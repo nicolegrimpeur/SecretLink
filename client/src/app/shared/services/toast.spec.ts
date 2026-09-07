@@ -1,5 +1,5 @@
 import {TestBed} from '@angular/core/testing';
-import {ToastController} from '@ionic/angular/standalone';
+import {ToastController} from '@ionic/angular';
 import type {Mock} from 'vitest';
 
 import {ToastService} from './toast';

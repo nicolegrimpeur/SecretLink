@@ -1,6 +1,6 @@
 <ion-content>
   <div class="redeem-container">
-    @if (state === 'ready') {
+    @if (state() === 'ready') {
       <ion-card class="redeem-card large-card">
         <ion-card-header>
           <ion-card-title>Ce lien est à usage unique</ion-card-title>
@@ -12,14 +12,14 @@
               <div class="ion-text-wrap">J'ai compris qu'il ne sera plus accessible après affichage</div>
             </ion-checkbox>
           </ion-item>
-          <ion-button expand="block" [disabled]="!ack || loading" (click)="reveal()">Afficher le secret</ion-button>
+          <ion-button expand="block" [disabled]="!ack() || loading()" (click)="reveal()">Afficher le secret</ion-button>
           <p class="hint">Conseil : ne stockez pas ce secret dans un email. Copiez-le puis conservez-le en lieu sûr
             (gestionnaire de mots de passe, etc.).</p>
         </ion-card-content>
       </ion-card>
     }
 
-    @if (state === 'loading') {
+    @if (state() === 'loading') {
       <ion-card class="redeem-card small-card">
         <ion-card-header>
           <ion-card-title>Chargement…</ion-card-title>
@@ -30,7 +30,7 @@
       </ion-card>
     }
 
-    @if (state === 'passphrase_required') {
+    @if (state() === 'passphrase_required') {
       <ion-card class="redeem-card large-card">
         <ion-card-header>
           <ion-card-title>Passphrase requise</ion-card-title>
@@ -45,7 +45,7 @@
             </ion-item>
             <ion-button expand="block" [disabled]="!form.valid" (click)="reveal()">Afficher le secret
             </ion-button>
-            @if (isPassphraseInvalid) {
+            @if (isPassphraseInvalid()) {
               <ion-text color="danger">
                 La passphrase est incorrecte. Veuillez réessayer.
               </ion-text>
@@ -55,17 +55,17 @@
       </ion-card>
     }
 
-    @if (state === 'success') {
+    @if (state() === 'success') {
       <ion-card class="redeem-card large-card">
         <ion-card-header>
           <ion-card-title>Secret révélé</ion-card-title>
-          @if (itemId) {
-            <ion-card-subtitle>Identifiant : {{ itemId }}</ion-card-subtitle>
+          @if (itemId()) {
+            <ion-card-subtitle>Identifiant : {{ itemId() }}</ion-card-subtitle>
           }
         </ion-card-header>
         <ion-card-content>
           <ion-item lines="none" class="ion-no-padding">
-            <ion-textarea label="Secret :" type="text" [value]="secret" [readonly]="true" auto-grow>
+            <ion-textarea label="Secret :" type="text" [value]="secret()" [readonly]="true" auto-grow>
               <ion-button (click)="copy()" slot="end">
                 <ion-icon name="copy-outline"></ion-icon>
               </ion-button>
@@ -78,13 +78,13 @@
       </ion-card>
     }
 
-    @if (state === 'error') {
+    @if (state() === 'error') {
       <ion-card class="redeem-card invalid-code small-card">
         <ion-card-header>
           <ion-card-title>Lien invalide ou expiré</ion-card-title>
         </ion-card-header>
         <ion-card-content>
-          <p class="hint">{{ errorMessage }}</p>
+          <p class="hint">{{ errorMessage() }}</p>
         </ion-card-content>
       </ion-card>
     }

@@ -25,7 +25,7 @@ import {
   IonText,
   IonToggle,
   ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import {PAT} from "../../shared/models/pat";
 import {PatService} from "../../core/pat";
 import {TokenCreateComponent} from "./modal/token-create.component";
@@ -55,8 +55,8 @@ export class AccountPage {
 
 
   /////////// Gestion du mot de passe ///////////
-  loading = false;
-  error: string | null = null;
+  loading = signal(false);
+  error = signal<string | null>(null);
 
   form = this.fb.group({
     current_password: ['', [Validators.required]],
@@ -79,21 +79,21 @@ export class AccountPage {
     if (this.form.invalid) return;
     const {current_password, new_password, confirm} = this.form.value as any;
     if (new_password !== confirm) {
-      this.error = 'Les mots de passe ne correspondent pas';
+      this.error.set('Les mots de passe ne correspondent pas');
       return;
     }
-    this.loading = true;
-    this.error = null;
+    this.loading.set(true);
+    this.error.set(null);
     try {
       await this.auth.changePassword(current_password, new_password);
       await this.toast.toastMsg('Mot de passe mis à jour', 1400);
     } catch (e) {
-      this.error = apiErrorText(e, {
+      this.error.set(apiErrorText(e, {
         fallback: 'Échec de la mise à jour',
         overrides: this.passwordErrorOverrides,
-      });
+      }));
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 

@@ -15,7 +15,7 @@ import {
   IonTitle,
   IonToolbar,
   ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import {AuthService} from '../../../core/auth';
 
 @Component({
@@ -49,14 +49,15 @@ export class MfaVerifyComponent {
   error = signal<string | null>(null);
   useRecovery = signal(false);
 
-  otpCode = '';
-  recoveryCode = '';
-  rememberDevice = false;
+  // Liés en [(ngModel)] : la liaison bidirectionnelle sur signal appelle .set()
+  otpCode = signal('');
+  recoveryCode = signal('');
+  rememberDevice = signal(false);
 
   toggleMode() {
     this.useRecovery.update(v => !v);
-    this.otpCode = '';
-    this.recoveryCode = '';
+    this.otpCode.set('');
+    this.recoveryCode.set('');
     this.error.set(null);
   }
 
@@ -67,8 +68,8 @@ export class MfaVerifyComponent {
   get isConfirmDisabled(): boolean {
     if (this.submitting()) return true;
     return this.useRecovery()
-      ? this.normalizeRecoveryCode(this.recoveryCode).length === 0
-      : this.otpCode.length !== 6;
+      ? this.normalizeRecoveryCode(this.recoveryCode()).length === 0
+      : this.otpCode().length !== 6;
   }
 
   async confirm() {
@@ -77,9 +78,9 @@ export class MfaVerifyComponent {
 
     try {
       if (this.useRecovery()) {
-        await this.auth.verifyMfa(this.preAuthToken, undefined, this.normalizeRecoveryCode(this.recoveryCode), this.rememberDevice);
+        await this.auth.verifyMfa(this.preAuthToken, undefined, this.normalizeRecoveryCode(this.recoveryCode()), this.rememberDevice());
       } else {
-        await this.auth.verifyMfa(this.preAuthToken, this.otpCode, undefined, this.rememberDevice);
+        await this.auth.verifyMfa(this.preAuthToken, this.otpCode(), undefined, this.rememberDevice());
       }
       this.modalController.dismiss({ success: true });
     } catch (e) {

@@ -18,7 +18,7 @@ import {
   IonTitle,
   IonToolbar,
   ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import {AuthService} from '../../../core/auth';
 import {addIcons} from 'ionicons';
 import {clipboardOutline, shieldCheckmarkOutline} from 'ionicons/icons';
@@ -63,12 +63,12 @@ export class MfaSetupComponent implements OnInit {
 
   secret = signal('');
   provisioningUri = signal('');
-  otpCode = '';
+  otpCode = signal('');
 
   // Recovery codes step
   showRecoveryCodes = signal(false);
   recoveryCodes = signal<string[]>([]);
-  savedConfirmed = false;
+  savedConfirmed = signal(false);
 
   constructor() {
     addIcons({ shieldCheckmarkOutline, clipboardOutline });
@@ -102,7 +102,7 @@ export class MfaSetupComponent implements OnInit {
   }
 
   async confirm() {
-    if (!this.otpCode || this.otpCode.length !== 6) {
+    if (!this.otpCode() || this.otpCode().length !== 6) {
       this.error.set('Entrez un code OTP à 6 chiffres.');
       return;
     }
@@ -111,7 +111,7 @@ export class MfaSetupComponent implements OnInit {
     this.error.set(null);
 
     try {
-      const result = await this.auth.signup(this.email, this.password, this.secret(), this.otpCode);
+      const result = await this.auth.signup(this.email, this.password, this.secret(), this.otpCode());
       this.recoveryCodes.set(result.recovery_codes);
       this.showRecoveryCodes.set(true);
     } catch (e) {

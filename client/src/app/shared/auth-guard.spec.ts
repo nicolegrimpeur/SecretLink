@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {CanActivateFn, provideRouter, Router} from '@angular/router';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 import {authGuard, guestGuard} from './auth-guard';
@@ -20,7 +20,7 @@ describe('Route guards', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
       ]
     });

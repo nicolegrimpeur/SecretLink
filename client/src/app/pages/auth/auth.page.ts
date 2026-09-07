@@ -19,12 +19,12 @@ import {
   IonSegmentButton,
   IonText,
   ModalController,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import {AuthService} from "../../core/auth";
 import {Router, RouterLink} from '@angular/router';
 import {addIcons} from 'ionicons';
 import {lockClosedOutline, personAddOutline} from 'ionicons/icons';
-import {SegmentValue} from "@ionic/angular";
+import {SegmentValue} from "@ionic/angular/lazy";
 import {MfaSetupComponent} from './modal/mfa-setup.component';
 import {MfaVerifyComponent} from './modal/mfa-verify.component';
 
