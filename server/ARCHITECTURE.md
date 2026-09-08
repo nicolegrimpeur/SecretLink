@@ -207,8 +207,13 @@ Three deliberate exemptions, each of which lets through no case a browser can pr
 - **A pinned extension origin** → the extension cannot read a cookie of the API's origin
   without the `cookies` permission, and a web page cannot forge `chrome-extension://`.
 
-`CSRF_REQUIRE_TOKEN=0` additionally lets through a session that predates the middleware
-and has no token cookie yet; layer 1 still covers it. The e2e stack runs with `1`.
+There is deliberately **no setting to turn any of this off**. A session opened before the
+middleware shipped has `sid` but no token cookie, and still cannot break: the gate mints
+the token on any request bearing a session, safe methods included, and the SPA calls
+`GET /users/me` from `provideAppInitializer` before it renders — so the token lands before
+the user can trigger a mutation. The only client that would break is one authenticating by
+cookie whose very first request is a mutation, and the extension, the sole cookie-bearing
+non-SPA client, is exempt by origin.
 
 ### PAT Authentication (API)
 ```

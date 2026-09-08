@@ -81,12 +81,6 @@ services:
       # Chaîne : navigateur -> nginx (service client) -> ici. Un seul saut de
       # confiance, comme dans docker-compose-dev.yml.
       TRUST_PROXY: 1
-      # Mode strict anti-CSRF, à dessein, et c'est le seul environnement où il
-      # est déjà à 1 : la suite e2e est la seule à piloter un vrai navigateur,
-      # donc la seule à pouvoir prouver que l'intercepteur XSRF d'Angular pose
-      # bien X-XSRF-TOKEN. Si une montée de version d'Angular changeait ce
-      # défaut, les tests de mutation tomberaient ici plutôt qu'en production.
-      CSRF_REQUIRE_TOKEN: 1
     # Aucun port publié : le serveur n'est joignable que par nginx. Le
     # HEALTHCHECK de l'image interroge /health en interne.
     expose:

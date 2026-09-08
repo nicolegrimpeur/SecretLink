@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../../src/app.js';
 import config from '../../src/config/env.js';
 import { closeDb, resetDb } from '../helpers/db.js';
@@ -225,27 +225,17 @@ describe('portée de la porte', () => {
   });
 });
 
-describe('CSRF_REQUIRE_TOKEN', () => {
-  afterEach(() => {
-    config.CSRF_REQUIRE_TOKEN = 0;
-  });
-
-  it('à 0, une session sans cookie de jeton passe encore', async () => {
+describe('absence de variable d\'échappement', () => {
+  /**
+   * Le double-submit est inconditionnel : il n'existe aucun réglage pour le
+   * désactiver, y compris pour une session ouverte avant le déploiement du
+   * middleware. Ce que ça n'empêche pas de fonctionner est couvert par les
+   * exemptions testées plus haut - et la SPA, qui appelle GET /users/me depuis
+   * provideAppInitializer, récupère son jeton avant tout clic possible.
+   */
+  it('refuse une session dépourvue du cookie de jeton, sans échappatoire', async () => {
     const { cookie } = await createSignedInUser(app);
     const sidOnly = `sid=${cookieValue(cookie, 'sid')}`;
-
-    const res = await api(app, {
-      cookie: sidOnly,
-      origin: config.FRONT_BASE_URL,
-    }).post('/users/logout');
-
-    expect(res.status).toBe(204);
-  });
-
-  it('à 1, la même requête est refusée', async () => {
-    const { cookie } = await createSignedInUser(app);
-    const sidOnly = `sid=${cookieValue(cookie, 'sid')}`;
-    config.CSRF_REQUIRE_TOKEN = 1;
 
     const res = await api(app, {
       cookie: sidOnly,
@@ -254,5 +244,18 @@ describe('CSRF_REQUIRE_TOKEN', () => {
 
     expect(res.status).toBe(403);
     expect(res.body.error.code).toBe('CSRF_TOKEN_INVALID');
+  });
+
+  it('mais un GET reste servi, ce qui est ce qui repose le jeton', async () => {
+    const { cookie } = await createSignedInUser(app);
+    const sidOnly = `sid=${cookieValue(cookie, 'sid')}`;
+
+    const res = await api(app, {
+      cookie: sidOnly,
+      origin: config.FRONT_BASE_URL,
+    }).get('/users/me');
+
+    expect(res.status).toBe(200);
+    expect(readCookie(res.headers['set-cookie'], 'XSRF-TOKEN')).toBeTruthy();
   });
 });

@@ -1,29 +1,9 @@
 # ─────────────────────────────────────────────────────────────────────────────
 #  Configuration CodeQL.
-#
-#  Elle n'existait pas : les alertes venaient du « default setup » activé dans
-#  les réglages GitHub, donc aucun arbitrage n'était versionné ni relisible.
-#  Passer en setup avancé met la décision dans le dépôt, à côté du code qu'elle
-#  concerne.
-#
-#  ⚠️ Le default setup doit être DÉSACTIVÉ dans Settings → Code security →
-#  Code scanning, sinon les deux configurations coexistent et les alertes
-#  écartées ici réapparaissent par l'autre chemin.
 # ─────────────────────────────────────────────────────────────────────────────
 
 name: SecretLink CodeQL
 
 paths-ignore:
-  # Le code de test reproduit délibérément ce que fait le front, y compris ses
-  # primitives crypto. Concrètement, `js/insufficient-password-hash` y voit un
-  # « mot de passe haché en SHA-256 » dans e2e/helpers/api.ts et
-  # server/tests/links/create-redeem.spec.ts, alors que ce SHA-256 est le
-  # pré-hachage de transport imposé par le contrat d'API
-  # (link.schema.ts exige 64 caractères hex) et que la valeur stockée est un
-  # hash Argon2id appliqué côté serveur (shared/crypto.ts, hashPassphrase).
-  # Un test ne PEUT pas utiliser Argon2 ici : il doit envoyer exactement ce que
-  # le navigateur envoie.
-  #
-  # Contrepartie assumée : les autres requêtes ne tournent plus sur les tests.
   - 'server/tests/**'
   - 'e2e/**'

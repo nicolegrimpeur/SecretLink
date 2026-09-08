@@ -106,12 +106,12 @@ test.describe('inscription et connexion', () => {
 
     // ─── Déconnexion : la seule mutation authentifiée par cookie du parcours ──
     //
-    // Et c'est tout l'intérêt de la jouer ici. La pile e2e tourne avec
-    // CSRF_REQUIRE_TOKEN=1 (cf. deploy/docker-compose.e2e.yml), donc ce
-    // POST /users/logout n'aboutit QUE si le navigateur a réellement envoyé
-    // X-XSRF-TOKEN. Aucun test serveur ne peut le vérifier : supertest fabrique
-    // l'en-tête à la main. Si une montée de version d'Angular désactivait
-    // l'intercepteur XSRF, c'est cette assertion qui tomberait.
+    // Et c'est tout l'intérêt de la jouer ici : le double-submit du serveur est
+    // inconditionnel, donc ce POST /users/logout n'aboutit QUE si le navigateur
+    // a réellement envoyé X-XSRF-TOKEN. Aucun test serveur ne peut le vérifier,
+    // supertest fabriquant l'en-tête à la main. Si une montée de version
+    // d'Angular désactivait l'intercepteur XSRF, c'est cette assertion qui
+    // tomberait.
     await page.locator('#account-btn').click();
     await page.getByText('Se déconnecter').click();
 

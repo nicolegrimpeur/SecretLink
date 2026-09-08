@@ -67,7 +67,6 @@ Remplir les valeurs dans `.env` :
 | `FRONT_BASE_URL` | Origine publique unique (front + API sous `/api`) | `http://localhost` |
 | `TRUST_PROXY` | Nombre de proxys de confiance devant le serveur - **voir ci-dessous** | `2` en prod, `1` en dev |
 | `ALLOWED_EXTENSION_IDS` | IDs d'extensions Chrome autorisées (virgules). Vide = toutes | `dbneilg…npel` |
-| `CSRF_REQUIRE_TOKEN` | `1` exige le double-submit anti-CSRF. `0` tolère une session sans jeton | `0`, puis `1` |
 | `SECRETLINK_TAG` | Version des images à tirer de GHCR, sans le `v` | `0.19.5` |
 
 ⚠️ `TRUST_PROXY` se compte en partant du serveur, et le nginx qui proxifie `/api` compte

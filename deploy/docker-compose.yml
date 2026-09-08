@@ -77,7 +77,6 @@ services:
       TRUST_PROXY: ${TRUST_PROXY:-2}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
       ALLOWED_EXTENSION_IDS: ${ALLOWED_EXTENSION_IDS:-}
-      CSRF_REQUIRE_TOKEN: ${CSRF_REQUIRE_TOKEN:-0}
       CLOUDFLARE_IPS: ${CLOUDFLARE_IPS:-}
     # Aucun port publié : le serveur n'est joignable que par le nginx du service client,
     # qui est le point d'entrée unique de la stack.

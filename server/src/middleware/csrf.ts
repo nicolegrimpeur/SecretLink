@@ -53,6 +53,15 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
   // ones, so that the token is in place before the first mutation. issueSession()
   // does the same at login, when the session cookie does not exist on the request
   // yet; keep the two in sync.
+  //
+  // Those two together are what let the double-submit be unconditional, with no
+  // migration flag to turn it on later. A session opened before this middleware
+  // shipped has `sid` but no token - and still cannot fail, because the SPA calls
+  // GET /users/me from provideAppInitializer before it renders anything, so the
+  // token lands on that response, before the user can trigger any mutation. A
+  // client that would break is one authenticating by cookie whose very first
+  // request is a mutation; the extension, the only cookie-bearing non-SPA client,
+  // is exempt by origin below.
   if (hasSession && !req.cookies['XSRF-TOKEN']) {
     res.cookie('XSRF-TOKEN', crypto.randomBytes(32).toString('base64url'), {
       // Read by Angular through document.cookie. This token is not an authentication
@@ -89,12 +98,6 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
   if (isTrustedExtensionOrigin(origin)) return next();
 
   const cookieToken = req.cookies['XSRF-TOKEN'];
-
-  // Sessions opened before this middleware shipped have no token yet, and must not
-  // start collecting 403s; the Origin check above still covers them. Flip
-  // CSRF_REQUIRE_TOKEN to 1 once the fleet has rolled over.
-  if (!cookieToken && String(config.CSRF_REQUIRE_TOKEN) !== '1') return next();
-
   const headerToken = req.get('x-xsrf-token');
   if (!cookieToken || !headerToken || !safeEqualToken(cookieToken, headerToken)) {
     return next(new CsrfError('CSRF_TOKEN_INVALID', 'Missing or invalid CSRF token'));

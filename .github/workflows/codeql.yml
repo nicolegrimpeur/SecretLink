@@ -35,12 +35,11 @@ concurrency:
 jobs:
   analyze:
     name: Analyse JavaScript/TypeScript
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     permissions:
       contents: read
-      # Requis pour téléverser le SARIF dans l'onglet Security.
       security-events: write
 
     steps:
@@ -51,13 +50,8 @@ jobs:
         with:
           languages: javascript-typescript
           config-file: ./.github/codeql/codeql-config.yml
-          # security-and-quality ajoute les requêtes de maintenabilité aux
-          # requêtes de sécurité par défaut.
           queries: security-and-quality
 
-      # Pas d'étape de build : l'extraction JavaScript/TypeScript de CodeQL
-      # analyse les sources directement, et les dépendances n'apportent rien à
-      # l'analyse. Aucun `npm ci` n'est donc nécessaire.
       - name: Analyse
         uses: github/codeql-action/analyze@v4
         with:
