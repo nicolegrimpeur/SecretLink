@@ -221,10 +221,13 @@ export class UserService {
     const hashes: string[] = [];
 
     for (let i = 0; i < 8; i++) {
-      const bytes = crypto.randomBytes(10);
       let code = '';
-      for (const b of bytes) {
-        code += CHARSET[b % CHARSET.length];
+      // randomInt rejects out-of-range draws internally, so the distribution stays
+      // uniform whatever CHARSET's length is. Reducing a random byte modulo that
+      // length only happens to be unbiased because 256 is a multiple of 32: adding
+      // or removing a single character would skew the codes silently.
+      for (let j = 0; j < 10; j++) {
+        code += CHARSET[crypto.randomInt(CHARSET.length)];
       }
       const formatted = `${code.slice(0, 5)}-${code.slice(5)}`;
       plainCodes.push(formatted);

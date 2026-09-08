@@ -143,6 +143,22 @@ export class ForbiddenError extends AppError {
   }
 }
 
+/**
+ * Rejected by the anti-CSRF gate. The codes stay distinct from the CORS layer's
+ * CORS_ORIGIN_NOT_ALLOWED so the logs tell the two causes apart, and 403 rather than
+ * 401 keeps the front-end's session-expired interceptor - which only reacts to 401 -
+ * from reporting a phantom expired session.
+ */
+export class CsrfError extends AppError {
+  constructor(
+    code: 'CSRF_ORIGIN_MISMATCH' | 'CSRF_TOKEN_INVALID',
+    message: string,
+  ) {
+    super(403, code, message);
+    this.name = 'CsrfError';
+  }
+}
+
 export class ConflictError extends AppError {
   constructor(message: string) {
     super(409, 'CONFLICT', message);

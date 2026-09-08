@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import config from '../config/env.js';
 import { SessionPayload, PreAuthPayload, UnauthorizedError, PreAuthExpiredError } from '../shared/types.js';
@@ -21,10 +22,26 @@ export function issueSession(res: Response, payload: SessionPayload): void {
     maxAge: config.SESSION_TTL_SECONDS * 1000,
     path: '/',
   });
+
+  // The anti-CSRF token has to ride along with the session that it guards. The
+  // csrfProtection middleware mints it for any request already bearing a session,
+  // but it cannot see the one being created right here - and without this, the first
+  // mutation after logging in would have no token to submit. Deliberately kept in
+  // step with middleware/csrf.ts, including the literal cookie name.
+  res.cookie('XSRF-TOKEN', crypto.randomBytes(32).toString('base64url'), {
+    httpOnly: false, // read by Angular's HttpXsrfInterceptor through document.cookie
+    secure: config.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: config.SESSION_TTL_SECONDS * 1000,
+    path: '/',
+  });
 }
 
 export function clearSession(res: Response): void {
   res.clearCookie(config.SESSION_COOKIE_NAME, { path: '/' });
+  // Nothing breaks if it outlives the session - it guards no route on its own - but
+  // leaving a stale token behind on logout is needless.
+  res.clearCookie('XSRF-TOKEN', { path: '/' });
 }
 
 /**

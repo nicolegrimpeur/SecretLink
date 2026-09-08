@@ -171,9 +171,44 @@ POST /users/signup
 ```
 1. User logs in → Password verified with Argon2
 2. issueSession(res, { userId }) → JWT signed and sent in cookie
-3. Subsequent requests → sessionAuth middleware validates JWT
+                                 → XSRF-TOKEN cookie issued alongside it
+3. Subsequent requests → csrfProtection gate, then sessionAuth validates the JWT
 4. req.session = { userId: X } attached to request
 ```
+
+### Anti-CSRF Gate (`middleware/csrf.ts`)
+
+Runs before both routers, and only bites on a request that is *both* unsafe
+(`POST`/`DELETE`) and authenticated by the session cookie. Two layers:
+
+```
+1. Origin must be in the shared allowlist (config/origins.ts)  → else 403 CSRF_ORIGIN_MISMATCH
+2. Double-submit: XSRF-TOKEN cookie === X-XSRF-TOKEN header    → else 403 CSRF_TOKEN_INVALID
+```
+
+Layer 1 is what actually closes the one credible vector. `sid` is `SameSite=Lax`, so a
+cross-*site* POST never carries it — but SameSite is site-scoped, not origin-scoped, so a
+sibling subdomain is same-site and its cookie *would* be sent, and several endpoints
+accept an empty body (hence no preflight). The CORS layer already rejects those, but only
+because its origin callback throws rather than omitting the response headers: an accident
+of configuration, not a declared property. `tests/infra/csrf.spec.ts` pins it down.
+
+Layer 2 costs nothing on the client: Angular enables `HttpXsrfInterceptor` by default, and
+it reads `XSRF-TOKEN` and sets `X-XSRF-TOKEN` on unsafe requests to relative URLs. The
+cookie name is a literal in the code on purpose — it is Angular's default, and making it
+configurable would put it out of reach of static analysis.
+
+Three deliberate exemptions, each of which lets through no case a browser can produce:
+
+- **No session cookie** → PAT requests (a browser never attaches an `Authorization`
+  header on its own), signup, login, `mfa/verify`, anonymous link creation and redeem.
+- **No `Origin` header** → not a browser at all (curl, supertest, Playwright's
+  `APIRequestContext`, CI). Browsers always send `Origin` on an unsafe method.
+- **A pinned extension origin** → the extension cannot read a cookie of the API's origin
+  without the `cookies` permission, and a web page cannot forge `chrome-extension://`.
+
+`CSRF_REQUIRE_TOKEN=0` additionally lets through a session that predates the middleware
+and has no token cookie yet; layer 1 still covers it. The e2e stack runs with `1`.
 
 ### PAT Authentication (API)
 ```
@@ -368,8 +403,12 @@ Consequences for the server:
 - **`FRONT_BASE_URL` is the whole deployment's public origin.** There is no separate API
   base URL any more; `link_url` is built from it (`<FRONT_BASE_URL>/redeem/:token`).
 - **CORS is no longer on the browser's critical path.** The web front-end is same-origin.
-  The allowlist in `app.ts` only still matters for the `chrome-extension://` origin and
-  for native or self-hosted clients using an absolute URL.
+  The allowlist — now in `config/origins.ts`, shared with the anti-CSRF gate — only still
+  matters for the `chrome-extension://` origin and for native or self-hosted clients using
+  an absolute URL. Set `ALLOWED_EXTENSION_IDS` to the published extension's ID: left
+  unset, *any* extension is a credentialed origin. Pinning narrows the declared trust
+  surface, and no more than that — an extension holding `host_permissions` on the API
+  bypasses CORS anyway and can read responses.
 - **`TRUST_PROXY` must count nginx.** The chain is Cloudflare → Traefik → nginx → app, so
   production runs `TRUST_PROXY=2`. `resolveClientIp` only promotes `CF-Connecting-IP`
   when `req.ip` resolves to a published Cloudflare edge; an off-by-one here silently

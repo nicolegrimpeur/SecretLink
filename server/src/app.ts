@@ -5,35 +5,16 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 
 import config from './config/env.js';
+import { isTrustedOrigin } from './config/origins.js';
 import { httpLogger } from './shared/logger.js';
 import { generateRequestId, runWithRequestId } from './shared/requestContext.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { AppError, NotFoundError } from './shared/types.js';
 import { resolveClientIp } from './middleware/clientIp.js';
+import { csrfProtection } from './middleware/csrf.js';
 import { globalLimiter } from './middleware/rateLimit.js';
 import { userRouter } from './modules/users/user.routes.js';
 import { linkRouter } from './modules/links/link.routes.js';
-
-const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:8100', 'https://secret.nicob.ovh'];
-
-/**
- * CORS allowlist - driven by ALLOWED_ORIGINS (comma-separated), falling back to the
- * built-in defaults. FRONT_BASE_URL is always allowed, whichever source is used.
- *
- * The web front-end is served from the same origin and needs none of this; what is
- * genuinely cross-origin is the browser extension and any client using an absolute
- * API URL.
- */
-function resolveAllowedOrigins(): string[] {
-  const stripTrailingSlash = (origin: string) => origin.replace(/\/$/, '');
-  const fromEnv = (config.ALLOWED_ORIGINS ?? '')
-    .split(',')
-    .map((origin) => stripTrailingSlash(origin.trim()))
-    .filter(Boolean);
-  const origins = fromEnv.length ? fromEnv : DEFAULT_ALLOWED_ORIGINS;
-
-  return [...new Set([...origins, stripTrailingSlash(config.FRONT_BASE_URL)])];
-}
 
 export function createApp(): Express {
   const app = express();
@@ -85,18 +66,17 @@ export function createApp(): Express {
   app.use(bodyParser.json({ limit: '1mb' }));
   app.use(cookieParser());
 
-  // CORS
-  const ALLOWED_ORIGINS = resolveAllowedOrigins();
+  // CORS - the allowlist lives in config/origins.ts so that this layer and the
+  // anti-CSRF gate below can never disagree on what a trusted origin is.
   const corsOptions = {
     origin(origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) {
       if (!origin) return cb(null, true); // postman, curl, etc.
-      if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
-      if (origin.startsWith('chrome-extension://')) return cb(null, true); // extension SecretLink
+      if (isTrustedOrigin(origin)) return cb(null, true);
       return cb(new AppError(403, 'CORS_ORIGIN_NOT_ALLOWED', 'Origin not allowed'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-XSRF-TOKEN'],
   };
 
   app.use(cors(corsOptions));
@@ -119,6 +99,13 @@ export function createApp(): Express {
 
   // Rate limiting
   app.use(globalLimiter);
+
+  // Anti-CSRF - after cookieParser (needs req.cookies) and after cors, so that a
+  // preflight is answered and a forbidden origin keeps its CORS_ORIGIN_NOT_ALLOWED;
+  // after the maintenance gate and the limiter, so a 503 or a 429 still wins; and
+  // before the routers, which is what makes the gate unavoidable for /users and
+  // /links. /health is mounted above all of this and stays out of the chain.
+  app.use(csrfProtection);
 
   // Mount routes
   app.use('/users', userRouter);

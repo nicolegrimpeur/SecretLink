@@ -93,9 +93,31 @@ test.describe('inscription et connexion', () => {
     await page.goto('/account');
     await expect(page).toHaveURL(/\/account/);
 
-    const sid = (await page.context().cookies()).find((c) => c.name === 'sid');
+    const cookies = await page.context().cookies();
+    const sid = cookies.find((c) => c.name === 'sid');
     expect(sid, 'le cookie de session doit être posé').toBeDefined();
     expect(sid!.httpOnly).toBe(true);
+
+    // Le pendant anti-CSRF du cookie de session, lui lisible par le JS : c'est
+    // ce que l'intercepteur XSRF d'Angular relit pour poser X-XSRF-TOKEN.
+    const xsrf = cookies.find((c) => c.name === 'XSRF-TOKEN');
+    expect(xsrf, 'le cookie anti-CSRF doit être posé').toBeDefined();
+    expect(xsrf!.httpOnly, 'httpOnly le rendrait illisible par Angular').toBe(false);
+
+    // ─── Déconnexion : la seule mutation authentifiée par cookie du parcours ──
+    //
+    // Et c'est tout l'intérêt de la jouer ici. La pile e2e tourne avec
+    // CSRF_REQUIRE_TOKEN=1 (cf. deploy/docker-compose.e2e.yml), donc ce
+    // POST /users/logout n'aboutit QUE si le navigateur a réellement envoyé
+    // X-XSRF-TOKEN. Aucun test serveur ne peut le vérifier : supertest fabrique
+    // l'en-tête à la main. Si une montée de version d'Angular désactivait
+    // l'intercepteur XSRF, c'est cette assertion qui tomberait.
+    await page.locator('#account-btn').click();
+    await page.getByText('Se déconnecter').click();
+
+    await expect(page).toHaveURL(/\/auth/);
+    const afterLogout = await page.context().cookies();
+    expect(afterLogout.find((c) => c.name === 'sid')?.value ?? '').toBe('');
   });
 
   test('redirige vers /auth une page protégée atteinte sans session', async ({ page }) => {

@@ -48,6 +48,15 @@ const envSchema = z.object({
   // CORS - comma-separated origin list, falls back to the built-in defaults when unset
   ALLOWED_ORIGINS: z.string().optional(),
 
+  // Comma-separated Chrome extension IDs allowed to call the API. Unset accepts any
+  // chrome-extension:// origin.
+  ALLOWED_EXTENSION_IDS: z.string().optional(),
+
+  // Anti-CSRF - 0 lets a request through when the XSRF-TOKEN cookie does not exist
+  // yet (sessions opened before the middleware shipped); the Origin check is never
+  // optional. To be raised to 1 once the fleet has rolled over.
+  CSRF_REQUIRE_TOKEN: z.coerce.number().int().min(0).max(1).default(0),
+
   // Proxy chain - how many trusted proxies sit in front of the app. 0 means the app
   // is exposed directly and X-Forwarded-For must not be trusted at all: leaving it at
   // 1 in that case lets any client forge its own IP, bypassing the rate limiters.
