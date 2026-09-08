@@ -26,8 +26,12 @@ Internet ─→ client:80 ──┤
 
 Le conteneur `server` ne publie aucun port : il n'est joignable que par nginx. Le front
 et l'API partageant la même origine, le navigateur ne déclenche aucun CORS ; le
-middleware CORS côté serveur ne subsiste que pour l'extension (`chrome-extension://`)
-et d'éventuels clients natifs ou auto-hébergés.
+middleware CORS côté serveur ne subsiste que pour l'extension (`chrome-extension://`,
+épinglée par `ALLOWED_EXTENSION_IDS`) et d'éventuels clients natifs ou auto-hébergés.
+
+L'allowlist d'origines est partagée avec la porte anti-CSRF
+([`server/src/config/origins.ts`](server/src/config/origins.ts)) : les deux couches ne
+peuvent pas diverger sur ce qu'est une origine de confiance.
 
 Le routage vit dans [`client/nginx/nginx.conf`](client/nginx/nginx.conf), donc versionné
 et identique en local et en production.
@@ -62,6 +66,7 @@ Remplir les valeurs dans `.env` :
 | `IP_HMAC_SECRET` | Secret HMAC pour pseudonymiser IP/email dans les logs (32 car. min.) | `openssl rand -base64 32` |
 | `FRONT_BASE_URL` | Origine publique unique (front + API sous `/api`) | `http://localhost` |
 | `TRUST_PROXY` | Nombre de proxys de confiance devant le serveur - **voir ci-dessous** | `2` en prod, `1` en dev |
+| `ALLOWED_EXTENSION_IDS` | IDs d'extensions Chrome autorisées (virgules). Vide = toutes | `dbneilg…npel` |
 | `SECRETLINK_TAG` | Version des images à tirer de GHCR, sans le `v` | `0.19.5` |
 
 ⚠️ `TRUST_PROXY` se compte en partant du serveur, et le nginx qui proxifie `/api` compte

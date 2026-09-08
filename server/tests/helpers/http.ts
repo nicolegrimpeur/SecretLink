@@ -37,20 +37,29 @@ export interface ClientOptions {
   bearer?: string;
   /** En-tête Origin, pour les tests CORS. */
   origin?: string;
+  /**
+   * En-tête X-XSRF-TOKEN, par défaut extrait du cookie `XSRF-TOKEN` de `cookie` -
+   * côté navigateur c'est l'intercepteur d'Angular qui s'en charge, les tests n'ont
+   * donc pas à y penser. `null` force son absence, pour vérifier un refus.
+   */
+  xsrf?: string | null;
 }
 
 /**
- * Client HTTP de test : applique IP, cookie, bearer et origin sur chaque appel,
- * pour qu'aucun test n'oublie l'en-tête qui isole son rate limit.
+ * Client HTTP de test : applique IP, cookie, bearer, origin et jeton CSRF sur
+ * chaque appel, pour qu'aucun test n'oublie l'en-tête qui isole son rate limit.
  */
 export function api(app: Express, opts: ClientOptions = {}) {
   const ip = opts.ip ?? freshIp();
+  const xsrf =
+    opts.xsrf === undefined ? cookieValue(opts.cookie, 'XSRF-TOKEN') : opts.xsrf;
 
   const decorate = (req: request.Test): request.Test => {
     req.set('X-Forwarded-For', ip);
     if (opts.cookie) req.set('Cookie', opts.cookie);
     if (opts.bearer) req.set('Authorization', `Bearer ${opts.bearer}`);
     if (opts.origin) req.set('Origin', opts.origin);
+    if (xsrf) req.set('X-XSRF-TOKEN', xsrf);
     return req;
   };
 
@@ -76,6 +85,24 @@ export function cookieHeader(setCookie: string | string[] | undefined): string {
   if (!setCookie) return '';
   const list = Array.isArray(setCookie) ? setCookie : [setCookie];
   return list.map((c) => c.split(';')[0]).join('; ');
+}
+
+/**
+ * Valeur d'un cookie dans un en-tête **Cookie de requête** (`a=1; b=2`).
+ * À ne pas confondre avec readCookie(), qui lit un Set-Cookie de réponse.
+ */
+export function cookieValue(
+  header: string | undefined,
+  name: string,
+): string | null {
+  if (!header) return null;
+  for (const pair of header.split(';')) {
+    const idx = pair.indexOf('=');
+    if (idx > 0 && pair.slice(0, idx).trim() === name) {
+      return pair.slice(idx + 1).trim();
+    }
+  }
+  return null;
 }
 
 /** Récupère un cookie précis dans un Set-Cookie, valeur brute. */

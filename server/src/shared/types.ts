@@ -143,6 +143,21 @@ export class ForbiddenError extends AppError {
   }
 }
 
+/**
+ * 403 and not 401 on purpose: the front-end's session-expired interceptor only reacts
+ * to 401, so a 401 here would report a phantom expired session. Codes stay distinct
+ * from the CORS layer's CORS_ORIGIN_NOT_ALLOWED to tell the two causes apart in logs.
+ */
+export class CsrfError extends AppError {
+  constructor(
+    code: 'CSRF_ORIGIN_MISMATCH' | 'CSRF_TOKEN_INVALID',
+    message: string,
+  ) {
+    super(403, code, message);
+    this.name = 'CsrfError';
+  }
+}
+
 export class ConflictError extends AppError {
   constructor(message: string) {
     super(409, 'CONFLICT', message);

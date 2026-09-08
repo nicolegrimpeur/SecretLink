@@ -279,3 +279,61 @@ describe('session', () => {
     expect(me.status).toBe(200);
   });
 });
+
+describe('POST /users/mfa/recovery-codes', () => {
+  const CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+  it('remplace les 8 codes, et les anciens ne valent plus rien', async () => {
+    const user = await signupUser(app);
+    const { cookie } = await loginFull(app, user);
+
+    const res = await api(app, { cookie }).post('/users/mfa/recovery-codes');
+
+    expect(res.status).toBe(200);
+    expect(res.body.recovery_codes).toHaveLength(8);
+    expect(res.body.recovery_codes).not.toEqual(user.recoveryCodes);
+
+    // Un code de la série précédente doit être rejeté à la vérification MFA.
+    const client = api(app);
+    const login = await client
+      .post('/users/login')
+      .send({ email: user.email, password: user.password });
+    const verify = await client.post('/users/mfa/verify').send({
+      pre_auth_token: login.body.pre_auth_token,
+      recovery_code: user.recoveryCodes[0],
+    });
+
+    expect(verify.status).toBe(401);
+  });
+
+  /**
+   * Verrouille l'uniformité du générateur : ce test tombe si un modulo ou un
+   * masquage rendait une partie de l'alphabet inatteignable, ce qui était le
+   * risque du `b % CHARSET.length` d'origine.
+   */
+  it('couvre tout l\'alphabet et ne répète jamais un code', async () => {
+    const user = await signupUser(app);
+    const { cookie } = await loginFull(app, user);
+    const client = api(app, { cookie });
+
+    const codes: string[] = [...user.recoveryCodes];
+    for (let i = 0; i < 20; i += 1) {
+      const res = await client.post('/users/mfa/recovery-codes');
+      expect(res.status).toBe(200);
+      codes.push(...res.body.recovery_codes);
+    }
+
+    // 168 codes = 1680 tirages : l'absence d'un caractère a une probabilité de
+    // l'ordre de e^-52, donc ce test ne peut pas être instable.
+    const drawn = new Set(codes.join('').replace(/-/g, ''));
+    for (const ch of CHARSET) {
+      expect(drawn, `caractère jamais tiré : ${ch}`).toContain(ch);
+    }
+    // Et aucun caractère hors alphabet (O/0/1/I notamment, écartés à dessein).
+    for (const ch of drawn) {
+      expect(CHARSET, `caractère inattendu : ${ch}`).toContain(ch);
+    }
+
+    expect(new Set(codes).size).toBe(codes.length);
+  });
+});

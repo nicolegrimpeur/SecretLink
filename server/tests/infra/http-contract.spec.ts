@@ -76,12 +76,36 @@ describe('CORS', () => {
     expect(res.headers['access-control-allow-origin']).toBe(config.FRONT_BASE_URL);
   });
 
-  it('accepte n\'importe quelle origine chrome-extension://', async () => {
-    const origin = 'chrome-extension://dbneilgepekkiaabbjdmhmakojcenpel';
+  it('accepte l\'extension épinglée par ALLOWED_EXTENSION_IDS', async () => {
+    const origin = `chrome-extension://${config.ALLOWED_EXTENSION_IDS}`;
     const res = await api(app, { origin }).get('/users/me');
 
     expect(res.status).toBe(401);
     expect(res.headers['access-control-allow-origin']).toBe(origin);
+  });
+
+  it('refuse une extension non déclarée', async () => {
+    // Le wildcard `chrome-extension://*` d'avant l'épinglage acceptait celle-ci.
+    const res = await api(app, {
+      origin: 'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    }).get('/users/me');
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('CORS_ORIGIN_NOT_ALLOWED');
+  });
+
+  it('sans ALLOWED_EXTENSION_IDS, accepte de nouveau n\'importe quelle extension', async () => {
+    const pinned = config.ALLOWED_EXTENSION_IDS;
+    config.ALLOWED_EXTENSION_IDS = undefined;
+    try {
+      const origin = 'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+      const res = await api(app, { origin }).get('/users/me');
+
+      expect(res.status).toBe(401);
+      expect(res.headers['access-control-allow-origin']).toBe(origin);
+    } finally {
+      config.ALLOWED_EXTENSION_IDS = pinned;
+    }
   });
 
   it('refuse une origine hors liste → 403 CORS_ORIGIN_NOT_ALLOWED', async () => {

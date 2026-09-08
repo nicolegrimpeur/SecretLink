@@ -68,6 +68,7 @@ services:
       # confiance, contrairement à la prod qui en a deux (Traefik + nginx).
       TRUST_PROXY: ${TRUST_PROXY:-1}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      ALLOWED_EXTENSION_IDS: ${ALLOWED_EXTENSION_IDS:-}
       CLOUDFLARE_IPS: ${CLOUDFLARE_IPS:-}
     ports:
       - "3000:3000"

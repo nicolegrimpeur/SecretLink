@@ -76,6 +76,7 @@ services:
       # doit rester l'edge Cloudflare pour que CF-Connecting-IP soit promu.
       TRUST_PROXY: ${TRUST_PROXY:-2}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      ALLOWED_EXTENSION_IDS: ${ALLOWED_EXTENSION_IDS:-}
       CLOUDFLARE_IPS: ${CLOUDFLARE_IPS:-}
     # Aucun port publié : le serveur n'est joignable que par le nginx du service client,
     # qui est le point d'entrée unique de la stack.

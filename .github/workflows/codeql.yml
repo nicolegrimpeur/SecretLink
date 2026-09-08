@@ -1,0 +1,59 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Analyse statique de sécurité (CodeQL), en setup avancé.
+#
+#  Remplace le default setup, dont la configuration vivait dans les réglages du
+#  dépôt et ne permettait ni d'exclure un chemin ni de relire l'arbitrage.
+#  Voir .github/codeql/codeql-config.yml pour les exclusions et leur raison.
+#
+#  Hors du `ci-gate` de ci.yml : comme le job `audit`, il informe sans bloquer un
+#  merge. À promouvoir en check requis une fois le bruit de fond à zéro.
+# ─────────────────────────────────────────────────────────────────────────────
+name: CodeQL
+
+on:
+  # Mêmes déclencheurs que ci.yml : c'est l'événement pull_request qui produit
+  # un check évaluable sur le SHA de fusion.
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+  push:
+    branches: [master]
+
+  # Une analyse périodique rattrape les requêtes ajoutées en amont par GitHub
+  # sur du code qui, lui, n'a pas bougé.
+  schedule:
+    - cron: '37 4 * * 1'
+
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyse JavaScript/TypeScript
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Initialisation de CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          config-file: ./.github/codeql/codeql-config.yml
+          queries: security-and-quality
+
+      # Pas de `npm ci` : l'extracteur JS/TS analyse les sources directement, les
+      # dépendances n'apportent rien à l'analyse.
+      - name: Analyse
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: '/language:javascript-typescript'

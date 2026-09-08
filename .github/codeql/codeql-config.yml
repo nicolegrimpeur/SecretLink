@@ -1,0 +1,22 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Configuration CodeQL.
+#
+#  ⚠️ Le default setup doit rester DÉSACTIVÉ dans Settings → Code security, sinon
+#  les deux configurations coexistent et les exclusions ci-dessous sont annulées
+#  par l'autre chemin.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: SecretLink CodeQL
+
+# Le code de test reproduit délibérément ce que fait le front, primitives crypto
+# comprises. `js/insufficient-password-hash` y voit donc un mot de passe haché en
+# SHA-256 (e2e/helpers/api.ts, server/tests/links/create-redeem.spec.ts), alors que
+# ce SHA-256 est le pré-hachage de transport imposé par le contrat d'API
+# (link.schema.ts exige 64 caractères hex) et que la valeur stockée est un hash
+# Argon2id appliqué côté serveur (shared/crypto.ts, hashPassphrase). Un test ne PEUT
+# pas utiliser Argon2 ici : il doit envoyer exactement ce que le navigateur envoie.
+#
+# Contrepartie assumée : les autres requêtes ne tournent plus sur les tests.
+paths-ignore:
+  - 'server/tests/**'
+  - 'e2e/**'
