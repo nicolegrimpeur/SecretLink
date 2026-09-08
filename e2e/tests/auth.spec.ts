@@ -106,11 +106,10 @@ test.describe('inscription et connexion', () => {
 
     // ─── Déconnexion : la seule mutation authentifiée par cookie du parcours ──
     //
-    // Et c'est tout l'intérêt de la jouer ici : le double-submit du serveur est
-    // inconditionnel, donc ce POST /users/logout n'aboutit QUE si le navigateur
-    // a réellement envoyé X-XSRF-TOKEN. Aucun test serveur ne peut le vérifier,
-    // supertest fabriquant l'en-tête à la main. Si une montée de version
-    // d'Angular désactivait l'intercepteur XSRF, c'est cette assertion qui
+    // Le double-submit du serveur étant inconditionnel, ce POST /users/logout
+    // n'aboutit QUE si le navigateur a réellement envoyé X-XSRF-TOKEN. Aucun test
+    // serveur ne peut le vérifier, supertest fabriquant l'en-tête à la main : si
+    // une montée d'Angular désactivait l'intercepteur XSRF, c'est ici que ça
     // tomberait.
     await page.locator('#account-btn').click();
     await page.getByText('Se déconnecter').click();

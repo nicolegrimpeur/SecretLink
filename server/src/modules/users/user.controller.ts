@@ -89,8 +89,7 @@ export const regenerateRecoveryCodes = asyncHandler(async (req: Request, res: Re
   const userId = (req as any).session?.userId;
   const codes = await userService.regenerateRecoveryCodes(userId);
 
-  // The codes themselves are deliberately absent from the log line: they are the
-  // very credential this endpoint mints, and the response body is their only outlet.
+  // The codes are deliberately absent: the response body is their only outlet.
   logger.info(
     { event: 'USER_RECOVERY_CODES_REGENERATED', user_id: userId, ip_hash: hashIp(req.ip), user_agent: req.get('user-agent') ?? null },
     'User regenerated recovery codes',

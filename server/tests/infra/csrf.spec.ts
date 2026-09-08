@@ -8,10 +8,9 @@ import { api, cookieValue, readCookie } from '../helpers/http.js';
 /**
  * La porte anti-CSRF de middleware/csrf.ts.
  *
- * Ces tests ont une raison d'être précise : avant ce middleware, les mutations
- * cross-origin étaient bloquées par *effet de bord* du callback CORS, qui throw
- * un 403 au lieu de simplement omettre ses en-têtes. Rien ne le disait, rien ne
- * le vérifiait. Ce fichier fixe le contrat, y compris ses exemptions assumées.
+ * Avant ce middleware, les mutations cross-origin étaient bloquées par *effet de
+ * bord* du callback CORS, qui throw au lieu d'omettre ses en-têtes : rien ne le
+ * disait, rien ne le vérifiait. Ce fichier fixe le contrat et ses exemptions.
  */
 
 const app = createApp();
@@ -74,8 +73,8 @@ describe('vérification d\'Origin', () => {
   it('refuse une mutation portant une session et une Origin hors liste', async () => {
     const { cookie } = await createSignedInUser(app);
 
-    // La couche CORS répond déjà 403 sur cette origine ; ce test existe pour que
-    // le jour où elle cesserait de throw, la porte CSRF prenne le relais.
+    // CORS répond déjà 403 ici ; le test existe pour que la porte CSRF prenne le
+    // relais le jour où ce callback cesserait de throw.
     const res = await api(app, { cookie, origin: 'https://evil.example' })
       .post('/users/logout');
 
@@ -227,11 +226,9 @@ describe('portée de la porte', () => {
 
 describe('absence de variable d\'échappement', () => {
   /**
-   * Le double-submit est inconditionnel : il n'existe aucun réglage pour le
-   * désactiver, y compris pour une session ouverte avant le déploiement du
-   * middleware. Ce que ça n'empêche pas de fonctionner est couvert par les
-   * exemptions testées plus haut - et la SPA, qui appelle GET /users/me depuis
-   * provideAppInitializer, récupère son jeton avant tout clic possible.
+   * Aucun réglage ne désactive le double-submit, pas même pour une session
+   * antérieure au déploiement : la SPA appelle GET /users/me depuis
+   * provideAppInitializer, donc récupère son jeton avant tout clic possible.
    */
   it('refuse une session dépourvue du cookie de jeton, sans échappatoire', async () => {
     const { cookie } = await createSignedInUser(app);

@@ -1,17 +1,11 @@
 import config from './env.js';
 
 /**
- * Single source of truth for "which origins may talk to this API".
+ * Single source of truth for "which origins may talk to this API" - shared by the
+ * CORS layer and the anti-CSRF gate, which must never disagree.
  *
- * Both the CORS layer and the anti-CSRF middleware answer that question, and they
- * must never disagree: an origin CORS lets through but CSRF rejects (or the reverse)
- * would be a bug that only shows up in production, on one client.
- *
- * Nothing is memoised here. The values are read from `config` on each call, which
- * keeps the helpers testable the same way `MAINTENANCE_MODE` already is - a test can
- * flip `config.ALLOWED_EXTENSION_IDS` and see the effect. The cost is two splits of a
- * short string per unsafe request, against an argon2 hash or a JWT verification in the
- * same flow.
+ * Read from `config` on each call rather than memoised, so a test can flip
+ * `config.ALLOWED_EXTENSION_IDS` the way it already does for `MAINTENANCE_MODE`.
  */
 
 const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:8100', 'https://secret.nicob.ovh'];
@@ -27,12 +21,9 @@ const parseList = (value: string | undefined): string[] =>
     .filter(Boolean);
 
 /**
- * CORS allowlist - driven by ALLOWED_ORIGINS (comma-separated), falling back to the
- * built-in defaults. FRONT_BASE_URL is always allowed, whichever source is used.
- *
- * The web front-end is served from the same origin and needs none of this; what is
- * genuinely cross-origin is the browser extension and any client using an absolute
- * API URL.
+ * ALLOWED_ORIGINS (comma-separated) or the built-in defaults; FRONT_BASE_URL is
+ * always allowed. The web front-end is same-origin and needs none of this - only the
+ * extension and absolute-URL clients are genuinely cross-origin.
  */
 export function resolveAllowedOrigins(): string[] {
   const fromEnv = parseList(config.ALLOWED_ORIGINS).map(stripTrailingSlash);
@@ -42,16 +33,11 @@ export function resolveAllowedOrigins(): string[] {
 }
 
 /**
- * A browser extension origin we accept.
+ * ALLOWED_EXTENSION_IDS pins the published extension; unset accepts any
+ * `chrome-extension://` origin, the behaviour that predates the variable.
  *
- * ALLOWED_EXTENSION_IDS pins the published extension; left unset, any
- * `chrome-extension://` origin is accepted, which is what every deployment did before
- * this variable existed - pinning must not lock out an instance whose .env is not yet
- * updated.
- *
- * To be clear about what this buys: an extension declaring `host_permissions` on the
- * API bypasses CORS anyway and can read responses, so pinning narrows the declared
- * trust surface rather than defending against a hostile extension.
+ * Pinning narrows the declared trust surface, and no more than that: an extension
+ * holding host_permissions on the API bypasses CORS anyway and can read responses.
  */
 export function isTrustedExtensionOrigin(origin: string): boolean {
   if (!origin.startsWith(EXTENSION_SCHEME)) return false;
@@ -62,7 +48,7 @@ export function isTrustedExtensionOrigin(origin: string): boolean {
   return pinned.includes(origin.slice(EXTENSION_SCHEME.length));
 }
 
-/** Whether `origin` is allowed to send credentialed requests to this API. */
+/** Whether `origin` may send credentialed requests to this API. */
 export function isTrustedOrigin(origin: string): boolean {
   return resolveAllowedOrigins().includes(origin) || isTrustedExtensionOrigin(origin);
 }

@@ -222,10 +222,10 @@ export class UserService {
 
     for (let i = 0; i < 8; i++) {
       let code = '';
-      // randomInt rejects out-of-range draws internally, so the distribution stays
-      // uniform whatever CHARSET's length is. Reducing a random byte modulo that
-      // length only happens to be unbiased because 256 is a multiple of 32: adding
-      // or removing a single character would skew the codes silently.
+      // randomInt rejects out-of-range draws, so uniformity holds whatever CHARSET's
+      // length is. Do not "simplify" back to randomBytes + `% CHARSET.length`: that
+      // was only unbiased because 256 is a multiple of 32, and adding or removing a
+      // single character would have skewed the codes silently.
       for (let j = 0; j < 10; j++) {
         code += CHARSET[crypto.randomInt(CHARSET.length)];
       }

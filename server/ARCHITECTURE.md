@@ -186,33 +186,30 @@ Runs before both routers, and only bites on a request that is *both* unsafe
 2. Double-submit: XSRF-TOKEN cookie === X-XSRF-TOKEN header    → else 403 CSRF_TOKEN_INVALID
 ```
 
-Layer 1 is what actually closes the one credible vector. `sid` is `SameSite=Lax`, so a
-cross-*site* POST never carries it — but SameSite is site-scoped, not origin-scoped, so a
-sibling subdomain is same-site and its cookie *would* be sent, and several endpoints
-accept an empty body (hence no preflight). The CORS layer already rejects those, but only
-because its origin callback throws rather than omitting the response headers: an accident
-of configuration, not a declared property. `tests/infra/csrf.spec.ts` pins it down.
+Layer 1 closes the one credible vector. `sid` is `SameSite=Lax`, so a cross-*site* POST
+never carries it — but SameSite is site-scoped, not origin-scoped, so a sibling subdomain
+is same-site and its cookie *would* be sent, and several endpoints accept an empty body
+(hence no preflight). CORS already rejects those, but only because its origin callback
+throws rather than omitting the response headers: an accident of configuration, not a
+declared property. `tests/infra/csrf.spec.ts` pins it down.
 
-Layer 2 costs nothing on the client: Angular enables `HttpXsrfInterceptor` by default, and
-it reads `XSRF-TOKEN` and sets `X-XSRF-TOKEN` on unsafe requests to relative URLs. The
-cookie name is a literal in the code on purpose — it is Angular's default, and making it
+Layer 2 is free on the client — Angular's `HttpXsrfInterceptor` is on by default. The
+cookie name is a literal in the code on purpose: it is Angular's default, and making it
 configurable would put it out of reach of static analysis.
 
-Three deliberate exemptions, each of which lets through no case a browser can produce:
+Three exemptions, none of which lets through a case a browser can produce:
 
-- **No session cookie** → PAT requests (a browser never attaches an `Authorization`
-  header on its own), signup, login, `mfa/verify`, anonymous link creation and redeem.
-- **No `Origin` header** → not a browser at all (curl, supertest, Playwright's
-  `APIRequestContext`, CI). Browsers always send `Origin` on an unsafe method.
-- **A pinned extension origin** → the extension cannot read a cookie of the API's origin
-  without the `cookies` permission, and a web page cannot forge `chrome-extension://`.
+- **No session cookie** → PAT requests (a browser never attaches `Authorization` on its
+  own), signup, login, `mfa/verify`, anonymous link creation and redeem.
+- **No `Origin` header** → not a browser (curl, supertest, Playwright, CI).
+- **A pinned extension origin** → it cannot read the cookie without the `cookies`
+  permission, and a web page cannot forge `chrome-extension://`.
 
-There is deliberately **no setting to turn any of this off**. A session opened before the
-middleware shipped has `sid` but no token cookie, and still cannot break: the gate mints
-the token on any request bearing a session, safe methods included, and the SPA calls
-`GET /users/me` from `provideAppInitializer` before it renders — so the token lands before
-the user can trigger a mutation. The only client that would break is one authenticating by
-cookie whose very first request is a mutation, and the extension, the sole cookie-bearing
+There is deliberately **no setting to turn this off**. A session predating the middleware
+has `sid` but no token, and still cannot break: the gate mints it on any session-bearing
+request, safe methods included, and the SPA calls `GET /users/me` from
+`provideAppInitializer` before rendering. Only a cookie-authenticated client whose very
+first request is a mutation would break — and the extension, the sole cookie-bearing
 non-SPA client, is exempt by origin.
 
 ### PAT Authentication (API)

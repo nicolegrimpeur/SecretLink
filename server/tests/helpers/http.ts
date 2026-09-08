@@ -38,11 +38,9 @@ export interface ClientOptions {
   /** En-tête Origin, pour les tests CORS. */
   origin?: string;
   /**
-   * En-tête X-XSRF-TOKEN du double-submit anti-CSRF.
-   *
-   * Par défaut, extrait du cookie `XSRF-TOKEN` présent dans `cookie` : côté
-   * navigateur c'est l'intercepteur d'Angular qui s'en charge, les tests n'ont
-   * donc pas à y penser. `null` force l'absence d'en-tête, pour vérifier un refus.
+   * En-tête X-XSRF-TOKEN, par défaut extrait du cookie `XSRF-TOKEN` de `cookie` -
+   * côté navigateur c'est l'intercepteur d'Angular qui s'en charge, les tests n'ont
+   * donc pas à y penser. `null` force son absence, pour vérifier un refus.
    */
   xsrf?: string | null;
 }

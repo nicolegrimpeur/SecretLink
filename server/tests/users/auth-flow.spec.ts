@@ -307,14 +307,9 @@ describe('POST /users/mfa/recovery-codes', () => {
   });
 
   /**
-   * Verrouille l'uniformité du générateur.
-   *
-   * `_generateRecoveryCodes` tirait chaque caractère avec `randomBytes(10)` puis
-   * `b % CHARSET.length`. Ce n'était non biaisé que parce que 256 est un multiple
-   * de 32 : retirer ou ajouter un seul caractère au CHARSET aurait faussé la
-   * distribution en silence. `crypto.randomInt` rend la propriété indépendante de
-   * la longueur - ce test échouerait si un masquage ou un modulo rendait une
-   * partie de l'alphabet inatteignable.
+   * Verrouille l'uniformité du générateur : ce test tombe si un modulo ou un
+   * masquage rendait une partie de l'alphabet inatteignable, ce qui était le
+   * risque du `b % CHARSET.length` d'origine.
    */
   it('couvre tout l\'alphabet et ne répète jamais un code', async () => {
     const user = await signupUser(app);
@@ -328,8 +323,8 @@ describe('POST /users/mfa/recovery-codes', () => {
       codes.push(...res.body.recovery_codes);
     }
 
-    // 168 codes, soit 1680 tirages : l'absence d'un caractère du CHARSET a une
-    // probabilité de l'ordre de e^-52, donc ce test ne peut pas être instable.
+    // 168 codes = 1680 tirages : l'absence d'un caractère a une probabilité de
+    // l'ordre de e^-52, donc ce test ne peut pas être instable.
     const drawn = new Set(codes.join('').replace(/-/g, ''));
     for (const ch of CHARSET) {
       expect(drawn, `caractère jamais tiré : ${ch}`).toContain(ch);

@@ -5,9 +5,8 @@
 #  dépôt et ne permettait ni d'exclure un chemin ni de relire l'arbitrage.
 #  Voir .github/codeql/codeql-config.yml pour les exclusions et leur raison.
 #
-#  Ce workflow reste hors du `ci-gate` de ci.yml : comme le job `audit`, il
-#  informe sans bloquer un merge. À promouvoir en check requis une fois le
-#  bruit de fond à zéro et la durée constatée.
+#  Hors du `ci-gate` de ci.yml : comme le job `audit`, il informe sans bloquer un
+#  merge. À promouvoir en check requis une fois le bruit de fond à zéro.
 # ─────────────────────────────────────────────────────────────────────────────
 name: CodeQL
 
@@ -52,6 +51,8 @@ jobs:
           config-file: ./.github/codeql/codeql-config.yml
           queries: security-and-quality
 
+      # Pas de `npm ci` : l'extracteur JS/TS analyse les sources directement, les
+      # dépendances n'apportent rien à l'analyse.
       - name: Analyse
         uses: github/codeql-action/analyze@v4
         with:

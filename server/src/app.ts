@@ -100,11 +100,10 @@ export function createApp(): Express {
   // Rate limiting
   app.use(globalLimiter);
 
-  // Anti-CSRF - after cookieParser (needs req.cookies) and after cors, so that a
-  // preflight is answered and a forbidden origin keeps its CORS_ORIGIN_NOT_ALLOWED;
-  // after the maintenance gate and the limiter, so a 503 or a 429 still wins; and
-  // before the routers, which is what makes the gate unavoidable for /users and
-  // /links. /health is mounted above all of this and stays out of the chain.
+  // Anti-CSRF - position is load-bearing: after cookieParser (needs req.cookies) and
+  // cors (preflights and the CORS 403 keep priority), after the maintenance gate and
+  // the limiter (503 and 429 must win), and before the routers, which is what makes
+  // the gate unavoidable.
   app.use(csrfProtection);
 
   // Mount routes
