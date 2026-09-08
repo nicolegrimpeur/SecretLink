@@ -49,7 +49,6 @@ jobs:
         with:
           languages: javascript-typescript
           config-file: ./.github/codeql/codeql-config.yml
-          queries: security-and-quality
 
       # Pas de `npm ci` : l'extracteur JS/TS analyse les sources directement, les
       # dépendances n'apportent rien à l'analyse.
