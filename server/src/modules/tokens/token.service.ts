@@ -1,7 +1,16 @@
 import { tokenStore } from './token.store.js';
 import { generateLinkToken, hashToken } from '../../shared/crypto.js';
-import { NotFoundError } from '../../shared/types.js';
+import { NotFoundError, parseScopes } from '../../shared/types.js';
 import { toIso } from '../../shared/dates.js';
+
+/** Un PAT tel que renvoyé par l'API : jamais le token ni son hash. */
+interface PublicToken {
+  id: number;
+  label: string | null;
+  scopes: string[];
+  created_at: string;
+  revoked_at: string | null;
+}
 
 export class TokenService {
   async createToken(
@@ -42,13 +51,13 @@ export class TokenService {
     };
   }
 
-  async listTokens(userId: number): Promise<any[]> {
+  async listTokens(userId: number): Promise<PublicToken[]> {
     const tokens = await tokenStore.listByUserId(userId);
     return tokens.map((t) => ({
       id: t.id,
       label: t.label,
-      scopes: Array.isArray(t.scopes) ? t.scopes : JSON.parse(t.scopes),
-      created_at: toIso(t.created_at),
+      scopes: parseScopes(t.scopes),
+      created_at: toIso(t.created_at)!,
       revoked_at: toIso(t.revoked_at),
     }));
   }

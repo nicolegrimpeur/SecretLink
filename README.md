@@ -277,7 +277,7 @@ configurations de base de données susceptibles de diverger.
 
 [`ci.yml`](.github/workflows/ci.yml) tourne sur chaque PR vers `master`, sur les pushs dans
 `master`, et à la demande. Sept jobs : détection des changements, cohérence des versions,
-serveur (typage + build + 98 tests d'intégration), client (lint + build + 123 tests
+serveur (typage + lint + build + tests d'intégration), client (lint + build + tests
 unitaires), extension (manifest + syntaxe + garde de bump), end-to-end (stack Docker + 16
 tests Playwright + démarrage en mode production), puis **`ci-gate`**.
 

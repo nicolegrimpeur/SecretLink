@@ -1,5 +1,12 @@
-import mysql, { Pool, PoolConnection } from 'mysql2/promise';
+import mysql, { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
 import config from './env.js';
+
+/**
+ * Ligne de résultat typée, pour `execute<Row<T>[]>()`. mysql2 exige un type qui
+ * étende RowDataPacket ; l'intersection garde leur type aux colonnes déclarées
+ * dans T, seules les autres retombent sur l'index `any` de RowDataPacket.
+ */
+export type Row<T> = T & RowDataPacket;
 
 let pool: Pool | null = null;
 

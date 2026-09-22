@@ -49,13 +49,13 @@ export const httpLogger = pinoHttp(
       ip_hash: hashIp((req as { ip?: string }).ip),
     }),
     serializers: {
-      req(req) {
+      req(req: { method?: string; url?: string }) {
         return {
           method: req.method,
           url: sanitizeUrl(req.url),
         };
       },
-      res(res) {
+      res(res: { statusCode?: number }) {
         return {
           statusCode: res.statusCode,
         };

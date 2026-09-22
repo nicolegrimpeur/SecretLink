@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../../middleware/errorHandler.js';
+import { authUserId } from '../../middleware/auth.js';
 import { linkService } from './link.service.js';
 import {
   LinkCreateItemSchema,
@@ -27,7 +28,7 @@ export const createLinks = asyncHandler(async (req: Request, res: Response): Pro
     throw new ValidationError(formatZodErrors(parsed.error));
   }
 
-  const userId = (req as any).auth?.userId;
+  const userId = authUserId(req);
   const items = parsed.data;
 
   const results = await linkService.createLinks(userId, items, req.ip, req.get('user-agent'));
@@ -36,7 +37,10 @@ export const createLinks = asyncHandler(async (req: Request, res: Response): Pro
 
 export const redeemLink = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const token = req.params.token as string;
-  const passphraseHash = req.query.pass ? String(req.query.pass) : undefined;
+  // Un `pass` répété (`?pass=a&pass=b`) arrive en tableau : seul un paramètre
+  // unique est une passphrase, le reste est traité comme absent.
+  const pass = req.query.pass;
+  const passphraseHash = typeof pass === 'string' && pass ? pass : undefined;
 
   const result = await linkService.redeemLink(token, passphraseHash, req.ip, req.get('user-agent'));
   res.status(200).json(result);
@@ -44,7 +48,7 @@ export const redeemLink = asyncHandler(async (req: Request, res: Response): Prom
 
 export const deleteLink = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const itemId = req.params.item_id as string;
-  const userId = (req as any).auth?.userId;
+  const userId = authUserId(req);
 
   await linkService.deleteLink(userId, itemId, req.ip, req.get('user-agent'));
   res.status(204).end();
@@ -56,7 +60,7 @@ export const statusList = asyncHandler(async (req: Request, res: Response): Prom
     throw new ValidationError(formatZodErrors(parsed.error));
   }
 
-  const userId = (req as any).auth?.userId;
+  const userId = authUserId(req);
   const { since, until } = parsed.data;
 
   const results = await linkService.listLinks(

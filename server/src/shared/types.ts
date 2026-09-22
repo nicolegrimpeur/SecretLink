@@ -24,7 +24,8 @@ export interface AuthRequest {
 export interface User {
   id: number;
   email: string;
-  password_hash: string;
+  // mysql2 le renvoie en Buffer, et la colonne est nullable.
+  password_hash: Buffer | null;
   created_at: Date;
   email_verified_at: Date | null;
   password_changed_at: Date | null;
@@ -58,10 +59,18 @@ export interface ApiToken {
   id: number;
   user_id: number;
   token_hash: string;
-  label: string;
-  scopes: string;
+  label: string | null;
+  // Colonne JSON : mysql2 la décode déjà. `unknown` impose de passer par
+  // parseScopes(), qui couvre aussi une chaîne JSON non décodée.
+  scopes: unknown;
   created_at: Date;
   revoked_at: Date | null;
+}
+
+/** Scopes d'un PAT, depuis la colonne JSON `api_tokens.scopes`. */
+export function parseScopes(raw: unknown): string[] {
+  const value: unknown = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  return Array.isArray(value) ? value.filter((s): s is string => typeof s === 'string') : [];
 }
 
 export interface TrustedDevice {

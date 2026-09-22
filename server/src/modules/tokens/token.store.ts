@@ -1,10 +1,11 @@
-import { getPool } from '../../config/database.js';
+import { ResultSetHeader } from 'mysql2/promise';
+import { getPool, Row } from '../../config/database.js';
 import { ApiToken } from '../../shared/types.js';
 
 class TokenStore {
   async listByUserId(userId: number): Promise<ApiToken[]> {
     const pool = getPool();
-    const [rows] = await pool.execute<any[]>(
+    const [rows] = await pool.execute<Row<ApiToken>[]>(
       `SELECT id, user_id, token_hash, label, scopes, created_at, revoked_at
        FROM api_tokens WHERE user_id = ? ORDER BY id DESC`,
       [userId],
@@ -19,17 +20,17 @@ class TokenStore {
     scopes: string,
   ): Promise<{ insertId: number; createdAt: Date }> {
     const pool = getPool();
-    const [result] = await pool.execute<any>(
+    const [result] = await pool.execute<ResultSetHeader>(
       `INSERT INTO api_tokens (user_id, token_hash, label, scopes)
        VALUES (?, ?, ?, ?)`,
       [userId, tokenHash, label, scopes],
     );
-    const insertId = result.insertId as number;
+    const insertId = result.insertId;
 
     // On relit created_at plutôt que de recalculer l'heure côté Node : la valeur
     // écrite par CURRENT_TIMESTAMP est à la seconde, celle rendue par la création
     // doit donc être identique à celle que renverra ensuite le listing.
-    const [rows] = await pool.execute<any[]>(
+    const [rows] = await pool.execute<Row<Pick<ApiToken, 'created_at'>>[]>(
       'SELECT created_at FROM api_tokens WHERE id = ?',
       [insertId],
     );
@@ -40,7 +41,7 @@ class TokenStore {
   /** Returns the number of rows affected - 0 means unknown id or not owned by this user. */
   async revokeToken(userId: number, tokenId: number): Promise<number> {
     const pool = getPool();
-    const [result] = await pool.execute<any>(
+    const [result] = await pool.execute<ResultSetHeader>(
       // COALESCE : une seconde révocation ne réécrit pas l'horodatage d'origine.
       // affectedRows reste à 1 (mysql2 active CLIENT_FOUND_ROWS, donc il compte les
       // lignes appariées et non modifiées), l'opération reste donc idempotente en 204.
@@ -48,7 +49,7 @@ class TokenStore {
        WHERE id = ? AND user_id = ?`,
       [tokenId, userId],
     );
-    return result.affectedRows as number;
+    return result.affectedRows;
   }
 }
 

@@ -130,7 +130,7 @@ jobs:
       - run: node scripts/sync-version.mjs --check
 
   # ───────────────────────────────────────────────────────────────────────────
-  #  Serveur : typage, build, et les tests d'intégration qui figent l'API
+  #  Serveur : typage, lint, build, et les tests d'intégration qui figent l'API
   # ───────────────────────────────────────────────────────────────────────────
   server:
     name: Serveur
@@ -157,6 +157,10 @@ jobs:
       - name: Typage des tests
         working-directory: server
         run: npm run typecheck:tests
+
+      - name: Lint
+        working-directory: server
+        run: npm run lint
 
       - name: Build
         working-directory: server

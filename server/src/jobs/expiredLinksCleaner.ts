@@ -24,8 +24,9 @@ export function startExpiredLinksCleaner(): () => void {
     }
   };
 
-  run();
-  const timer = setInterval(run, INTERVAL_MS);
+  // `run` intercepte déjà ses propres erreurs : `void` ne fait que le rendre explicite.
+  void run();
+  const timer = setInterval(() => void run(), INTERVAL_MS);
   timer.unref();
 
   return () => clearInterval(timer);

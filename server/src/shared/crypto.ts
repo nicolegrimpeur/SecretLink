@@ -92,7 +92,7 @@ export function decrypt(
       aad,
     };
   } catch (err) {
-    throw new Error('Decryption failed: authentication tag verification failed');
+    throw new Error('Decryption failed: authentication tag verification failed', { cause: err });
   }
 }
 

@@ -1,14 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { extractPatFromHeader, isSessionStale } from './session.js';
+import { extractPatFromHeader, isSessionStale, readCookie } from './session.js';
 import config from '../config/env.js';
-import { getPool } from '../config/database.js';
+import { getPool, Row } from '../config/database.js';
 import { hashToken } from '../shared/crypto.js';
 import {
+  ApiToken,
   SessionPayload,
   UnauthorizedError,
   ForbiddenError,
   AuthRequest as AuthPayload,
+  parseScopes,
 } from '../shared/types.js';
 import { getLogger } from '../shared/logger.js';
 
@@ -35,10 +37,10 @@ export async function authEither(
 ): Promise<void> {
   try {
     // Try session auth first
-    if (req.cookies?.[config.SESSION_COOKIE_NAME]) {
+    const sessionToken = readCookie(req, config.SESSION_COOKIE_NAME);
+    if (sessionToken) {
       try {
-        const token = req.cookies[config.SESSION_COOKIE_NAME];
-        const decoded = jwt.verify(token, config.SESSION_SECRET) as SessionPayload;
+        const decoded = jwt.verify(sessionToken, config.SESSION_SECRET) as SessionPayload;
         const userId = Number(decoded.userId);
         if (await isSessionStale(userId, decoded.iat)) {
           throw new UnauthorizedError('Session invalidated by a password change');
@@ -49,7 +51,7 @@ export async function authEither(
           scopes: undefined, // Sessions have unlimited scopes
         };
         return next();
-      } catch (err) {
+      } catch {
         logger.debug({ event: 'AUTH_SESSION_FAILED' }, 'Session validation failed, trying PAT');
       }
     }
@@ -59,7 +61,7 @@ export async function authEither(
     if (token) {
       const tokenHash = hashToken(token);
       const pool = getPool();
-      const [rows] = await pool.execute<any[]>(
+      const [rows] = await pool.execute<Row<Pick<ApiToken, 'user_id' | 'scopes'>>[]>(
         `SELECT id, user_id, scopes FROM api_tokens WHERE token_hash = ? AND revoked_at IS NULL`,
         [tokenHash],
       );
@@ -69,10 +71,7 @@ export async function authEither(
       }
 
       const tokenRecord = rows[0];
-      const rawScopes = tokenRecord.scopes || '[]';
-      const scopes: string[] = Array.isArray(rawScopes)
-        ? rawScopes
-        : JSON.parse(rawScopes);
+      const scopes = parseScopes(tokenRecord.scopes);
 
       req.auth = {
         method: 'pat',
@@ -134,4 +133,22 @@ export function requireAuth(
 
     next();
   };
+}
+
+/**
+ * Utilisateur de la session, pour les routes derrière `sessionAuth`, qui garantit
+ * sa présence. Son absence serait donc une erreur de câblage des routes : elle est
+ * rejetée en 401 plutôt que propagée en `undefined` jusqu'aux requêtes SQL.
+ */
+export function sessionUserId(req: Request): number {
+  const userId = req.session?.userId;
+  if (userId === undefined) throw new UnauthorizedError('Authentication required');
+  return userId;
+}
+
+/** Même principe pour les routes derrière `authEither` + `requireAuth`. */
+export function authUserId(req: Request): number {
+  const userId = req.auth?.userId;
+  if (userId === undefined) throw new UnauthorizedError('Authentication required');
+  return userId;
 }
