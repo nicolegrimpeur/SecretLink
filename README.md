@@ -98,15 +98,6 @@ docker compose up -d
 > commandes. C'est la seule manipulation. Un `SECRETLINK_TAG` absent fait échouer Compose
 > avec un message explicite, plutôt que de retomber silencieusement sur `latest`.
 
-**Construire localement** au lieu de tirer les images publiées - pour déployer du code non
-encore livré, ou reproduire un problème avec une modification locale :
-
-```bash
-cd deploy
-. .\.env.local.ps1
-docker compose -f docker-compose.yml -f docker-compose.build.yml up --build -d
-```
-
 **Développement** (`80` pour l'application complète, `3000` pour taper l'API en direct,
 `3306` pour MySQL) :
 
@@ -302,7 +293,8 @@ publication sur GHCR utilise le `GITHUB_TOKEN` automatique.
 ### Livrer une version
 
 1. Bumper la `version` du `package.json` **racine**, puis `npm run version:sync` (le hook npm
-   `version` le fait et stage les fichiers).
+   `version` le fait et stage les fichiers). La synchronisation couvre `client`, `server`,
+   `e2e` et la collection Postman (`info.version` de `api/SecretLink API.json`).
 2. Merger la PR dans `master`.
 
 [`release.yml`](.github/workflows/release.yml) prend le relais : il compare la version au
