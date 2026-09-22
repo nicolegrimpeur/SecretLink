@@ -1,12 +1,11 @@
 version: 2
 
-# ⚠️ À savoir avant d'accueillir les premières PR : les approbations
-# `allowScripts` des package.json sont **épinglées par version**. Une montée de
-# `argon2` (server) ou de `esbuild`, `lmdb`, `msgpackr-extract`, `@parcel/watcher`
-# (client) rebloque donc leur script d'installation tant que la clé n'est pas
-# mise à jour dans le même commit. C'est la fonctionnalité de sécurité de npm 12
-# qui joue son rôle, mais ça se manifeste par un `npm ci` en échec dont la cause
-# n'est pas évidente.
+# ⚠️ Les approbations `allowScripts` des package.json sont **épinglées par
+# version**. Une PR qui monte un paquet listé dans `allowScripts` rebloque donc
+# son script d'installation tant que la clé n'est pas mise à jour dans le même
+# commit (`npm install-scripts approve`). C'est la sécurité de npm qui joue son
+# rôle, mais ça se manifeste par un `npm ci` en échec dont la cause n'est pas
+# évidente.
 
 updates:
   - package-ecosystem: npm
@@ -41,19 +40,38 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
     ignore:
-      # Ionic ne suit pas immédiatement les majeures d'Angular : proposer
-      # Angular 22 tant qu'Ionic ne le supporte pas produirait des PR
-      # inmergeables, voire vertes en CI mais cassées à l'usage.
+      # Les majeures Angular et Ionic se font à la main, via `ng update` :
+      # ses schematics réécrivent le code (opt-out de détection de changement,
+      # migrations de templates...), ce que Dependabot ne sait pas faire. Une
+      # PR Dependabot de majeure ne ferait que bumper les versions, sans ces
+      # réécritures. S'y ajoute qu'Ionic suit les majeures Angular avec retard.
       #
       # Restreint aux MAJEURES à dessein : les correctifs de sécurité arrivent
       # quasi toujours en patch ou mineure, ils continuent donc de passer. Ne
       # pas surveiller le client du tout laisserait au contraire son millier de
       # dépendances transitives sans aucune couverture.
-      #
-      # À lever quand Ionic annoncera le support de la majeure suivante.
       - dependency-name: "@angular*"
         update-types: [version-update:semver-major]
       - dependency-name: "@ionic*"
+        update-types: [version-update:semver-major]
+
+      # TypeScript et Vitest sont bornés par les peerDependencies du compilateur
+      # et du builder Angular : une version hors de ces bornes ne peut pas
+      # builder, et la PR resterait rouge jusqu'à la majeure Angular suivante.
+      # Ils montent donc avec Angular, lors du `ng update`. Bornes en vigueur :
+      #   node -p "require('./client/node_modules/@angular/build/package.json').peerDependencies"
+      #
+      # TypeScript ignore aussi les MINEURES : Angular n'accepte en général
+      # qu'une seule mineure de TypeScript par version. Et comme les mineures
+      # sont groupées, une mineure refusée ferait échouer tout le lot
+      # `mineures-et-correctifs` avec elle.
+      - dependency-name: "typescript"
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: "vitest"
+        update-types: [version-update:semver-major]
+      # Les paquets @vitest/* exigent la version exacte de vitest : ils ne
+      # peuvent pas changer de majeure seuls.
+      - dependency-name: "@vitest/*"
         update-types: [version-update:semver-major]
 
   - package-ecosystem: npm

@@ -293,7 +293,6 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                              [(ngModel)]="statusSearch"
                              [ngModelOptions]="{standalone:true}"
                              [clearInput]="true"
-                             (ionInput)="forceRefresh()"
                   />
                   <ion-button (click)="reload()" [disabled]="loading()" slot="end">
                     <ion-icon name="refresh-outline" [class.spin]="loading()"></ion-icon>

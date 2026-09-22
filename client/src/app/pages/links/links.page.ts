@@ -120,9 +120,6 @@ export class LinksPage {
   sortColumn = signal<'item_id' | 'created_at' | 'expires_at' | 'used_at' | 'deleted_at'>('created_at');
   sortDirection = signal<'asc' | 'desc'>('desc');
 
-  // Signal pour forcer l'actualisation des liens filtrés
-  private refreshTrigger = signal(0);
-
   // compteurs
   countActive = computed(() => this.rows().filter(r => this.statusOf(r) === 'active').length);
   countUsed = computed(() => this.rows().filter(r => this.statusOf(r) === 'used').length);
@@ -266,7 +263,6 @@ export class LinksPage {
       this.rows.set(await this.api.listStatus(
         {since: this.since || undefined, until: this.until || undefined}
       ));
-      this.forceRefresh();
     } catch (e) {
       if ((e as HttpErrorResponse).status !== 401) {
         this.toast.toastMsg(
@@ -327,14 +323,9 @@ export class LinksPage {
     }
   }
 
-  forceRefresh() {
-    this.refreshTrigger.set(this.refreshTrigger() + 1);
-  }
-
+  // Se recalcule seul : toutes ses entrées (rows, statusSearch, statusFilter,
+  // tri) sont des signaux.
   filteredRows = computed(() => {
-    // Dépendance au trigger pour forcer le recalcul
-    this.refreshTrigger();
-
     const q = this.statusSearch().toLowerCase();
     const f = this.statusFilter();
     const sortCol = this.sortColumn();
