@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../../middleware/errorHandler.js';
+import { sessionUserId } from '../../middleware/auth.js';
 import { tokenService } from './token.service.js';
 import { CreateTokenReqSchema, TokenIdParamSchema } from './token.schema.js';
 import { ValidationError } from '../../shared/types.js';
@@ -9,7 +10,7 @@ import { formatZodErrors } from '../../shared/validation.js';
 const logger = getLogger('TokenController');
 
 export const listPAT = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).session?.userId;
+  const userId = sessionUserId(req);
   const tokens = await tokenService.listTokens(userId);
   res.json(tokens);
 });
@@ -20,7 +21,7 @@ export const createPAT = asyncHandler(async (req: Request, res: Response): Promi
     throw new ValidationError(formatZodErrors(parsed.error));
   }
 
-  const userId = (req as any).session?.userId;
+  const userId = sessionUserId(req);
   const { label, scopes } = parsed.data;
 
   const result = await tokenService.createToken(userId, label || null, scopes);
@@ -37,7 +38,7 @@ export const revokePAT = asyncHandler(async (req: Request, res: Response): Promi
     throw new ValidationError(formatZodErrors(parsed.error));
   }
 
-  const userId = (req as any).session?.userId;
+  const userId = sessionUserId(req);
   const tokenId = parsed.data.id;
 
   await tokenService.revokeToken(userId, tokenId);

@@ -1,6 +1,7 @@
+import type { Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 
-const rateLimitHandler = (_req: any, res: any) => {
+const rateLimitHandler = (_req: Request, res: Response): void => {
   res.status(429).json({
     error: {
       code: 'RATE_LIMITED',

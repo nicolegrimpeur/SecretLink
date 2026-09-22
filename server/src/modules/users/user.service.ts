@@ -4,10 +4,10 @@ import { generateSecret, generateURI, verify as totpVerify } from 'otplib';
 import { Request, Response } from 'express';
 import { userStore } from './user.store.js';
 import { withTx } from '../../config/database.js';
-import { AppError, ValidationError, UnauthorizedError, NotFoundError, ConflictError } from '../../shared/types.js';
+import { AppError, ValidationError, UnauthorizedError, NotFoundError, ConflictError, User } from '../../shared/types.js';
 import { encryptTotpSecret, decryptTotpSecret } from '../../shared/crypto.js';
 import { toIso } from '../../shared/dates.js';
-import { issueSession, issuePreAuthToken, verifyPreAuthToken } from '../../middleware/session.js';
+import { issueSession, issuePreAuthToken, verifyPreAuthToken, readCookie } from '../../middleware/session.js';
 import config from '../../config/env.js';
 
 interface PublicUser {
@@ -32,7 +32,7 @@ interface LoginDirectResult {
   user: PublicUser;
 }
 
-function publicUser(row: any): PublicUser {
+function publicUser(row: Pick<User, 'id' | 'email' | 'created_at' | 'email_verified_at'>): PublicUser {
   return {
     id: Number(row.id),
     email: row.email,
@@ -124,7 +124,7 @@ export class UserService {
     await userStore.deleteExpiredTrustedDevices(user.id);
 
     // Check for a trusted device cookie
-    const rawDeviceToken = req.cookies?.[config.TRUSTED_DEVICE_COOKIE_NAME];
+    const rawDeviceToken = readCookie(req, config.TRUSTED_DEVICE_COOKIE_NAME);
     if (rawDeviceToken) {
       const tokenHash = crypto.createHash('sha256').update(rawDeviceToken).digest('hex');
       const trusted = await userStore.findTrustedDevice(tokenHash);

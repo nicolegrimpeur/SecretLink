@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import config from '../config/env.js';
 import { isTrustedExtensionOrigin, isTrustedOrigin } from '../config/origins.js';
 import { CsrfError } from '../shared/types.js';
+import { readCookie } from './session.js';
 
 /**
  * Anti-CSRF gate for the cookie-authenticated API.
@@ -32,14 +33,13 @@ function safeEqualToken(cookieToken: string, headerToken: string): boolean {
 }
 
 export function csrfProtection(req: Request, res: Response, next: NextFunction): void {
-  // req.cookies is always defined: cookieParser() is mounted before this.
-  const hasSession = Boolean(req.cookies[config.SESSION_COOKIE_NAME]);
+  const hasSession = Boolean(readCookie(req, config.SESSION_COOKIE_NAME));
 
   // Minted on safe requests too, so the token is there before the first mutation;
   // issueSession() does the same at login. Together they are what makes the
   // double-submit unconditional: a session predating this middleware gets its token
   // on the SPA's bootstrap GET /users/me, before any mutation is possible.
-  if (hasSession && !req.cookies['XSRF-TOKEN']) {
+  if (hasSession && !readCookie(req, 'XSRF-TOKEN')) {
     res.cookie('XSRF-TOKEN', crypto.randomBytes(32).toString('base64url'), {
       httpOnly: false, // read by Angular via document.cookie; not an auth secret
       secure: config.NODE_ENV === 'production',
@@ -69,7 +69,7 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
   // page cannot forge a chrome-extension:// origin.
   if (isTrustedExtensionOrigin(origin)) return next();
 
-  const cookieToken = req.cookies['XSRF-TOKEN'];
+  const cookieToken = readCookie(req, 'XSRF-TOKEN');
   const headerToken = req.get('x-xsrf-token');
   if (!cookieToken || !headerToken || !safeEqualToken(cookieToken, headerToken)) {
     return next(new CsrfError('CSRF_TOKEN_INVALID', 'Missing or invalid CSRF token'));

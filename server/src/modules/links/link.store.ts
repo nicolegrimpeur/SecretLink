@@ -1,5 +1,5 @@
-import { PoolConnection } from 'mysql2/promise';
-import { getPool, withTx } from '../../config/database.js';
+import { PoolConnection, ResultSetHeader } from 'mysql2/promise';
+import { getPool, withTx, Row } from '../../config/database.js';
 import { hashToken } from '../../shared/crypto.js';
 import { Link, LinkStatus } from '../../shared/types.js';
 
@@ -24,7 +24,7 @@ class LinkStore {
       ph: string | null;
     },
   ): Promise<{ insertId: number }> {
-    const [result] = await cx.execute<any>(
+    const [result] = await cx.execute<ResultSetHeader>(
       `INSERT INTO links (owner_user_id, item_id, link_token_hash, cipher_text, nonce, key_version, expires_at, passphrase_hash)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -38,19 +38,19 @@ class LinkStore {
         data.ph,
       ],
     );
-    return { insertId: result.insertId as number };
+    return { insertId: result.insertId };
   }
 
   async linkByTokenForUpdate(
     cx: PoolConnection,
     token: string,
   ): Promise<Link | null> {
-    const [rows] = await cx.execute<any[]>(
+    const [rows] = await cx.execute<Row<Link>[]>(
       `SELECT id, owner_user_id, item_id, cipher_text, nonce, key_version, expires_at, used_at, deleted_at, passphrase_hash
        FROM links WHERE link_token_hash = ? FOR UPDATE`,
       [hashToken(token)],
     );
-    return rows[0] || null;
+    return rows[0] ?? null;
   }
 
   async linkByItemForUpdate(
@@ -58,14 +58,14 @@ class LinkStore {
     uid: number,
     itemId: string,
   ): Promise<{ id: number; owner_user_id: number; item_id: string } | null> {
-    const [rows] = await cx.execute<any[]>(
+    const [rows] = await cx.execute<Row<Pick<Link, 'id' | 'owner_user_id' | 'item_id'>>[]>(
       `SELECT id, owner_user_id, item_id FROM links
        WHERE owner_user_id = ? AND item_id = ?
          AND deleted_at IS NULL AND used_at IS NULL
        FOR UPDATE`,
       [uid, itemId],
     );
-    return rows[0] || null;
+    return rows[0] ?? null;
   }
 
   async setUsedAndPurge(cx: PoolConnection, id: number): Promise<void> {
@@ -112,13 +112,13 @@ class LinkStore {
 
   async purgeAllExpiredLinks(): Promise<{ ciphertextPurged: number; locksReleased: number }> {
     const pool = getPool();
-    const [r1] = await pool.execute<any>(
+    const [r1] = await pool.execute<ResultSetHeader>(
       `UPDATE links SET cipher_text = '', passphrase_hash = NULL
        WHERE (cipher_text != '' OR passphrase_hash IS NOT NULL)
        AND (deleted_at IS NOT NULL OR used_at IS NOT NULL
             OR (expires_at IS NOT NULL AND expires_at <= NOW()))`,
     );
-    const [r2] = await pool.execute<any>(
+    const [r2] = await pool.execute<ResultSetHeader>(
       `DELETE i FROM items i
        LEFT JOIN links l
          ON l.owner_user_id = i.owner_user_id
@@ -127,7 +127,7 @@ class LinkStore {
         AND (l.expires_at IS NULL OR l.expires_at > NOW())
        WHERE l.id IS NULL`,
     );
-    return { ciphertextPurged: r1.affectedRows as number, locksReleased: r2.affectedRows as number };
+    return { ciphertextPurged: r1.affectedRows, locksReleased: r2.affectedRows };
   }
 
   async deleteItemLock(
@@ -149,7 +149,7 @@ class LinkStore {
   ): Promise<LinkStatus[]> {
     let query = `SELECT item_id, created_at, expires_at, used_at, deleted_at
                  FROM links WHERE owner_user_id = ?`;
-    const params: any[] = [uid];
+    const params: (number | Date)[] = [uid];
 
     if (since) {
       query += ` AND created_at >= ?`;
@@ -164,7 +164,7 @@ class LinkStore {
     query += ` ORDER BY created_at DESC LIMIT 10000`;
 
     const pool = getPool();
-    const [rows] = await pool.execute<any[]>(query, params);
+    const [rows] = await pool.execute<Row<LinkStatus>[]>(query, params);
     return rows;
   }
 }

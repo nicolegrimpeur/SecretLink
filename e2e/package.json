@@ -1,6 +1,6 @@
 {
   "name": "secretlink-e2e",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "private": true,
   "description": "Tests end-to-end Playwright contre la stack Docker complète",
   "author": "Nicolas BARRAT",

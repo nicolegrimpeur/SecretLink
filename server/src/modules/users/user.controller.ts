@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../../middleware/errorHandler.js';
+import { sessionUserId } from '../../middleware/auth.js';
 import { userService } from './user.service.js';
 import {
   SignupReqSchema,
@@ -86,7 +87,7 @@ export const verifyMfa = asyncHandler(async (req: Request, res: Response): Promi
 });
 
 export const regenerateRecoveryCodes = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).session?.userId;
+  const userId = sessionUserId(req);
   const codes = await userService.regenerateRecoveryCodes(userId);
 
   // The codes are deliberately absent: the response body is their only outlet.
@@ -98,18 +99,20 @@ export const regenerateRecoveryCodes = asyncHandler(async (req: Request, res: Re
   res.status(200).json({ recovery_codes: codes });
 });
 
-export const logout = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).session?.userId;
+// Synchrone : rien à attendre, et Express 5 transmet lui-même une exception levée
+// ici (sessionUserId) au gestionnaire d'erreurs.
+export const logout = (req: Request, res: Response): void => {
+  const userId = sessionUserId(req);
   clearSession(res);
   logger.info(
     { event: 'USER_LOGOUT', user_id: userId, ip_hash: hashIp(req.ip), user_agent: req.get('user-agent') ?? null },
     'User logged out',
   );
   res.status(204).end();
-});
+};
 
 export const me = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).session?.userId;
+  const userId = sessionUserId(req);
   const user = await userService.getById(userId);
   res.json(user);
 });
@@ -120,7 +123,7 @@ export const changePassword = asyncHandler(async (req: Request, res: Response): 
     throw new ValidationError(formatZodErrors(parsed.error));
   }
 
-  const userId = (req as any).session?.userId;
+  const userId = sessionUserId(req);
   const { current_password, new_password } = parsed.data;
   await userService.changePassword(userId, current_password, new_password, res);
 
@@ -133,7 +136,7 @@ export const changePassword = asyncHandler(async (req: Request, res: Response): 
 });
 
 export const purgeMe = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).session?.userId;
+  const userId = sessionUserId(req);
   await userService.purgeUserData(userId);
   logger.info(
     { event: 'USER_DATA_PURGED', user_id: userId, ip_hash: hashIp(req.ip) },
@@ -143,7 +146,7 @@ export const purgeMe = asyncHandler(async (req: Request, res: Response): Promise
 });
 
 export const deleteMe = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).session?.userId;
+  const userId = sessionUserId(req);
   await userService.deleteUser(userId);
   clearSession(res);
   logger.info(

@@ -36,6 +36,16 @@ export function issueSession(res: Response, payload: SessionPayload): void {
   });
 }
 
+/**
+ * Valeur d'un cookie. `req.cookies` est typé `any` par cookie-parser, et un cookie
+ * forgé peut prendre une autre forme (cookie-parser décode les valeurs `j:` en JSON) :
+ * tout ce qui n'est pas une chaîne est traité comme absent.
+ */
+export function readCookie(req: Request, name: string): string | undefined {
+  const value: unknown = req.cookies?.[name];
+  return typeof value === 'string' ? value : undefined;
+}
+
 export function clearSession(res: Response): void {
   res.clearCookie(config.SESSION_COOKIE_NAME, { path: '/' });
   res.clearCookie('XSRF-TOKEN', { path: '/' });
@@ -66,7 +76,7 @@ export function verifyPreAuthToken(token: string): { userId: number } {
     return { userId: Number(decoded.userId) };
   } catch (err) {
     if (err instanceof UnauthorizedError) throw err;
-    if ((err as any)?.name === 'TokenExpiredError') throw new PreAuthExpiredError();
+    if (err instanceof jwt.TokenExpiredError) throw new PreAuthExpiredError();
     throw new UnauthorizedError('Invalid or expired pre-auth token');
   }
 }
@@ -80,7 +90,7 @@ export async function sessionAuth(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const token = req.cookies?.[config.SESSION_COOKIE_NAME];
+    const token = readCookie(req, config.SESSION_COOKIE_NAME);
 
     if (!token) {
       throw new UnauthorizedError('No session cookie found');
@@ -89,7 +99,7 @@ export async function sessionAuth(
     let decoded: SessionPayload;
     try {
       decoded = jwt.verify(token, config.SESSION_SECRET) as SessionPayload;
-    } catch (err) {
+    } catch {
       throw new UnauthorizedError('Invalid or expired session');
     }
 
@@ -98,7 +108,7 @@ export async function sessionAuth(
       throw new UnauthorizedError('Session invalidated by a password change');
     }
 
-    (req as any).session = { userId };
+    req.session = { userId };
     next();
   } catch (err) {
     next(err);

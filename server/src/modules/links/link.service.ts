@@ -16,6 +16,15 @@ interface CreateLinkResult {
   error: string | null;
 }
 
+/** Une ligne de GET /links/status : jamais le secret. */
+interface PublicLinkStatus {
+  item_id: string;
+  created_at: string;
+  expires_at: string | null;
+  used_at: string | null;
+  deleted_at: string | null;
+}
+
 /** Shareable URL for a link: the front-end page, not the API endpoint. */
 function buildLinkUrl(linkToken: string): string {
   return `${config.FRONT_BASE_URL}/redeem/${encodeURIComponent(linkToken)}`;
@@ -125,7 +134,7 @@ export class LinkService {
     }
 
     // Results are indexed by input position so the response keeps the request order.
-    const results: CreateLinkResult[] = new Array(items.length);
+    const results = new Array<CreateLinkResult>(items.length);
     const pending: Array<{
       index: number;
       itemId: string;
@@ -373,12 +382,12 @@ export class LinkService {
     uid: number,
     since?: Date,
     until?: Date,
-  ): Promise<any[]> {
+  ): Promise<PublicLinkStatus[]> {
     await linkStore.purgeExpiredLinksForUser(uid);
     const results = await linkStore.statusByOwner(uid, since, until);
     return results.map((r) => ({
       item_id: r.item_id,
-      created_at: toIso(r.created_at),
+      created_at: toIso(r.created_at)!,
       expires_at: toIso(r.expires_at),
       used_at: toIso(r.used_at),
       deleted_at: toIso(r.deleted_at),

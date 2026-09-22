@@ -1,33 +1,33 @@
-import { PoolConnection } from 'mysql2/promise';
-import { getPool } from '../../config/database.js';
-import { User, TrustedDevice } from '../../shared/types.js';
+import { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import { getPool, Row } from '../../config/database.js';
+import { User, TrustedDevice, RecoveryCode } from '../../shared/types.js';
 
 class UserStore {
   async findByEmail(email: string): Promise<User | null> {
     const pool = getPool();
-    const [rows] = await pool.execute<any[]>(
+    const [rows] = await pool.execute<Row<User>[]>(
       'SELECT id, email, password_hash, created_at, email_verified_at FROM users WHERE email = ?',
       [email],
     );
-    return rows[0] || null;
+    return rows[0] ?? null;
   }
 
   async createUser(email: string, passwordHash: Buffer): Promise<{ insertId: number }> {
     const pool = getPool();
-    const [result] = await pool.execute<any>(
+    const [result] = await pool.execute<ResultSetHeader>(
       'INSERT INTO users (email, password_hash) VALUES (?, ?)',
       [email, passwordHash],
     );
-    return { insertId: result.insertId as number };
+    return { insertId: result.insertId };
   }
 
   async getById(id: number): Promise<User | null> {
     const pool = getPool();
-    const [rows] = await pool.execute<any[]>(
+    const [rows] = await pool.execute<Row<User>[]>(
       'SELECT id, email, password_hash, created_at, email_verified_at, password_changed_at, totp_secret_cipher, totp_secret_nonce FROM users WHERE id = ?',
       [id],
     );
-    return rows[0] || null;
+    return rows[0] ?? null;
   }
 
   async updatePassword(id: number, passwordHash: Buffer): Promise<void> {
@@ -47,7 +47,7 @@ class UserStore {
    */
   async isPasswordChangedAfter(userId: number, issuedAtSeconds: number): Promise<boolean> {
     const pool = getPool();
-    const [rows] = await pool.execute<any[]>(
+    const [rows] = await pool.execute<RowDataPacket[]>(
       `SELECT 1 FROM users
        WHERE id = ? AND password_changed_at IS NOT NULL
          AND password_changed_at > FROM_UNIXTIME(?)`,
@@ -107,11 +107,11 @@ class UserStore {
 
   async findTrustedDevice(tokenHash: string): Promise<TrustedDevice | null> {
     const pool = getPool();
-    const [rows] = await pool.execute<any[]>(
+    const [rows] = await pool.execute<Row<TrustedDevice>[]>(
       'SELECT id, user_id, device_token_hash, created_at, expires_at FROM trusted_devices WHERE device_token_hash = ? AND expires_at > NOW()',
       [tokenHash],
     );
-    return rows[0] || null;
+    return rows[0] ?? null;
   }
 
   async createTrustedDevice(userId: number, tokenHash: string, expiresAt: Date): Promise<void> {
@@ -144,7 +144,7 @@ class UserStore {
 
   async findAndConsumeRecoveryCode(userId: number, codeHash: string): Promise<boolean> {
     const pool = getPool();
-    const [rows] = await pool.execute<any[]>(
+    const [rows] = await pool.execute<Row<Pick<RecoveryCode, 'id'>>[]>(
       'SELECT id FROM recovery_codes WHERE user_id = ? AND code_hash = ? AND used_at IS NULL',
       [userId, codeHash],
     );

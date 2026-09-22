@@ -1,0 +1,70 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+
+  // oxlint plutôt qu'ESLint : le serveur est en TypeScript 7, dont
+  // typescript-eslint ne sait pas encore se servir. tsgolint, le moteur des
+  // règles type-aware, est construit sur typescript-go, donc sur TS 7.
+  // Lancé avec --type-aware (script `lint`).
+
+  "plugins": ["typescript", "oxc", "eslint"],
+  "env": { "node": true, "es2024": true },
+
+  "categories": {
+    "correctness": "error"
+  },
+
+  // Reprend le jeu `recommendedTypeChecked` de typescript-eslint, la référence
+  // la plus courante. Les règles ci-dessous sont celles qu'oxlint range hors de
+  // `correctness` (catégories pedantic, suspicious ou restriction) : sans les
+  // lister, elles resteraient inactives.
+  "rules": {
+    "typescript/no-explicit-any": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/no-unnecessary-type-assertion": "error",
+    "typescript/no-unsafe-argument": "error",
+    "typescript/no-unsafe-assignment": "error",
+    "typescript/no-unsafe-call": "error",
+    "typescript/no-unsafe-enum-comparison": "error",
+    "typescript/no-unsafe-member-access": "error",
+    "typescript/no-unsafe-return": "error",
+    "typescript/only-throw-error": "error",
+    "typescript/prefer-promise-reject-errors": "error",
+    "typescript/require-await": "error",
+    "typescript/restrict-plus-operands": "error",
+
+    // Un paramètre préfixé par `_` est volontairement ignoré : c'est la
+    // convention d'Express pour garder la signature (err, req, res, next).
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" }]
+  },
+
+  "overrides": [
+    {
+      // Les réponses supertest (`res.body`) et les lignes MySQL lues en test sont
+      // typées `any` par nature. Les typer une à une n'apporterait rien : c'est
+      // l'assertion du test qui vérifie la forme.
+      "files": ["tests/**"],
+      "rules": {
+        "typescript/no-explicit-any": "off",
+        "typescript/no-unsafe-argument": "off",
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/no-unsafe-call": "off",
+        "typescript/no-unsafe-member-access": "off",
+        "typescript/no-unsafe-return": "off"
+      }
+    },
+    {
+      // Du JavaScript : sans types, les règles no-unsafe-* signaleraient chaque
+      // accès.
+      "files": ["scripts/**/*.mjs"],
+      "rules": {
+        "typescript/no-unsafe-argument": "off",
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/no-unsafe-call": "off",
+        "typescript/no-unsafe-member-access": "off",
+        "typescript/no-unsafe-return": "off"
+      }
+    }
+  ],
+
+  "ignorePatterns": ["dist/**", "coverage/**", "reports/**"]
+}
