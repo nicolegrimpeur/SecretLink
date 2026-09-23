@@ -1,380 +1,59 @@
 # SecretLink
 
-Application de partage de secrets à usage unique. Un lien chiffré est généré, utilisable une seule fois - une fois consulté, le secret est détruit.
+Partage de secrets par liens à usage unique : une fois consulté, le secret est détruit.
 
-> Pour la documentation complète, voir le [wiki](https://github.com/nicolegrimpeur/SecretLink/wiki).
+**Documentation : [wiki](https://github.com/nicolegrimpeur/SecretLink/wiki).** Ce README ne couvre que le démarrage sur le dépôt.
 
-## Architecture
-
-| Composant | Technologie | Description |
-|-----------|-------------|-------------|
-| `server/` | Node.js / Express / TypeScript | API REST |
-| `client/` | Angular / Ionic + nginx | Application web **et** point d'entrée unique |
-| `deploy/` | Docker Compose | Orchestration des services |
-| `extension/` | Chrome Extension (MV3) | Extension navigateur |
-
-### Point d'entrée unique
-
-Toute l'application est servie sous **une seule origine**. Le nginx du conteneur `client`
-sert la SPA et proxifie l'API :
-
-```
-                        ┌─ /       → fichiers statiques Angular
-Internet ─→ client:80 ──┤
-            (nginx)     └─ /api/*  → server:3000 (préfixe /api retiré)
-```
-
-Le conteneur `server` ne publie aucun port : il n'est joignable que par nginx. Le front
-et l'API partageant la même origine, le navigateur ne déclenche aucun CORS ; le
-middleware CORS côté serveur ne subsiste que pour l'extension (`chrome-extension://`,
-épinglée par `ALLOWED_EXTENSION_IDS`) et d'éventuels clients natifs ou auto-hébergés.
-
-L'allowlist d'origines est partagée avec la porte anti-CSRF
-([`server/src/config/origins.ts`](server/src/config/origins.ts)) : les deux couches ne
-peuvent pas diverger sur ce qu'est une origine de confiance.
-
-Le routage vit dans [`client/nginx/nginx.conf`](client/nginx/nginx.conf), donc versionné
-et identique en local et en production.
-
----
+| Dossier | Contenu |
+|---|---|
+| `server/` | API Express (TypeScript), migrations SQL |
+| `client/` | front Angular + Ionic, config nginx (point d'entrée unique) |
+| `extension/` | extension Chrome |
+| `e2e/` | tests end-to-end Playwright |
+| `deploy/` | fichiers Docker Compose |
+| `api/` | collection Postman |
 
 ## Prérequis
 
-- [Docker](https://www.docker.com/) et Docker Compose
-- Node.js 20+ *(pour le développement local uniquement)*
+- Node.js dans la version du `.nvmrc` (`nvm use`)
+- Docker et Docker Compose
 
----
+Quatre projets npm indépendants, sans workspaces :
 
-## Lancement avec Docker
+```bash
+npm ci && npm --prefix server ci && npm --prefix client ci && npm --prefix e2e ci
+```
 
-### 1. Configurer les variables d'environnement
+## Lancer l'application
 
 ```bash
 cd deploy
-copy .env.example .env   # Windows
-# cp .env.example .env   # Linux/macOS
-```
-
-Remplir les valeurs dans `.env` :
-
-| Variable | Description | Exemple |
-|----------|-------------|---------|
-| `MYSQL_USER` | Utilisateur MySQL | `link` |
-| `MYSQL_PASSWORD` | Mot de passe MySQL | *(chaîne aléatoire)* |
-| `MASTER_KEY_V1` | Clé de chiffrement AES-256 (64 caractères hex) | `openssl rand -hex 32` |
-| `SESSION_SECRET` | Secret de session (32 car. min.) | `openssl rand -base64 32` |
-| `IP_HMAC_SECRET` | Secret HMAC pour pseudonymiser IP/email dans les logs (32 car. min.) | `openssl rand -base64 32` |
-| `FRONT_BASE_URL` | Origine publique unique (front + API sous `/api`) | `http://localhost` |
-| `TRUST_PROXY` | Nombre de proxys de confiance devant le serveur - **voir ci-dessous** | `2` en prod, `1` en dev |
-| `ALLOWED_EXTENSION_IDS` | IDs d'extensions Chrome autorisées (virgules). Vide = toutes | `dbneilg…npel` |
-| `SECRETLINK_TAG` | Version des images à tirer de GHCR, sans le `v` | `0.19.5` |
-
-⚠️ `TRUST_PROXY` se compte en partant du serveur, et le nginx qui proxifie `/api` compte
-pour un saut. Une valeur trop basse fait partager un même quota et un même hash d'IP à
-tous les visiteurs ; une valeur trop haute rend `X-Forwarded-For` forgeable. Le détail
-par topologie est documenté dans [`deploy/.env.example`](deploy/.env.example).
-
-### 2. Créer le volume de base de données
-
-```bash
-docker volume create secretlink-db-data
-```
-
-### 3. Démarrer les services
-
-**Production** - les images sont **tirées de GHCR**, pas construites sur l'hôte. Elles sont
-publiées par [`release.yml`](.github/workflows/release.yml) à chaque merge qui bumpe la
-version. Aucun port publié : la stack est destinée à être placée derrière un reverse proxy
-(Traefik/Dokploy) qui route l'unique hostname vers le service `client`.
-
-```bash
-cd deploy
-. .\.env.local.ps1          # charge le .env dans l'environnement (PowerShell)
-docker compose pull
-docker compose up -d
-```
-
-> **Mise à jour ou rollback** : changer `SECRETLINK_TAG` dans `.env`, puis rejouer les deux
-> commandes. C'est la seule manipulation. Un `SECRETLINK_TAG` absent fait échouer Compose
-> avec un message explicite, plutôt que de retomber silencieusement sur `latest`.
-
-**Développement** (`80` pour l'application complète, `3000` pour taper l'API en direct,
-`3306` pour MySQL) :
-
-```bash
-cd deploy
-. .\.env.local.ps1
+cp .env.example .env      # renseigner les secrets ; TRUST_PROXY=1 pour ce compose
 docker compose -f docker-compose-dev.yml up --build
 ```
 
----
+Application sur <http://localhost>, API en direct sur le port 3000, MySQL sur 3306. Lancement sans Docker : [Développement local](https://github.com/nicolegrimpeur/SecretLink/wiki/Développement-local).
 
-## Développement local (sans Docker)
-
-### Serveur
+## Tester
 
 ```bash
-cd server
-npm install
-npm run build      # compile TypeScript → dist/
-npm run dev        # démarre avec --watch
+npm run usine        # intégration serveur + unitaires client
+npm run usine:full   # + end-to-end
 ```
 
-Créer un fichier `server/.env` avec les mêmes variables que `deploy/.env.example` (adapter `MYSQL_HOST` à `localhost`).
+C'est la même chaîne que la CI. Détails : [Tests et usine](https://github.com/nicolegrimpeur/SecretLink/wiki/Tests-et-usine).
 
-### Client
+## Livrer
 
 ```bash
-cd client
-npm install
-npm start          # lance ionic serve sur http://localhost:8100
+npm version patch --no-git-tag-version   # ou minor / major, dans la PR
 ```
 
-Le serveur de développement Angular reproduit le point d'entrée unique : les appels vers
-`/api` sont proxifiés vers `http://localhost:3000` via
-[`client/proxy.conf.json`](client/proxy.conf.json). Le serveur doit donc tourner en
-parallèle, avec `TRUST_PROXY=0` (le proxy Angular n'est pas un reverse proxy de
-confiance).
+Le merge dans `master` publie les images et la release. Voir [CI et livraison](https://github.com/nicolegrimpeur/SecretLink/wiki/CI-et-livraison).
 
-> **Build natif Capacitor** : `apiBaseUrl` est relatif (`/api`), ce qui suppose que la
-> SPA et l'API partagent une origine. Une application native (origine
-> `capacitor://localhost`) devrait repasser sur une URL absolue dans son propre fichier
-> d'environnement.
+## Pour aller plus loin
 
----
-
-## Tests
-
-L'usine complète, en une commande depuis la racine :
-
-```bash
-npm run usine
-```
-
-Elle enchaîne : contrôle de cohérence des versions → démarrage d'une base MySQL éphémère →
-tests d'intégration du serveur → tests unitaires du client → arrêt de la base. Comptez
-environ 2 minutes. Aucun navigateur n'est nécessaire : les deux suites tournent sous Vitest.
-
-### Les trois niveaux de test
-
-| Niveau | Ce qui est testé | Infrastructure | Commande |
-|---|---|---|---|
-| **Unitaire** | composants et services Angular, isolés (jsdom) | aucune | `npm run test:unit` |
-| **Intégration** | l'API Express contre une vraie base : routes, codes de retour, SQL | MySQL seul, `docker-compose.integration.yml` | `npm run test:integration` |
-| **End-to-end** | l'application complète dans un navigateur, via nginx | pile complète, `docker-compose.e2e.yml` | `npm run test:e2e` |
-
-Chaque niveau qui a besoin d'infrastructure a sa paire `<niveau>:up` / `<niveau>:down`.
-`npm run usine` enchaîne les deux premiers, `npm run usine:full` y ajoute l'end-to-end.
-
-### Commandes séparées
-
-```bash
-npm run integration:up     # MySQL éphémère sur le port 3307, migrations appliquées
-npm run test:integration   # tests d'intégration du serveur
-npm run test:unit          # tests unitaires du client
-npm run integration:down   # arrêt et suppression de la base
-
-npm --prefix server run test:watch        # boucle de développement, serveur
-npm --prefix client run test:watch        # boucle de développement, client
-npm --prefix server run typecheck:tests   # type-check des tests, sans émission
-```
-
-Les variantes `test:ci` (`npm --prefix server run test:ci`, idem client) ajoutent la
-couverture et un rapport JUnit dans `reports/` - c'est ce que la CI consomme.
-
-Le serveur a besoin de la base ; les tests client, non. Si l'usine échoue, la base **reste
-debout** volontairement, pour pouvoir l'inspecter :
-
-```bash
-docker exec secretlink-integration-db-1 mysql -ulink -pcipass secretLink -e "SELECT * FROM links"
-```
-
-### Tests unitaires du client
-
-Ils utilisent le builder `@angular/build:unit-test` avec Vitest. Le builder initialise lui-même les polyfills et le `TestBed`, il n'y a donc pas de fichier d'amorçage à maintenir.
-
-[`client/vitest.config.ts`](client/vitest.config.ts) ne corrige qu'un point : `@ionic/angular`
-importe un *répertoire* (`@ionic/core/components`), ce que le résolveur ESM de Node refuse.
-Inliner Ionic force Vite à le résoudre lui-même.
-
-### Tests end-to-end
-
-Playwright contre la stack Docker complète (MySQL + serveur + nginx), qui reproduit le point
-d'entrée unique de la production :
-
-```bash
-npm run e2e:up      # build les images et monte la stack (~2 min la 1re fois)
-npm run test:e2e    # joue la suite (~20 s)
-npm run e2e:down
-
-npm run usine:full  # tout : unitaires, intégration, puis end-to-end
-```
-
-Ils ne rejouent **pas** le contrat de l'API - les tests d'intégration s'en chargent. Ils
-vérifient ce que seule la stack assemblée peut prouver : le routage nginx, le parcours du lien
-à usage unique dans un vrai navigateur, et la chaîne d'authentification MFA complète.
-Détails, contraintes et diagnostic dans [`e2e/README.md`](e2e/README.md).
-
-### Configuration des tests serveur
-
-[`server/.env.test`](server/.env.test) est **committé volontairement** : toutes ses valeurs
-sont jetables et n'ont de sens que face à la base éphémère. Elles prennent le pas sur votre
-`server/.env` local, car `dotenv` n'écrase jamais une variable déjà définie.
-
-> ⚠️ N'y recopiez **jamais** une valeur de `deploy/.env`. La suite vide les tables à chaque
-> test, et `MASTER_KEY_V1` est la clé qui déchiffre tous les secrets stockés.
-
----
-
-## Migrations de schéma
-
-Le schéma vit dans [`server/migrations/`](server/migrations/), une suite de fichiers SQL
-appliqués dans l'ordre de leur nom. C'est la **source unique de vérité** : prod, dev, tests
-d'intégration et e2e passent tous par là.
-
-> Les scripts d'init de l'image MySQL (`/docker-entrypoint-initdb.d`) ne sont pas utilisés :
-> MySQL ne les exécute que sur un volume **vierge**, ils ne peuvent donc pas faire évoluer
-> une base existante. Les migrations, elles, s'appliquent aussi bien à une base neuve qu'à
-> la production.
-
-### Créer une migration
-
-Un fichier `server/migrations/<horodatage>_<description>.sql`, par exemple
-`20260910093000_ajout_colonne_x.sql`. Deux règles :
-
-- **Ne jamais modifier une migration déjà appliquée** - elle ne sera pas rejouée. Toute
-  correction passe par une nouvelle migration.
-- **L'écrire pour pouvoir être rejouée sans dommage.** MySQL committe implicitement à chaque
-  instruction DDL : une transaction ne protégerait rien, et une migration interrompue à
-  mi-parcours doit pouvoir être relancée.
-
-### Appliquer
-
-En production et en développement Docker, c'est **automatique** : un service `migrate`
-s'exécute entre la base et le serveur, et ce dernier n'est lancé qu'après sa sortie en succès.
-Aucune version ne tourne donc jamais contre un schéma qu'elle n'attend pas.
-
-```
-db (healthy) → migrate (exit 0) → server → client
-```
-
-À la main, contre la base configurée dans `server/.env` :
-
-```bash
-npm run db:migrate           # applique ce qui manque
-npm run db:migrate:status    # liste sans rien appliquer
-```
-
-`npm run integration:up` s'en charge pour la base des tests d'intégration.
-
-### Adopter les migrations sur une base existante
-
-La migration initiale est écrite en `CREATE TABLE IF NOT EXISTS` et `INSERT IGNORE` : sur une
-base qui possède déjà le schéma, elle ne fait rien mais est enregistrée comme appliquée. Il n'y
-a donc **aucune manipulation particulière** pour une base de production déjà en service - le
-premier déploiement l'adopte tout seul.
-
-> C'est aussi la raison pour laquelle l'ancien fichier n'a pas été repris tel quel : il
-> commençait par `DROP TABLE IF EXISTS` sur chaque table.
-
-Le runner est [`server/scripts/migrate.mjs`](server/scripts/migrate.mjs). Il lit **les mêmes
-variables d'environnement que le serveur** - délibérément, pour qu'il n'existe pas deux
-configurations de base de données susceptibles de diverger.
-
----
-
-## Intégration continue et livraison
-
-### Le gate de merge
-
-[`ci.yml`](.github/workflows/ci.yml) tourne sur chaque PR vers `master`, sur les pushs dans
-`master`, et à la demande. Sept jobs : détection des changements, cohérence des versions,
-serveur (typage + lint + build + tests d'intégration), client (lint + build + tests
-unitaires), extension (manifest + syntaxe + garde de bump), end-to-end (stack Docker + 16
-tests Playwright + démarrage en mode production), puis **`ci-gate`**.
-
-`ci-gate` est le **seul** check requis par la protection de branche. Il agrège les six autres
-et traite `skipped` comme un succès - les jobs sont filtrés par chemin, une PR ne touchant que
-le client n'a aucune raison de lancer les tests serveur. C'est aussi ce qui évite qu'une PR
-reste bloquée indéfiniment en « waiting for status ».
-
-**Aucun secret n'est nécessaire.** Les valeurs de test sont committées
-([`server/.env.test`](server/.env.test)) ou écrites en dur dans les compose de test, et la
-publication sur GHCR utilise le `GITHUB_TOKEN` automatique.
-
-### Livrer une version
-
-1. Bumper la `version` du `package.json` **racine**, puis `npm run version:sync` (le hook npm
-   `version` le fait et stage les fichiers). La synchronisation couvre `client`, `server`,
-   `e2e` et la collection Postman (`info.version` de `api/SecretLink API.json`).
-2. Merger la PR dans `master`.
-
-[`release.yml`](.github/workflows/release.yml) prend le relais : il compare la version au
-dernier tag et, si elle est nouvelle, construit et pousse les deux images sur GHCR, crée le
-tag `vX.Y.Z`, puis publie une Release avec les PR mergées, la liste des commits, les
-coordonnées des images et le zip de l'extension. Si la version est déjà taguée - le cas de la
-plupart des pushs - il ne fait rien.
-
-Les images sont poussées **avant** la création du tag : un build raté ne laisse ni tag ni
-release, donc un rejeu repart proprement.
-
-> L'`extension` suit son propre cycle de version : le Chrome Web Store exige des versions
-> strictement croissantes, et le manifest est déjà en `1.x`. `sync-version.mjs` ne l'aligne
-> donc pas sur la version du dépôt.
-
-#### Images multi-architecture
-
-Les deux images sont publiées pour **`linux/amd64` et `linux/arm64`** - la production tourne
-sur un Raspberry Pi 64 bits. Un `docker pull` sélectionne automatiquement la bonne
-architecture, il n'y a rien à préciser côté hôte.
-
-Chaque architecture est construite sur un **runner natif** (`ubuntu-24.04-arm` pour arm64),
-pas sous QEMU : ces runners sont gratuits sur dépôt public, l'émulation d'un build Angular
-coûterait 5 à 10 fois plus cher, et esbuild - que la chaîne Angular utilise - est une source
-connue d'échecs erratiques sous émulation.
-
-Les quatre legs poussent **sans tag, par digest seul** ; le job `manifest` assemble ensuite
-l'index qui reçoit les tags. C'est ce qui évite que deux builds parallèles s'écrasent un tag,
-et une garde vérifie que les deux architectures sont bien présentes avant de continuer - un
-index amputé ne se verrait sinon qu'au `docker pull` sur le Pi.
-
-```bash
-# Vérifier ce que contient une image publiée
-docker buildx imagetools inspect ghcr.io/nicolegrimpeur/secretlink-server:latest
-```
-
-### Protection de `master`
-
-Ruleset à configurer dans l'interface GitHub. Les valeurs et, surtout, **leurs raisons** :
-
-| Réglage | Valeur | Pourquoi |
-|---|---|---|
-| Require a pull request before merging | on | c'est ce qui rend le gate incontournable |
-| Required approvals | **0** | GitHub interdit d'approuver sa propre PR : à `1`, aucune PR ne serait mergeable en solo |
-| Require extra approval for unattributed changes | **off** | même piège : un commit dont l'email n'est pas rattaché au compte exigerait une approbation impossible à donner |
-| Require status checks | on, **`ci-gate` seul** | les autres jobs sont conditionnels ; exiger un job skippé bloque la PR |
-| Require branches to be up to date | on | couvre les conflits sémantiques avant le merge |
-| Require linear history | on | va avec le squash, garde `git log` exploitable par le changelog |
-| Block force pushes, Restrict deletions | on | |
-| Require conversation resolution | on | discipline gratuite, fonctionne même en solo |
-| Bypass actors | rôle *Repository admin* | échappatoire journalisée ; sans elle, le geste de secours est de désactiver le ruleset |
-
-Hors ruleset, deux réglages tout aussi structurants :
-
-- **Settings → General → Pull Requests** : squash merge uniquement, message par défaut
-  *Pull request title and description*. Un commit `master` = une PR, ce qui rend les notes de
-  release natives exploitables.
-- **Settings → Actions → General → Workflow permissions** : *Read and write*. C'est un
-  **plafond** - un `permissions: contents: write` déclaré dans un job ne peut pas le dépasser.
-  En read-only, `release.yml` échoue à la création du tag sur un 403 trompeur.
-
----
-
-## Extension navigateur
-
-1. Ouvrir Chrome → `chrome://extensions`
-2. Activer le **mode développeur**
-3. Cliquer **Charger l'extension non empaquetée**
-4. Sélectionner le dossier `extension/`
-
-L'extension permet de générer des liens SecretLink directement depuis le navigateur.
+- [Architecture](https://github.com/nicolegrimpeur/SecretLink/wiki/Architecture)
+- [API](https://github.com/nicolegrimpeur/SecretLink/wiki/API)
+- [Base de données et migrations](https://github.com/nicolegrimpeur/SecretLink/wiki/Base-de-données-et-migrations)
+- [Auto-hébergement](https://github.com/nicolegrimpeur/SecretLink/wiki/Auto-hébergement)

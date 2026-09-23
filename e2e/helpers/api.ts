@@ -49,8 +49,8 @@ export interface ApiUser {
  * conservé par l'`APIRequestContext` appelant, donc les requêtes suivantes
  * sont authentifiées.
  *
- * ⚠️ Consomme un des **5 signups par heure et par IP** autorisés. Voir la note
- * en tête de e2e/README.md.
+ * ⚠️ Consomme un des **5 signups par heure et par IP** autorisés. Voir la section « limiteur
+ * d'inscription » de e2e/README.md.
  */
 export async function signupAndLoginViaApi(request: APIRequestContext): Promise<ApiUser> {
   emailCounter += 1;

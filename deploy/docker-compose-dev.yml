@@ -1,6 +1,6 @@
 services:
   db:
-    # Image, fuseau et scripts d'init : voir docker-compose.db.yml.
+    # Image et fuseau : voir docker-compose.db.yml.
     extends:
       file: docker-compose.db.yml
       service: db
