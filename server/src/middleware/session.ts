@@ -9,9 +9,15 @@ import { userStore } from '../modules/users/user.store.js';
  * Session management - using JWT in HttpOnly cookies
  */
 
+// Session and pre-auth tokens share SESSION_SECRET: the audience is what tells them
+// apart. A pre-auth token only proves the password, so it must never pass for a session.
+const SESSION_AUDIENCE = 'session';
+const PRE_AUTH_AUDIENCE = 'pre-auth';
+
 export function issueSession(res: Response, payload: SessionPayload): void {
   const token = jwt.sign(payload, config.SESSION_SECRET, {
     algorithm: 'HS256',
+    audience: SESSION_AUDIENCE,
     expiresIn: config.SESSION_TTL_SECONDS,
   });
 
@@ -59,6 +65,7 @@ export function issuePreAuthToken(userId: number): string {
   const payload: PreAuthPayload = { userId, mfaPending: true };
   return jwt.sign(payload, config.SESSION_SECRET, {
     algorithm: 'HS256',
+    audience: PRE_AUTH_AUDIENCE,
     expiresIn: 300, // 5 minutes
   });
 }
@@ -69,7 +76,10 @@ export function issuePreAuthToken(userId: number): string {
  */
 export function verifyPreAuthToken(token: string): { userId: number } {
   try {
-    const decoded = jwt.verify(token, config.SESSION_SECRET) as PreAuthPayload;
+    const decoded = jwt.verify(token, config.SESSION_SECRET, {
+      algorithms: ['HS256'],
+      audience: PRE_AUTH_AUDIENCE,
+    }) as PreAuthPayload;
     if (!decoded.mfaPending) {
       throw new UnauthorizedError('Invalid pre-auth token');
     }
@@ -79,6 +89,21 @@ export function verifyPreAuthToken(token: string): { userId: number } {
     if (err instanceof jwt.TokenExpiredError) throw new PreAuthExpiredError();
     throw new UnauthorizedError('Invalid or expired pre-auth token');
   }
+}
+
+/**
+ * Verify a session token and return its payload. Shared by sessionAuth and authEither
+ * so the two cannot drift apart. Throws on anything that is not a session: bad
+ * signature, expiry, wrong audience (a pre-auth token) or a `mfaPending` claim.
+ */
+export function verifySessionToken(token: string): SessionPayload {
+  const decoded = jwt.verify(token, config.SESSION_SECRET, {
+    algorithms: ['HS256'],
+    audience: SESSION_AUDIENCE,
+  }) as SessionPayload & { mfaPending?: unknown };
+  // Redundant with the audience check, kept as a second lock on the MFA bypass.
+  if (decoded.mfaPending) throw new UnauthorizedError('Invalid session');
+  return decoded;
 }
 
 /**
@@ -98,7 +123,7 @@ export async function sessionAuth(
 
     let decoded: SessionPayload;
     try {
-      decoded = jwt.verify(token, config.SESSION_SECRET) as SessionPayload;
+      decoded = verifySessionToken(token);
     } catch {
       throw new UnauthorizedError('Invalid or expired session');
     }

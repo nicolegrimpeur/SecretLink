@@ -213,6 +213,25 @@ describe('POST /users/mfa/verify', () => {
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe('UNAUTHORIZED');
   });
+
+  // Le pre_auth_token ne prouve que le mot de passe : posé en cookie de session,
+  // il ne doit ouvrir aucune route, sans quoi le MFA serait contournable.
+  it('refuse un pre_auth_token posé en cookie de session → 401 partout', async () => {
+    const user = await signupUser(app);
+    const login = await api(app)
+      .post('/users/login')
+      .send({ email: user.email, password: user.password });
+    const cookie = `sid=${login.body.pre_auth_token}`;
+
+    const me = await api(app).get('/users/me').set('Cookie', cookie);
+    expect(me.status).toBe(401);
+
+    const status = await api(app).get('/links/status').set('Cookie', cookie);
+    expect(status.status).toBe(401);
+
+    const pat = await api(app).post('/users/tokens').set('Cookie', cookie).send({});
+    expect(pat.status).toBe(401);
+  });
 });
 
 describe('session', () => {
