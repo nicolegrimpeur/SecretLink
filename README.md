@@ -155,13 +155,24 @@ Elle enchaîne : contrôle de cohérence des versions → démarrage d'une base 
 tests d'intégration du serveur → tests unitaires du client → arrêt de la base. Comptez
 environ 2 minutes. Aucun navigateur n'est nécessaire : les deux suites tournent sous Vitest.
 
+### Les trois niveaux de test
+
+| Niveau | Ce qui est testé | Infrastructure | Commande |
+|---|---|---|---|
+| **Unitaire** | composants et services Angular, isolés (jsdom) | aucune | `npm run test:unit` |
+| **Intégration** | l'API Express contre une vraie base : routes, codes de retour, SQL | MySQL seul, `docker-compose.integration.yml` | `npm run test:integration` |
+| **End-to-end** | l'application complète dans un navigateur, via nginx | pile complète, `docker-compose.e2e.yml` | `npm run test:e2e` |
+
+Chaque niveau qui a besoin d'infrastructure a sa paire `<niveau>:up` / `<niveau>:down`.
+`npm run usine` enchaîne les deux premiers, `npm run usine:full` y ajoute l'end-to-end.
+
 ### Commandes séparées
 
 ```bash
-npm run db:test:up        # MySQL éphémère sur le port 3307, schéma + seed appliqués
-npm run test:server       # tests d'intégration serveurs
-npm run test:client       # tests unitaires Angular
-npm run db:test:down      # arrêt et suppression du volume
+npm run integration:up     # MySQL éphémère sur le port 3307, migrations appliquées
+npm run test:integration   # tests d'intégration du serveur
+npm run test:unit          # tests unitaires du client
+npm run integration:down   # arrêt et suppression de la base
 
 npm --prefix server run test:watch        # boucle de développement, serveur
 npm --prefix client run test:watch        # boucle de développement, client
@@ -175,7 +186,7 @@ Le serveur a besoin de la base ; les tests client, non. Si l'usine échoue, la b
 debout** volontairement, pour pouvoir l'inspecter :
 
 ```bash
-docker exec secretlink-test-db-1 mysql -ulink -pcipass secretLink -e "SELECT * FROM links"
+docker exec secretlink-integration-db-1 mysql -ulink -pcipass secretLink -e "SELECT * FROM links"
 ```
 
 ### Tests unitaires du client
@@ -221,9 +232,10 @@ Le schéma vit dans [`server/migrations/`](server/migrations/), une suite de fic
 appliqués dans l'ordre de leur nom. C'est la **source unique de vérité** : prod, dev, tests
 d'intégration et e2e passent tous par là.
 
-> Auparavant le schéma était posé par `deploy/mysql-init/`, que MySQL n'exécute que sur un
-> volume **vierge**. Il ne pouvait donc jamais faire évoluer une base existante : le schéma
-> était la seule pièce du système sans chemin outillé vers la production.
+> Les scripts d'init de l'image MySQL (`/docker-entrypoint-initdb.d`) ne sont pas utilisés :
+> MySQL ne les exécute que sur un volume **vierge**, ils ne peuvent donc pas faire évoluer
+> une base existante. Les migrations, elles, s'appliquent aussi bien à une base neuve qu'à
+> la production.
 
 ### Créer une migration
 
@@ -253,7 +265,7 @@ npm run db:migrate           # applique ce qui manque
 npm run db:migrate:status    # liste sans rien appliquer
 ```
 
-`npm run db:test:up` s'en charge pour la base de test.
+`npm run integration:up` s'en charge pour la base des tests d'intégration.
 
 ### Adopter les migrations sur une base existante
 

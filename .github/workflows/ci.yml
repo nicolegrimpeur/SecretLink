@@ -74,9 +74,8 @@ jobs:
             server:
               - *shared
               - 'server/**'
-              - 'deploy/mysql-init/**'
               - 'deploy/docker-compose.db.yml'
-              - 'deploy/docker-compose.test.yml'
+              - 'deploy/docker-compose.integration.yml'
             client:
               - *shared
               - 'client/**'
@@ -172,7 +171,7 @@ jobs:
       # Le même script qu'en local : si la CI inventait ses propres commandes,
       # les deux divergeraient sans qu'on le voie.
       - name: Base MySQL éphémère
-        run: npm run db:test:up
+        run: npm run integration:up
 
       - name: Tests d'intégration
         working-directory: server
@@ -180,7 +179,7 @@ jobs:
 
       - name: Logs MySQL en cas d'échec
         if: failure()
-        run: docker compose -f deploy/docker-compose.test.yml logs db
+        run: docker compose -f deploy/docker-compose.integration.yml logs db
 
       - name: Publication du rapport de tests
         if: always()
@@ -195,7 +194,7 @@ jobs:
 
       - name: Arrêt de la base
         if: always()
-        run: npm run db:test:down
+        run: npm run integration:down
 
   # ───────────────────────────────────────────────────────────────────────────
   #  Client : lint, build de production, tests unitaires (jsdom, sans navigateur)

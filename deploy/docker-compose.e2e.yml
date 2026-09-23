@@ -21,8 +21,8 @@ services:
     environment:
       MYSQL_USER: link
       MYSQL_PASSWORD: cipass
-    # Datadir en RAM : la base est reconstruite à chaque `up`, donc les scripts
-    # de mysql-init rejouent systématiquement.
+    # Datadir en RAM : la base est reconstruite à chaque `up`, et le service
+    # `migrate` y rejoue toutes les migrations.
     tmpfs:
       - /var/lib/mysql
     healthcheck:

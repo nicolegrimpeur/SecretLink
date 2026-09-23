@@ -14,7 +14,7 @@ const TABLES = [
   'users',
 ] as const;
 
-/** Id de l'utilisateur anonyme partagé, cf. deploy/mysql-init/02-seed-data.sql. */
+/** Id de l'utilisateur anonyme partagé, inséré par la migration initiale (server/migrations/20260906120000_initial_schema.sql). */
 export const ANONYMOUS_USER_ID = 1;
 
 /**
