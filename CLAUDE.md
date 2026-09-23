@@ -50,4 +50,4 @@ Vérifier avec l'usine avant d'annoncer qu'un changement fonctionne ; `usine:ful
 - Commentaires et documentation décrivent **l'état actuel**, jamais l'historique des changements.
 - Pas de versions ni de compteurs en dur qui dériveraient : renvoyer vers `package.json`, `.nvmrc` ou la commande qui donne la valeur.
 - Documentation **synthétique** : l'utile pour utiliser, déployer ou modifier ; pas de justification de chaque décision.
-- Une branche par sujet ; Nicolas crée les branches, commite et pousse. Proposer un texte de PR court : il alimente les notes de release.
+- Une branche par sujet ; l'utilisateur crée les branches, commite et pousse. Proposer un texte de PR court : il alimente les notes de release.
