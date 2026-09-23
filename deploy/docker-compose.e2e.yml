@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────────────────────────────────────
 #  Stack complète et éphémère pour les tests end-to-end.
-#      npm run e2e:up   /   npm run e2e:test   /   npm run e2e:down
+#      npm run e2e:up   /   npm run test:e2e   /   npm run e2e:down
 #
 #  Reproduit le point d'entrée unique de la production : seul le nginx du
 #  service `client` publie un port, et il proxifie /api vers `server`. Les
@@ -14,7 +14,7 @@ name: secretlink-e2e
 
 services:
   db:
-    # Image, fuseau et scripts d'init : voir docker-compose.db.yml.
+    # Image et fuseau : voir docker-compose.db.yml.
     extends:
       file: docker-compose.db.yml
       service: db

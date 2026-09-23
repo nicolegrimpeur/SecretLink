@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 #  Socle commun du service `db`, source unique de vérité pour tout ce qui doit
 #  rester identique entre la prod, le dev, les tests d'intégration et les e2e :
-#  la version de l'image, le fuseau et les scripts d'init.
+#  la version de l'image et le fuseau.
 #
 #  Ce fichier ne se lance pas seul : il est repris par `extends` dans les
 #  autres compose, qui n'ajoutent que ce qui leur est propre (identifiants,

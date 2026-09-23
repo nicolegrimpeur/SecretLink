@@ -6,7 +6,6 @@ dist
 .gitignore
 .DS_Store
 README.md
-ARCHITECTURE.md
 *.spec.ts
 *.test.ts
 tests

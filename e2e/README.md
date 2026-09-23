@@ -17,7 +17,7 @@ npm run usine:full
 
 ## Ce que ces tests apportent, et ce qu'ils n'apportent pas
 
-Les 98 tests d'intégration du serveur couvrent déjà **tous** les codes de retour de l'API.
+Les tests d'intégration du serveur couvrent déjà **tous** les codes de retour de l'API.
 Les rejouer ici n'apprendrait rien et coûterait cher. Cette suite ne vérifie donc que ce
 qu'eux ne *peuvent pas* prouver :
 
