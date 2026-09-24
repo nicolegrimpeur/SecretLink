@@ -25,6 +25,7 @@ import {addIcons} from "ionicons";
 import {copyOutline, lockClosedOutline} from "ionicons/icons";
 import {LinksService} from "../../core/links";
 import {CryptoService} from "../../shared/services/crypto";
+import {apiErrorText} from "../../shared/services/api-error";
 
 @Component({
   selector: 'app-redeem',
@@ -55,6 +56,13 @@ export class RedeemPage implements OnInit {
   });
   isPassphraseInvalid = signal(false);
 
+  // Formulations propres à cette page ; les autres codes passent par apiErrorText.
+  private readonly redeemErrorOverrides = {
+    NOT_FOUND: 'Lien introuvable.',
+    LINK_GONE: 'Lien déjà utilisé ou expiré.',
+    RATE_LIMITED: 'Trop de tentatives. Réessayez dans un instant.',
+  };
+
   constructor() {
     addIcons({lockClosedOutline, copyOutline});
   }
@@ -81,23 +89,17 @@ export class RedeemPage implements OnInit {
       this.secret.set(await this.crypto.decryptIfNeeded(redeemResponse.secret, pass));
       this.state.set('success');
     } catch (e) {
-      const err = e as HttpErrorResponse;
-      if (err.status === 403) {
-        if (err.error?.error?.code === 'PASSPHRASE_REQUIRED') {
-          this.state.set('passphrase_required');
-        } else if (err.error?.error?.code === 'INVALID_PASSPHRASE') {
-          this.state.set('passphrase_required');
-          this.isPassphraseInvalid.set(true);
-        }
+      const code: unknown = (e as HttpErrorResponse).error?.error?.code;
+      if (code === 'PASSPHRASE_REQUIRED' || code === 'INVALID_PASSPHRASE') {
+        this.state.set('passphrase_required');
+        this.isPassphraseInvalid.set(code === 'INVALID_PASSPHRASE');
       } else {
-        const status = err.status;
-        const msg =
-          status === 404 ? 'Lien introuvable.' :
-            status === 410 ? 'Lien déjà utilisé ou expiré.' :
-              status === 429 ? 'Trop de tentatives. Réessayez dans un instant.' :
-                status === 403 ? 'Passphrase incorrecte.' :
-                  err.error?.error?.message || 'Impossible de révéler le secret.';
-        this.fail(msg);
+        // Toute autre erreur, 403 compris, mène à l'état d'erreur : aucun cas ne
+        // doit laisser la page sur le chargement.
+        this.fail(apiErrorText(e, {
+          fallback: 'Impossible de révéler le secret.',
+          overrides: this.redeemErrorOverrides,
+        }));
       }
     } finally {
       this.loading.set(false);

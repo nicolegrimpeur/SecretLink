@@ -7,7 +7,7 @@
   @if (!createdToken()) {
     <form [formGroup]="form" (ngSubmit)="submit()">
       <ion-item>
-        <ion-input label="Label" placeholder="ex: bulk-import" formControlName="label"></ion-input>
+        <ion-input label="Label" placeholder="ex: bulk-import" formControlName="label" maxlength="128"></ion-input>
       </ion-item>
 
       <ion-list [inset]="true">

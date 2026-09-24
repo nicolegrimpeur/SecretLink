@@ -1,1 +1,1 @@
-export type RedeemResponse = { secret: string; item_id: string; expires_at?: string; passphrase_protected: boolean };
+export type RedeemResponse = { item_id: string; secret: string; redeemed_at: string };
