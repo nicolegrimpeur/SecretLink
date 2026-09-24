@@ -4,7 +4,8 @@ import { z } from 'zod';
 export const PAT_SCOPES = ['links:read', 'links:write', 'links:delete'] as const;
 
 export const CreateTokenReqSchema = z.object({
-  label: z.string().optional().nullable(),
+  // Borne de la colonne api_tokens.label (varchar(128)) : au-delà, 400 plutôt que 500.
+  label: z.string().max(128).optional().nullable(),
   // `.default()` de zod ne se déclenche que sur `undefined` : un tableau vide passerait
   // tel quel et produirait un PAT sans aucun scope, donc en 403 sur chaque appel. La
   // transformation couvre les deux cas, et déduplique.

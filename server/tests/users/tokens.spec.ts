@@ -78,6 +78,23 @@ describe('POST /users/tokens', () => {
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 
+  it('accepte un label de 128 caractères, la taille de la colonne', async () => {
+    const { cookie } = await createSignedInUser(app);
+    const label = 'x'.repeat(128);
+    const res = await api(app, { cookie }).post('/users/tokens').send({ label });
+
+    expect(res.status).toBe(201);
+    expect(res.body.pat.label).toBe(label);
+  });
+
+  it('refuse un label de plus de 128 caractères → 400, pas 500', async () => {
+    const { cookie } = await createSignedInUser(app);
+    const res = await api(app, { cookie }).post('/users/tokens').send({ label: 'x'.repeat(129) });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
   it('exige une session → 401 sans cookie', async () => {
     const res = await api(app).post('/users/tokens').send({});
 

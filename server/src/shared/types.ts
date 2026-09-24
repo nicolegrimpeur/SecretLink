@@ -48,13 +48,6 @@ export interface Link {
   created_at: Date;
 }
 
-export interface LinkItem {
-  id: number;
-  owner_user_id: number;
-  item_id: string;
-  created_at: Date;
-}
-
 export interface ApiToken {
   id: number;
   user_id: number;
@@ -87,22 +80,6 @@ export interface RecoveryCode {
   code_hash: string;
   used_at: Date | null;
   created_at: Date;
-}
-
-export interface AuditLog {
-  id: number;
-  owner_user_id: number;
-  item_id: string;
-  link_id: number;
-  event_type: string;
-  ip_hash: string | null;
-  user_agent: string | null;
-  created_at: Date;
-}
-
-export interface PaginationOptions {
-  limit: number;
-  offset: number;
 }
 
 export interface LinkStatus {
