@@ -211,17 +211,17 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
   @if (tab() === 'status') {
     <ion-grid>
       <ion-row>
-        <ion-col size="12" size-md="10" offset-md="1" size-lg="8" offset-lg="2">
+        <ion-col size="12" size-xl="10" offset-xl="1">
           <ion-card>
             <ion-card-header>
               <ion-grid>
                 <ion-row>
-                  <ion-col size="12" size-md="2" class="ion-display-flex ion-align-items-center">
+                  <ion-col size="12" size-lg="4" size-xl="3" class="ion-display-flex ion-align-items-center">
                     <ion-card-title>
                       Statut des liens
                     </ion-card-title>
                   </ion-col>
-                  <ion-col size="8" offset="2" class="ion-hide-md-down">
+                  <ion-col size="12" size-lg="8" size-xl="9" class="ion-hide-lg-down">
                     <ion-segment [value]="statusFilter().toString()"
                                  (ionChange)="setStatusFilter($event.detail.value ?? 'all')">
                       <ion-segment-button value="active">
@@ -262,7 +262,7 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
             </ion-card-header>
             <ion-card-content>
               <ion-list class="ion-no-padding">
-                <ion-item lines="none" class="ion-hide-md-up">
+                <ion-item lines="none" class="ion-hide-lg-up">
                   <ion-select aria-label="Statut du lien"
                               id="select-status-filter-mobile"
                               interface="popover"
@@ -304,7 +304,7 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                 </ion-item>
 
                 <ion-item class="grid-header ion-no-padding ion-text-center">
-                  <ion-col size="8" size-md="3" (click)="setSortColumn('item_id')" class="sortable-header">
+                  <ion-col size="8" size-lg="3" (click)="setSortColumn('item_id')" class="sortable-header">
                     <div class="header-content">
                       <b>Identifiant / Statut</b>
                       @if (getSortIcon('item_id')) {
@@ -312,7 +312,7 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                       }
                     </div>
                   </ion-col>
-                  <ion-col size="2" class="ion-hide-md-down sortable-header" (click)="setSortColumn('created_at')">
+                  <ion-col size="2" class="ion-hide-lg-down sortable-header" (click)="setSortColumn('created_at')">
                     <div class="header-content">
                       <b>Créé le</b>
                       @if (getSortIcon('created_at')) {
@@ -320,7 +320,7 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                       }
                     </div>
                   </ion-col>
-                  <ion-col size="2" class="ion-hide-md-down sortable-header" (click)="setSortColumn('expires_at')">
+                  <ion-col size="2" class="ion-hide-lg-down sortable-header" (click)="setSortColumn('expires_at')">
                     <div class="header-content">
                       <b>Expire le</b>
                       @if (getSortIcon('expires_at')) {
@@ -328,7 +328,7 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                       }
                     </div>
                   </ion-col>
-                  <ion-col size="2" class="ion-hide-md-down sortable-header" (click)="setSortColumn('used_at')">
+                  <ion-col size="2" class="ion-hide-lg-down sortable-header" (click)="setSortColumn('used_at')">
                     <div class="header-content">
                       <b>Utilisé le</b>
                       @if (getSortIcon('used_at')) {
@@ -336,7 +336,7 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                       }
                     </div>
                   </ion-col>
-                  <ion-col size="2" class="ion-hide-md-down sortable-header" (click)="setSortColumn('deleted_at')">
+                  <ion-col size="2" class="ion-hide-lg-down sortable-header" (click)="setSortColumn('deleted_at')">
                     <div class="header-content">
                       <b>Supprimé le</b>
                       @if (getSortIcon('deleted_at')) {
@@ -344,13 +344,13 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                       }
                     </div>
                   </ion-col>
-                  <ion-col size="4" size-md="1"><b>Actions</b></ion-col>
+                  <ion-col size="4" size-lg="1"><b>Actions</b></ion-col>
                 </ion-item>
 
                 @for (row of filteredRows(); track row.item_id) {
                   <ion-item class="grid-item ion-no-padding" lines="none">
                     <!-- Identifiant + Badges -->
-                    <ion-col size="8" size-md="3" class="grid-col ion-text-center">
+                    <ion-col size="8" size-lg="3" class="grid-col ion-text-center">
                       <div class="badge-align">
                         <b [title]="row.item_id" (click)="copy(row.item_id)" style="cursor: pointer;">
                           {{ row.item_id.length > 20 ? row.item_id.slice(0, 20) + '...' : row.item_id }}
@@ -371,24 +371,24 @@ bob@example.com,vpn-BOB,7,123456789"></ion-textarea>
                     </ion-col>
 
                     <!-- Dates -->
-                    <ion-col size="2" class="ion-hide-md-down grid-col ion-text-center">
+                    <ion-col size="2" class="ion-hide-lg-down grid-col date-col ion-text-center">
                       {{ row.created_at | date:'short' }}
                     </ion-col>
 
-                    <ion-col size="2" class="ion-hide-md-down grid-col ion-text-center">
+                    <ion-col size="2" class="ion-hide-lg-down grid-col date-col ion-text-center">
                       {{ row.expires_at ? (row.expires_at | date:'short') : '-' }}
                     </ion-col>
 
-                    <ion-col size="2" class="ion-hide-md-down grid-col ion-text-center">
+                    <ion-col size="2" class="ion-hide-lg-down grid-col date-col ion-text-center">
                       {{ row.used_at ? (row.used_at | date:'short') : '-' }}
                     </ion-col>
 
-                    <ion-col size="2" class="ion-hide-md-down grid-col ion-text-center">
+                    <ion-col size="2" class="ion-hide-lg-down grid-col date-col ion-text-center">
                       {{ row.deleted_at ? (row.deleted_at | date:'short') : '-' }}
                     </ion-col>
 
                     <!-- Actions -->
-                    <ion-col size="4" size-md="1" class="ion-display-flex ion-justify-content-center">
+                    <ion-col size="4" size-lg="1" class="ion-display-flex ion-justify-content-center">
                       <ion-buttons class="separate-buttons">
                         <ion-button
                           color="danger"
