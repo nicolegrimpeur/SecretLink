@@ -99,7 +99,7 @@ export class LayoutComponent implements OnInit {
   }
 
   onClickSecretLink()  {
-    this.nav.navigateRoot('/home').then();
+    this.nav.navigateRoot('/').then();
   }
 
   async handleLogout() {

@@ -1,0 +1,27 @@
+.not-found-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20vh 16px 0;
+  min-height: 100%;
+}
+
+.not-found-card {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.code {
+  margin: 0;
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ion-color-primary);
+}
+
+.hint {
+  margin-bottom: 1rem;
+}

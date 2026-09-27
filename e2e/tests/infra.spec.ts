@@ -27,6 +27,23 @@ test.describe('point d\'entrée unique', () => {
     }
   });
 
+  test('renvoie un vrai 404 sur une route inconnue, avec la SPA pour l\'afficher', async ({ request }) => {
+    for (const route of ['/nimporte-quoi', '/redeem/', '/legal/sous-page']) {
+      const res = await request.get(route);
+      expect(res.status(), route).toBe(404);
+      expect(await res.text()).toContain('<app-root');
+      expect(res.headers()['content-security-policy'], route).toContain("connect-src 'self'");
+    }
+  });
+
+  test('donne l\'URL canonique des pages publiques, sans paramètres', async ({ request, baseURL }) => {
+    const origin = new URL(baseURL!).origin;
+    const res = await request.get('/legal?utm_source=test');
+
+    expect(res.headers().link).toBe(`<${origin}/legal>; rel="canonical"`);
+    expect((await request.get('/dashboard')).headers().link).toBeUndefined();
+  });
+
   test('proxifie /api/health vers Express', async ({ request }) => {
     const res = await request.get('/api/health');
 
@@ -68,6 +85,8 @@ test.describe('point d\'entrée unique', () => {
     const body = await res.text();
     expect(body).toContain('Disallow: /api/');
     expect(body).toContain('Disallow: /redeem/');
+    expect(body).toContain('Allow: /auth');
+    expect(body).not.toContain('Disallow: /auth');
   });
 
   test('pose les en-têtes de la SPA par nginx, ceux de l\'API par helmet', async ({ request }) => {
