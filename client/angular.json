@@ -104,7 +104,7 @@
           "options": {
             "buildTarget": "app:build:development",
             "tsConfig": "tsconfig.spec.json",
-            "runnerConfig": "vitest.config.ts"
+            "runnerConfig": "vitest.config.mts"
           },
           "configurations": {
             "ci": {
