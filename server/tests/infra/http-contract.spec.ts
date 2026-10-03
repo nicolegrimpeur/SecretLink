@@ -28,14 +28,8 @@ describe('routes inconnues', () => {
   it('renvoie 404 JSON quelle que soit la méthode', async () => {
     const client = api(app);
 
-    for (const call of [
-      client.get('/route-inconnue'),
-      client.post('/route-inconnue'),
-      client.delete('/route-inconnue'),
-      client.put('/route-inconnue'),
-      client.patch('/route-inconnue'),
-    ]) {
-      const res = await call;
+    for (const method of ['get', 'post', 'delete', 'put', 'patch'] as const) {
+      const res = await client[method]('/route-inconnue');
       expect(res.status).toBe(404);
       expect(res.body.error.code).toBe('NOT_FOUND');
     }
