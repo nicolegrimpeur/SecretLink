@@ -1,4 +1,4 @@
-import {Component, DestroyRef, inject, OnInit, signal} from '@angular/core';
+import {Component, computed, DestroyRef, inject, OnInit, signal} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {apiErrorText} from '../../shared/services/api-error';
 import {
@@ -44,6 +44,7 @@ import {FormBuilder, ReactiveFormsModule, Validators} from "@angular/forms";
 import {LinkCreateResult, LinkCreateSingleItem} from "../../shared/models/link-create";
 import {ToastService} from "../../shared/services/toast";
 import {environment} from "../../../environments/environment";
+import {SECRET_MAX_ACCOUNT, SECRET_MAX_ANONYMOUS, trackLength} from "../../shared/forms/secret-length";
 
 @Component({
   selector: 'app-home',
@@ -84,8 +85,17 @@ export class HomePage implements OnInit {
   chromeExtensionUrl = environment.chromeExtensionUrl;
 
   loading = signal(false);
+  readonly secretMax = SECRET_MAX_ANONYMOUS;
+  readonly secretMaxAccount = SECRET_MAX_ACCOUNT;
   form = inject(FormBuilder).group({
-    secret: ['', [Validators.required]],
+    secret: ['', [Validators.required, Validators.maxLength(this.secretMax)]],
+  });
+  secretLength = trackLength(this.form.controls.secret, this.destroyRef);
+  secretError = computed(() => {
+    const length = this.secretLength();
+    if (length <= this.secretMax) return 'Ce champ est requis.';
+    return `Le secret fait ${length} caractères, la limite sans compte est de ${this.secretMax}. `
+      + `Connectez-vous ou utilisez l'extension pour aller jusqu'à ${this.secretMaxAccount}.`;
   });
   creationResult = signal<LinkCreateResult | null>(null);
 
