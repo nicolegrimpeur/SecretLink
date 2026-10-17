@@ -1,8 +1,8 @@
-import {Component, computed, ElementRef, inject, signal, ViewChild} from '@angular/core';
+import {Component, computed, DestroyRef, ElementRef, inject, signal, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {HttpErrorResponse} from '@angular/common/http';
 import {apiErrorText} from '../../shared/services/api-error';
-import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   AlertController,
   IonBadge,
@@ -40,6 +40,7 @@ import {StorageService} from "../../shared/services/storage";
 import {ToastService} from "../../shared/services/toast";
 import {ActivatedRoute} from "@angular/router";
 import {CryptoService} from "../../shared/services/crypto";
+import {SECRET_MAX_ACCOUNT, trackLength} from "../../shared/forms/secret-length";
 
 
 @Component({
@@ -56,6 +57,7 @@ export class LinksPage {
   private api = inject(LinksService);
   private storage = inject(StorageService);
   private toast = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
   private alert = inject(AlertController);
   private crypto = inject(CryptoService);
 
@@ -68,9 +70,10 @@ export class LinksPage {
   };
 
   // single
+  readonly secretMax = SECRET_MAX_ACCOUNT;
   form = inject(FormBuilder).group({
-    item_id: ['', [Validators.required]],
-    secret: ['', [Validators.required]],
+    item_id: ['', [Validators.required, Validators.maxLength(320)]],
+    secret: ['', [Validators.required, Validators.maxLength(this.secretMax)]],
     passphrase: ['', Validators.minLength(8)],
     ttl_days: [7, [Validators.min(0), Validators.max(365)]],
   });
@@ -87,15 +90,21 @@ export class LinksPage {
     const e = c.errors || {};
     if (e['required']) return 'Ce champ est requis.';
     if (e['minlength']) return '8 caractères minimum.';
+    if (e['maxlength']) return `${e['maxlength'].requiredLength} caractères maximum (actuellement ${e['maxlength'].actualLength}).`;
     if (e['min']) return 'Doit être supérieur ou égal à 0.';
     if (e['max']) return 'Doit être inférieur ou égal à 365 jours.';
     return 'Valeur invalide.';
   }
 
+  secretLength = trackLength(this.form.controls.secret, this.destroyRef);
+
   lastResults = signal<LinkCreateResult[] | null>(null);
 
   // quick
-  quickSecret = signal('');
+  quickSecret = new FormControl('', {nonNullable: true, validators: [Validators.maxLength(this.secretMax)]});
+  quickSecretLength = trackLength(this.quickSecret, this.destroyRef);
+  quickSecretError = computed(() =>
+    `${this.secretMax} caractères maximum (actuellement ${this.quickSecretLength()}).`);
   lastQuickResults = signal<LinkCreateResult[] | null>(null);
 
   // bulk
@@ -149,8 +158,8 @@ export class LinksPage {
   }
 
   async createQuick() {
-    const secret = this.quickSecret().trim();
-    if (!secret) return;
+    const secret = this.quickSecret.value.trim();
+    if (!secret || this.quickSecret.invalid) return;
 
     this.lastResults.set(null);
     this.loading.set(true);
@@ -166,7 +175,7 @@ export class LinksPage {
 
       this.lastQuickResults.set(await this.api.createBulk(payload));
       if (this.lastQuickResults()?.length) {
-        this.quickSecret.set('');
+        this.quickSecret.reset();
         await this.reload();
       }
     } catch (e) {

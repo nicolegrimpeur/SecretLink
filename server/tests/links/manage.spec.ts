@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from 'node:crypto';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../../src/app.js';
 import { createPat, createSignedInUser } from '../helpers/auth.js';
@@ -7,6 +8,17 @@ import { api } from '../helpers/http.js';
 const ISO_UTC = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
 const app = createApp();
+
+/**
+ * Payload de la taille exacte de ce que produit le front (CryptoService) pour
+ * ce clair : sel 16 octets, IV 12 octets, clair UTF-8 + tag GCM de 16 octets.
+ * Le contenu est aléatoire : le serveur ne déchiffre jamais.
+ */
+const encPayload = (plaintext: string) => {
+  const b64 = (bytes: number) => randomBytes(bytes).toString('base64');
+  return `enc:${b64(16)}:${b64(12)}:${b64(Buffer.byteLength(plaintext, 'utf8') + 16)}`;
+};
+const PASSPHRASE_HASH = createHash('sha256').update('une-passphrase').digest('hex');
 
 beforeEach(resetDb);
 afterAll(closeDb);
@@ -110,6 +122,41 @@ describe('POST /links/bulk - validation et statuts par item', () => {
       .post('/links/bulk')
       .send([{ item_id: 'trop-long', secret: 'x'.repeat(4097) }]);
     expect(tooLong.status).toBe(400);
+  });
+
+  it('applique la limite de 4096 au clair d\'un secret chiffré, pas au payload', async () => {
+    const { cookie } = await createSignedInUser(app);
+    const client = api(app, { cookie });
+
+    // Pire cas : 4096 caractères de 3 octets UTF-8 chacun.
+    const secret = encPayload('€'.repeat(4096));
+    expect(secret.length).toBeGreaterThan(4096);
+
+    const ok = await client
+      .post('/links/bulk')
+      .send([{ item_id: 'chiffre', secret, passphrase_hash: PASSPHRASE_HASH }]);
+    expect(ok.status).toBe(201);
+    expect(ok.body.results[0].status).toBe('created');
+
+    const tooLong = await client
+      .post('/links/bulk')
+      .send([{ item_id: 'chiffre-trop-long', secret: encPayload('€'.repeat(4097)), passphrase_hash: PASSPHRASE_HASH }]);
+    expect(tooLong.status).toBe(400);
+  });
+
+  it('refuse plus de 4096 caractères hors payload chiffré accompagné de passphrase_hash → 400', async () => {
+    const { cookie } = await createSignedInUser(app);
+    const client = api(app, { cookie });
+
+    const cases = [
+      { item_id: 'clair-avec-hash', secret: 'x'.repeat(4097), passphrase_hash: PASSPHRASE_HASH },
+      { item_id: 'chiffre-sans-hash', secret: encPayload('x'.repeat(4096)) },
+    ];
+    for (const item of cases) {
+      const res = await client.post('/links/bulk').send([item]);
+      expect(res.status, item.item_id).toBe(400);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    }
   });
 
   it('exige un passphrase_hash de 64 caractères hex minuscules → 400 sinon', async () => {

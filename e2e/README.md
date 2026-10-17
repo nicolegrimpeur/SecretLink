@@ -26,6 +26,8 @@ qu'eux ne *peuvent pas* prouver :
   `.js` n'est pas servie depuis le disque, et les deux jeux d'en-têtes de sécurité (nginx pour
   la SPA, helmet pour l'API) ne se superposent pas ;
 - **le parcours du lien à usage unique** dans un vrai navigateur, y compris la passphrase ;
+- **la limite de longueur du secret anonyme** : un secret trop long n'est pas tronqué par le
+  navigateur, le dépassement est signalé et la création bloquée ;
 - **la chaîne d'authentification complète** : inscription avec MFA, codes de récupération,
   connexion, cookie de session posé au travers du proxy, gardes de route Angular.
 
