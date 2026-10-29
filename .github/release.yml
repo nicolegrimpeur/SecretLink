@@ -21,6 +21,8 @@ changelog:
       labels: [bug, fix]
     - title: Sécurité
       labels: [security]
+    - title: Dépendances
+      labels: [dependencies]
     - title: Serveur
       labels: [server]
     - title: Client
@@ -29,8 +31,6 @@ changelog:
       labels: [extension]
     - title: Tests et CI
       labels: [ci, tests]
-    - title: Dépendances
-      labels: [dependencies]
     # Fourre-tout, OBLIGATOIREMENT en dernier : il capte tout ce qui reste.
     - title: Autres
       labels: ["*"]
