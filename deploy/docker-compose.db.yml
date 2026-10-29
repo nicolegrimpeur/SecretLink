@@ -23,7 +23,9 @@ services:
     # Version figée volontairement, plutôt que `mysql:lts` : un bump amont ne
     # doit pas pouvoir casser la CI sur une PR qui n'y touche pas. Comme les
     # quatre piles pointent ici, les tests valident bien la version livrée.
-    image: mysql:8.4
+    # Changer de série (LTS suivante) est irréversible sur une base existante :
+    # procédure dans la page wiki Auto-hébergement.
+    image: mysql:9.7
 
     # Fuseau explicite : NOW() et CURRENT_TIMESTAMP écrivent en UTC, comme le
     # driver côté serveur (timezone: 'Z'). Sans ça, le fuseau dépend de celui
