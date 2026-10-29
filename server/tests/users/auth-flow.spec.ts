@@ -4,6 +4,7 @@ import {
   createSignedInUser,
   loginFull,
   signupUser,
+  totpAt,
   totpNow,
   uniqueEmail,
 } from '../helpers/auth.js';
@@ -28,6 +29,28 @@ async function waitForNextSecond(): Promise<void> {
   while (Math.floor(Date.now() / 1000) === start) {
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
+}
+
+/**
+ * Attend la fenêtre TOTP suivante si la courante finit dans moins de 3 s.
+ * Borné à 3 s. Garantit que les fenêtres « précédente » et « suivante » d'un
+ * code généré restent les mêmes jusqu'à sa vérification.
+ */
+async function awayFromTotpStepEnd(): Promise<void> {
+  while ((Date.now() / 1000) % 30 > 27) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
+
+/** Login jusqu'au pre_auth_token, puis vérification MFA avec ce code. */
+async function verifyWithTotp(user: { email: string; password: string }, totpCode: string) {
+  const login = await api(app)
+    .post('/users/login')
+    .send({ email: user.email, password: user.password });
+  return api(app).post('/users/mfa/verify').send({
+    pre_auth_token: login.body.pre_auth_token,
+    totp_code: totpCode,
+  });
 }
 
 describe('POST /users/signup', () => {
@@ -130,6 +153,26 @@ describe('POST /users/mfa/verify', () => {
     const raw = (Array.isArray(setCookie) ? setCookie : [setCookie ?? '']).join(';');
     expect(raw).toContain('HttpOnly');
     expect(raw).not.toContain('Secure');
+  });
+
+  it('tolère un code TOTP de la fenêtre précédente ou suivante', async () => {
+    const user = await signupUser(app);
+    await awayFromTotpStepEnd();
+
+    const previous = await verifyWithTotp(user, await totpAt(user.totpSecret, -30));
+    expect(previous.status).toBe(200);
+
+    const next = await verifyWithTotp(user, await totpAt(user.totpSecret, 30));
+    expect(next.status).toBe(200);
+  });
+
+  it('refuse un code TOTP vieux de deux fenêtres → 401', async () => {
+    const user = await signupUser(app);
+    await awayFromTotpStepEnd();
+
+    const res = await verifyWithTotp(user, await totpAt(user.totpSecret, -60));
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('UNAUTHORIZED');
   });
 
   it('consomme un code de récupération, et le refuse au second usage → 401', async () => {

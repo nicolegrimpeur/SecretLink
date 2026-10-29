@@ -32,6 +32,11 @@ export function totpNow(secret: string): Promise<string> {
   return generateTotp({ secret });
 }
 
+/** Code TOTP de l'instant décalé de `offsetSeconds` (négatif = passé). */
+export function totpAt(secret: string, offsetSeconds: number): Promise<string> {
+  return generateTotp({ secret, epoch: Math.floor(Date.now() / 1000) + offsetSeconds });
+}
+
 /**
  * Inscrit un utilisateur en passant par le vrai flux MFA.
  *

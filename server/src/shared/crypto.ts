@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import argon2 from 'argon2';
 import ipaddr from 'ipaddr.js';
+import { verify as totpVerify } from 'otplib';
 import config from '../config/env.js';
 
 /**
@@ -135,6 +136,16 @@ export function decryptTotpSecret(cipher: Buffer, nonce: Buffer, userId: number)
   } catch {
     throw new Error('TOTP secret decryption failed');
   }
+}
+
+/**
+ * Check a TOTP code, accepting one 30 s step before and after the current one
+ * (RFC 6238 §5.2): without it, a code typed at the end of its window, or a
+ * phone clock a few seconds off, is rejected.
+ */
+export async function verifyTotp(token: string, secret: string): Promise<boolean> {
+  const result = await totpVerify({ token, secret, epochTolerance: 30 });
+  return result.valid;
 }
 
 /**
