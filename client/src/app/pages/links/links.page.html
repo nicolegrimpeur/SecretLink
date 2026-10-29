@@ -20,17 +20,15 @@
                 <ion-item lines="none">
                   <ion-textarea
                     label="Secret :"
-                    [(ngModel)]="quickSecret"
-                    [ngModelOptions]="{standalone:true}"
+                    [formControl]="quickSecret"
                     [autoGrow]="true"
                     [required]="true"
-                    helperText="Le secret associé."
-                    [counter]="true"
-                    [maxlength]="4096"
+                    helperText="Le secret associé. {{ quickSecretLength() }} / {{ secretMax }}"
+                    [errorText]="quickSecretError()"
                   />
                 </ion-item>
                 <div class="ion-display-flex ion-justify-content-center">
-                  <ion-button type="submit" [disabled]="!quickSecret().trim() || loading()">Créer</ion-button>
+                  <ion-button type="submit" [disabled]="!quickSecretLength() || !quickSecret.value.trim() || quickSecret.invalid || loading()">Créer</ion-button>
                 </div>
               </form>
 
@@ -77,7 +75,6 @@
                     [required]="true"
                     helperText="L'identifiant unique du secret. Ne peut pas être déjà utilisé sur un secret actif."
                     [errorText]="errorFor('item_id') || ''"
-                    [maxlength]="320"
                   />
                 </ion-item>
                 <ion-item lines="none">
@@ -86,10 +83,8 @@
                     formControlName="secret"
                     [autoGrow]="true"
                     [required]="true"
-                    helperText="Le secret associé à l'identifiant."
+                    helperText="Le secret associé à l'identifiant. {{ secretLength() }} / {{ secretMax }}"
                     [errorText]="errorFor('secret') || ''"
-                    [counter]="true"
-                    [maxlength]="4096"
                   />
                 </ion-item>
                 <ion-item lines="none">

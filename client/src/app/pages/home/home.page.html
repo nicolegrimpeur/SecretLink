@@ -31,9 +31,8 @@
                     label="Secret :"
                     formControlName="secret"
                     [required]="true"
-                    errorText="Ce champ est requis."
-                    [counter]="true"
-                    [maxlength]="64"
+                    helperText="{{ secretLength() }} / {{ secretMax }}"
+                    [errorText]="secretError()"
                     placeholder="Collez un mot de passe, un code, un token…"
                   />
                 </ion-item>
@@ -177,10 +176,10 @@
                 <div class="cmp-row" role="row">
                   <div class="cmp-cell cmp-col-feature" role="rowheader">Longueur du secret</div>
                   <div class="cmp-cell" role="cell">
-                    <ion-badge color="medium">64 caractères</ion-badge>
+                    <ion-badge color="medium">{{ secretMax }} caractères</ion-badge>
                   </div>
                   <div class="cmp-cell" role="cell">
-                    <ion-badge color="primary">4096 caractères</ion-badge>
+                    <ion-badge color="primary">{{ secretMaxAccount }} caractères</ion-badge>
                   </div>
                 </div>
 
@@ -242,11 +241,11 @@
                       <div class="cmp-comparison-row">
                         <div class="cmp-plan">
                           <div class="cmp-plan-title">Anonyme</div>
-                          <ion-badge color="medium">64 caractères</ion-badge>
+                          <ion-badge color="medium">{{ secretMax }} caractères</ion-badge>
                         </div>
                         <div class="cmp-plan">
                           <div class="cmp-plan-title">Compte</div>
-                          <ion-badge color="primary">4096 caractères</ion-badge>
+                          <ion-badge color="primary">{{ secretMaxAccount }} caractères</ion-badge>
                         </div>
                       </div>
                     </div>
