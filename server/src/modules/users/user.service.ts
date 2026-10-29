@@ -1,11 +1,11 @@
 import argon2 from 'argon2';
 import crypto from 'node:crypto';
-import { generateSecret, generateURI, verify as totpVerify } from 'otplib';
+import { generateSecret, generateURI } from 'otplib';
 import { Request, Response } from 'express';
 import { userStore } from './user.store.js';
 import { withTx } from '../../config/database.js';
 import { AppError, ValidationError, UnauthorizedError, NotFoundError, ConflictError, User } from '../../shared/types.js';
-import { encryptTotpSecret, decryptTotpSecret } from '../../shared/crypto.js';
+import { encryptTotpSecret, decryptTotpSecret, verifyTotp } from '../../shared/crypto.js';
 import { toIso } from '../../shared/dates.js';
 import { issueSession, issuePreAuthToken, verifyPreAuthToken, readCookie } from '../../middleware/session.js';
 import config from '../../config/env.js';
@@ -74,8 +74,7 @@ export class UserService {
     }
 
     // Verify the TOTP code before creating anything
-    const verifyResult = await totpVerify({ token: totpCode, secret: totpSecret });
-    if (!verifyResult.valid) {
+    if (!(await verifyTotp(totpCode, totpSecret))) {
       throw new ValidationError('Code MFA invalide');
     }
 
@@ -172,8 +171,7 @@ export class UserService {
         Buffer.from(user.totp_secret_nonce),
         userId,
       );
-      const verifyResult = await totpVerify({ token: totpCode, secret });
-      if (!verifyResult.valid) {
+      if (!(await verifyTotp(totpCode, secret))) {
         throw new UnauthorizedError('Code MFA invalide');
       }
     } else {
