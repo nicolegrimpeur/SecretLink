@@ -23,9 +23,10 @@ services:
     # Version figée volontairement, plutôt que `mysql:lts` : un bump amont ne
     # doit pas pouvoir casser la CI sur une PR qui n'y touche pas. Comme les
     # quatre piles pointent ici, les tests valident bien la version livrée.
+    # Dependabot n'y propose que les patchs de la série (voir dependabot.yml).
     # Changer de série (LTS suivante) est irréversible sur une base existante :
     # procédure dans la page wiki Auto-hébergement.
-    image: mysql:9.7
+    image: mysql:9.7.4
 
     # Fuseau explicite : NOW() et CURRENT_TIMESTAMP écrivent en UTC, comme le
     # driver côté serveur (timezone: 'Z'). Sans ça, le fuseau dépend de celui

@@ -1,10 +1,10 @@
 {
   "name": "secretlink-server",
-  "version": "0.21.0",
+  "version": "0.21.1",
   "author": "Nicolas BARRAT",
   "type": "module",
   "engines": {
-    "node": ">=24 <25",
+    "node": ">=26 <27",
     "npm": ">=10"
   },
   "scripts": {

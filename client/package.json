@@ -1,10 +1,10 @@
 {
   "name": "secret_link",
-  "version": "0.21.0",
+  "version": "0.21.1",
   "author": "Nicolas BARRAT",
   "homepage": "https://secret.nicob.ovh/",
   "engines": {
-    "node": ">=24 <25",
+    "node": ">=26 <27",
     "npm": ">=10"
   },
   "scripts": {
