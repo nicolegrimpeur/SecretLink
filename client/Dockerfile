@@ -1,5 +1,5 @@
 # ---------- Stage 1: build ----------
-ARG NODE_VERSION=24
+ARG NODE_VERSION=26
 FROM node:${NODE_VERSION}-alpine AS builder
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY . .
 RUN npm run build
 
 # ---------- Stage 2: serve ----------
-FROM nginx:stable-alpine
+FROM nginx:1.30.7-alpine
 
 # Config nginx custom : le vhost, plus le snippet d'en-têtes de sécurité qu'il inclut
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf

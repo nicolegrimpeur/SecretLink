@@ -90,12 +90,31 @@ updates:
       actions:
         patterns: ["*"]
 
-  # Suit les `FROM` des Dockerfiles. Utile surtout pour les correctifs de
-  # sécurité d'Alpine ; la majeure de Node, elle, reste pilotée par .nvmrc.
+  # Images des Dockerfiles. L'image `node` n'est pas suivie : sa version passe
+  # par `ARG NODE_VERSION`, que release.yml renseigne depuis .nvmrc.
   - package-ecosystem: docker
     directories:
       - /server
       - /client
     schedule:
       interval: monthly
-    labels: [dependencies, ci]
+    labels: [dependencies, docker]
+    ignore:
+      # Chez nginx, mineure paire = branche stable, impaire = mainline :
+      # seuls les correctifs de la stable sont proposés. Le passage à la
+      # stable suivante (mineure paire, une par an) se fait à la main.
+      - dependency-name: "nginx"
+        update-types: [version-update:semver-minor, version-update:semver-major]
+
+  # Images des fichiers Compose (MySQL, Alloy).
+  - package-ecosystem: docker-compose
+    directory: /deploy
+    schedule:
+      interval: monthly
+    labels: [dependencies, docker]
+    ignore:
+      # Correctifs de la série LTS uniquement. Toute autre version (Innovation,
+      # LTS suivante) met à niveau le volume sans retour possible : à faire à
+      # la main, procédure dans la page wiki Auto-hébergement.
+      - dependency-name: "mysql"
+        update-types: [version-update:semver-minor, version-update:semver-major]

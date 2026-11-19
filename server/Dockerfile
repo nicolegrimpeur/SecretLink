@@ -1,4 +1,4 @@
-ARG NODE_VERSION=24
+ARG NODE_VERSION=26
 FROM node:${NODE_VERSION}-alpine
 
 # L'image officielle fournit déjà un utilisateur `node` non privilégié (uid
