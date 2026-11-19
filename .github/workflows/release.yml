@@ -384,35 +384,56 @@ jobs:
           import { execFileSync } from 'node:child_process';
 
           const numbers = (process.env.PR_NUMBERS ?? '').split(/\s+/).filter(Boolean);
+          // GitHub refuse un corps de release au-delà de 125 000 caractères.
+          // Budget restant pour cette section, calculé par l'appelant.
+          let budget = Number(process.env.DETAILS_BUDGET ?? 0);
           const blocks = [];
 
           for (const n of numbers) {
             let pr;
             try {
               pr = JSON.parse(
-                execFileSync('gh', ['pr', 'view', n, '--json', 'title,body'], { encoding: 'utf8' }),
+                execFileSync('gh', ['pr', 'view', n, '--json', 'title,body,author,labels'], {
+                  encoding: 'utf8',
+                }),
               );
             } catch {
               console.error(`::warning::PR #${n} illisible, ignorée dans les détails`);
               continue;
             }
 
+            // Mêmes exclusions que le volet natif (.github/release.yml) : les
+            // PR de bots (Dependabot recopie les changelogs complets des
+            // paquets) et celles marquées ignore-for-release.
+            if (pr.author?.is_bot) continue;
+            if ((pr.labels ?? []).some((l) => l.name === 'ignore-for-release')) continue;
+
             // Les gabarits de PR laissent des commentaires HTML d'instructions,
             // qui n'ont rien à faire dans une note de version.
-            const body = (pr.body ?? '').replace(/<!--[\s\S]*?-->/g, '').trim();
+            let body = (pr.body ?? '').replace(/<!--[\s\S]*?-->/g, '').trim();
             // Une PR sans description n'apporterait rien de plus que l'index.
             if (!body) continue;
 
-            blocks.push(
-              `<details><summary><b>#${n} - ${pr.title}</b></summary>\n\n${body}\n\n</details>`,
-            );
+            const summary = `<details><summary><b>#${n} - ${pr.title}</b></summary>`;
+            let block = `${summary}\n\n${body}\n\n</details>`;
+            if (block.length > budget) {
+              block = `${summary}\n\nDescription trop longue pour la release, voir #${n}.\n\n</details>`;
+              console.error(`::warning::PR #${n} : description omise (taille des notes)`);
+            }
+            if (block.length > budget) break;
+            budget -= block.length + 2;
+            blocks.push(block);
           }
 
           if (blocks.length > 0) {
             process.stdout.write(`\n## Détails\n\n${blocks.join('\n\n')}\n`);
           }
           PRD
-          PR_NUMBERS="$PR_NUMBERS" node "$RUNNER_TEMP/pr-details.mjs" >> notes.md
+          # Marge sous la limite de 125 000 caractères pour l'en-tête de
+          # section, les commits hors PR et les images ajoutés ensuite.
+          DETAILS_BUDGET=$(( 110000 - $(wc -m < notes.md) ))
+          PR_NUMBERS="$PR_NUMBERS" DETAILS_BUDGET="$DETAILS_BUDGET" \
+            node "$RUNNER_TEMP/pr-details.mjs" >> notes.md
 
           # Ce qui a atterri sur master SANS passer par une PR : invisible du
           # volet natif, donc la seule chose que `git log` apporte réellement.
